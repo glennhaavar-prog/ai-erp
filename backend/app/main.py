@@ -10,6 +10,7 @@ import logging
 from app.config import settings
 from app.database import init_db, close_db
 from app.graphql.schema import schema
+from app.api.webhooks import ehf
 
 # Setup logging
 logging.basicConfig(
@@ -59,6 +60,9 @@ graphql_app = GraphQLRouter(
     graphiql=settings.DEBUG,  # GraphiQL UI in development only
 )
 app.include_router(graphql_app, prefix="/graphql")
+
+# Webhooks
+app.include_router(ehf.router)
 
 
 # Health check endpoint

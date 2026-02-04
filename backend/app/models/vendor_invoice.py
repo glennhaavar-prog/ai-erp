@@ -3,7 +3,7 @@ Vendor Invoice model - Leverandørfakturaer
 """
 from sqlalchemy import (
     Column, String, DateTime, ForeignKey, Numeric, Boolean,
-    Text, JSON, Date
+    Text, JSON, Date, Integer
 )
 from sqlalchemy.dialects.postgresql import UUID, ARRAY
 from sqlalchemy.orm import relationship
