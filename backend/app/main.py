@@ -11,6 +11,8 @@ from app.config import settings
 from app.database import init_db, close_db
 from app.graphql.schema import schema
 from app.api.webhooks import ehf
+from app.api import chat
+from app.api.routes import review_queue, dashboard, reports, documents, accounts, audit
 
 # Setup logging
 logging.basicConfig(
@@ -64,6 +66,27 @@ app.include_router(graphql_app, prefix="/graphql")
 # Webhooks
 app.include_router(ehf.router)
 
+# Chat API (with database integration)
+app.include_router(chat.router)
+
+# Review Queue REST API (for frontend)
+app.include_router(review_queue.router)
+
+# Trust Dashboard API
+app.include_router(dashboard.router)
+
+# Reports API (Hovedbok and other reports)
+app.include_router(reports.router)
+
+# Documents API (PDF retrieval)
+app.include_router(documents.router)
+
+# Accounts API (Chart of Accounts management)
+app.include_router(accounts.router)
+
+# Audit Trail API (System event history)
+app.include_router(audit.router)
+
 
 # Health check endpoint
 @app.get("/health")
@@ -82,8 +105,12 @@ async def root():
     return {
         "message": "AI-Agent ERP API",
         "version": settings.APP_VERSION,
-        "graphql": "/graphql",
-        "health": "/health",
+        "endpoints": {
+            "graphql": "/graphql",
+            "health": "/health",
+            "chat": "/api/chat",
+            "chat_docs": "/docs#/Chat",
+        },
     }
 
 

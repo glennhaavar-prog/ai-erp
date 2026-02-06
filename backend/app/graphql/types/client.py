@@ -5,10 +5,11 @@ import strawberry
 from typing import Optional, List
 from datetime import datetime
 from decimal import Decimal
+from enum import Enum
 
 
 @strawberry.enum
-class AutomationLevel:
+class AutomationLevel(str, Enum):
     """AI automation level"""
     FULL = "full"
     ASSISTED = "assisted"

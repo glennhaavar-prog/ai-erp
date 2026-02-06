@@ -11,6 +11,9 @@ from app.models.chart_of_accounts import Account
 from app.models.review_queue import ReviewQueue
 from app.models.agent_decision import AgentDecision
 from app.models.agent_learned_pattern import AgentLearnedPattern
+from app.models.agent_task import AgentTask
+from app.models.agent_event import AgentEvent
+from app.models.correction import Correction
 from app.models.document import Document
 from app.models.audit_trail import AuditTrail
 
@@ -26,6 +29,9 @@ __all__ = [
     "ReviewQueue",
     "AgentDecision",
     "AgentLearnedPattern",
+    "AgentTask",
+    "AgentEvent",
+    "Correction",
     "Document",
     "AuditTrail",
 ]

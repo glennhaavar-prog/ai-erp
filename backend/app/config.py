@@ -24,6 +24,7 @@ class Settings(BaseSettings):
     
     # AWS
     AWS_REGION: str = "eu-north-1"  # Stockholm/Oslo
+    AWS_TEXTRACT_REGION: str = "eu-west-1"  # Ireland (Textract not available in Stockholm)
     AWS_ACCESS_KEY: str = ""
     AWS_SECRET_KEY: str = ""
     S3_BUCKET_DOCUMENTS: str = "ai-erp-documents"

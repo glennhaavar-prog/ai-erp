@@ -1,0 +1,259 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500&family=Outfit:wght@200;300;400;500;600;700;800&family=Sora:wght@200;300;400;500;600;700;800&display=swap');
+
+@layer base {
+  :root {
+    /* === KONTALI DESIGN SYSTEM === */
+    
+    /* Background layers */
+    --background: 220 30% 5%; /* #0A0E1A - Deep */
+    --background-surface: 220 25% 9%; /* #111827 - Surface */
+    --background-card: 220 22% 15%; /* #1A2235 - Card */
+    
+    /* Borders */
+    --border: 220 20% 24%; /* #2A3450 */
+    --input: 220 20% 24%;
+    --ring: 239 84% 67%; /* Indigo */
+    
+    /* Text hierarchy */
+    --foreground: 210 40% 96%; /* #F1F5F9 - Primary */
+    --muted: 215 16% 47%; /* #64748B */
+    --muted-foreground: 215 20% 65%; /* #94A3B8 - Secondary */
+    
+    /* Primary - Indigo */
+    --primary: 239 84% 67%; /* #6366F1 */
+    --primary-foreground: 210 40% 98%;
+    
+    /* Secondary - Violet */
+    --secondary: 263 70% 66%; /* #8B5CF6 */
+    --secondary-foreground: 210 40% 98%;
+    
+    /* Accent - Cyan */
+    --accent: 189 94% 43%; /* #06B6D4 */
+    --accent-foreground: 210 40% 98%;
+    
+    /* Teal */
+    --teal: 168 76% 40%; /* #14B8A6 */
+    
+    /* Semantic colors */
+    --success: 160 84% 39%; /* #34D399 - Mint */
+    --success-foreground: 210 40% 98%;
+    --warning: 38 92% 50%; /* #F59E0B - Amber */
+    --warning-foreground: 220 30% 5%;
+    --destructive: 350 89% 60%; /* #F43F5E - Rose */
+    --destructive-foreground: 210 40% 98%;
+    
+    /* Card & Popover */
+    --card: 220 22% 15%;
+    --card-foreground: 210 40% 96%;
+    --popover: 220 22% 15%;
+    --popover-foreground: 210 40% 96%;
+    
+    /* Chart colors */
+    --chart-1: 239 84% 67%;
+    --chart-2: 189 94% 43%;
+    --chart-3: 263 70% 66%;
+    --chart-4: 160 84% 39%;
+    --chart-5: 168 76% 40%;
+    
+    /* Effects */
+    --radius: 1rem;
+    --glow-indigo: 0 0 40px hsla(239, 84%, 67%, 0.15);
+    --glow-cyan: 0 0 40px hsla(189, 94%, 43%, 0.12);
+    --glass-blur: blur(12px);
+    
+    /* Sidebar */
+    --sidebar-background: 220 25% 9%;
+    --sidebar-foreground: 210 40% 96%;
+    --sidebar-primary: 239 84% 67%;
+    --sidebar-primary-foreground: 210 40% 98%;
+    --sidebar-accent: 220 22% 15%;
+    --sidebar-accent-foreground: 210 40% 96%;
+    --sidebar-border: 220 20% 24%;
+    --sidebar-ring: 239 84% 67%;
+    
+    /* Legacy dark theme tokens (for compatibility) */
+    --dark-bg: 220 30% 5%;
+    --dark-card: 220 22% 15%;
+    --dark-hover: 220 20% 20%;
+    --dark-border: 220 20% 24%;
+    --accent-blue: 239 84% 67%;
+    --accent-green: 160 84% 39%;
+    --accent-red: 350 89% 60%;
+  }
+
+  /* Light mode fallback - not primary */
+  .light {
+    --background: 210 40% 98%;
+    --background-surface: 210 40% 96%;
+    --background-card: 0 0% 100%;
+    --foreground: 220 30% 5%;
+    --muted: 215 16% 47%;
+    --muted-foreground: 215 20% 35%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 30% 5%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 30% 5%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  body {
+    @apply bg-background text-foreground font-body antialiased;
+  }
+}
+
+@layer components {
+  /* Glassmorphism card */
+  .glass-card {
+    @apply bg-card/60 backdrop-blur-xl border border-border/50 rounded-2xl;
+    box-shadow: var(--glow-indigo);
+  }
+  
+  /* Gradient text */
+  .gradient-text {
+    @apply bg-gradient-to-r from-primary via-accent to-teal bg-clip-text text-transparent;
+  }
+  
+  .gradient-text-primary {
+    @apply bg-gradient-to-r from-foreground via-primary to-accent bg-clip-text text-transparent;
+  }
+  
+  /* Status indicators */
+  .status-dot {
+    @apply w-2 h-2 rounded-full animate-pulse;
+  }
+  
+  .status-dot-ai {
+    @apply bg-accent;
+    box-shadow: 0 0 8px hsl(var(--accent));
+  }
+  
+  .status-dot-success {
+    @apply bg-success;
+    box-shadow: 0 0 8px hsl(var(--success));
+  }
+  
+  /* Section styling */
+  .section-number {
+    @apply font-mono text-xs text-primary tracking-[0.2em] uppercase flex items-center gap-3;
+  }
+  
+  .section-number::after {
+    content: '';
+    @apply flex-1 max-w-[60px] h-px bg-gradient-to-r from-primary to-transparent;
+  }
+  
+  /* Hero grid pattern */
+  .hero-grid {
+    background-image:
+      linear-gradient(hsla(239, 84%, 67%, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, hsla(239, 84%, 67%, 0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+    mask-image: radial-gradient(ellipse at center, black 20%, transparent 70%);
+  }
+  
+  /* Hero glow background */
+  .hero-glow {
+    background:
+      radial-gradient(ellipse at 30% 20%, hsla(239, 84%, 67%, 0.08) 0%, transparent 50%),
+      radial-gradient(ellipse at 70% 80%, hsla(189, 94%, 43%, 0.06) 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 50%, hsla(263, 70%, 66%, 0.04) 0%, transparent 60%);
+    animation: heroGlow 12s ease-in-out infinite alternate;
+  }
+  
+  /* Badge styling */
+  .badge-glow {
+    @apply inline-flex items-center gap-2 px-4 py-1.5 rounded-full font-mono text-xs tracking-[0.1em] uppercase;
+    background: hsla(239, 84%, 67%, 0.1);
+    border: 1px solid hsla(239, 84%, 67%, 0.2);
+    color: hsl(var(--primary));
+  }
+  
+  /* Feature card hover effect */
+  .feature-card {
+    @apply bg-card border border-border rounded-2xl p-8 transition-all duration-300;
+  }
+  
+  .feature-card:hover {
+    border-color: hsl(var(--primary));
+    box-shadow: var(--glow-indigo);
+    transform: translateY(-2px);
+  }
+}
+
+@layer utilities {
+  /* Gradient backgrounds */
+  .bg-gradient-primary {
+    background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)));
+  }
+  
+  .bg-gradient-hero {
+    background: linear-gradient(135deg, hsl(var(--secondary)), hsl(var(--accent)), hsl(var(--teal)));
+  }
+  
+  /* Custom shadows */
+  .shadow-glow-indigo {
+    box-shadow: var(--glow-indigo);
+  }
+  
+  .shadow-glow-cyan {
+    box-shadow: var(--glow-cyan);
+  }
+  
+  /* Animation delays */
+  .animation-delay-200 {
+    animation-delay: 200ms;
+  }
+  
+  .animation-delay-400 {
+    animation-delay: 400ms;
+  }
+  
+  .animation-delay-600 {
+    animation-delay: 600ms;
+  }
+}
+
+/* Keyframe animations */
+@keyframes heroGlow {
+  0% { transform: translate(0, 0) scale(1); }
+  100% { transform: translate(-2%, 3%) scale(1.05); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { 
+    opacity: 1; 
+    box-shadow: 0 0 8px hsl(var(--accent)); 
+  }
+  50% { 
+    opacity: 0.6; 
+    box-shadow: 0 0 16px hsl(var(--accent)); 
+  }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}

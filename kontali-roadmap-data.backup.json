@@ -1,0 +1,501 @@
+{
+  "project": {
+    "name": "Kontali ERP",
+    "description": "AI-drevet regnskapssystem for Norge",
+    "startDate": "2026-02-01",
+    "version": "0.1.0-alpha"
+  },
+  "modules": [
+    {
+      "id": "bokforing",
+      "name": "Bokføringsmodul",
+      "description": "AI-drevet automatisk bokføring av bilag",
+      "status": "in-progress",
+      "progress": 70,
+      "priority": "critical",
+      "features": [
+        {
+          "id": "ehf-mottak",
+          "name": "EHF-mottak og parsing",
+          "description": "Motta EHF-fakturaer via PEPPOL access point",
+          "status": "done",
+          "completedDate": "2026-02-04",
+          "tasks": [
+            { "name": "EHF XML parser", "status": "done" },
+            { "name": "PEPPOL endpoint", "status": "done" },
+            { "name": "Validation against EHF 3.0", "status": "done" },
+            { "name": "Test suite (94% pass rate)", "status": "done" }
+          ]
+        },
+        {
+          "id": "ai-kontering",
+          "name": "AI-basert kontering",
+          "description": "Claude AI analyserer og foreslår kontoer basert på NS 4102",
+          "status": "done",
+          "completedDate": "2026-02-05",
+          "tasks": [
+            { "name": "Invoice Agent med Claude API", "status": "done" },
+            { "name": "Confidence scoring (85% threshold)", "status": "done" },
+            { "name": "Norwegian chart of accounts (NS 4102)", "status": "done" },
+            { "name": "MVA-kode identifisering", "status": "done" },
+            { "name": "Pattern learning fra corrections", "status": "done" }
+          ]
+        },
+        {
+          "id": "leverandor-fakturaer",
+          "name": "Leverandørfakturaer",
+          "description": "Håndtering av leverandørfakturaer med OCR",
+          "status": "in-progress",
+          "progress": 80,
+          "tasks": [
+            { "name": "AWS Textract OCR", "status": "done" },
+            { "name": "PDF format support", "status": "done" },
+            { "name": "Vendor matching/creation", "status": "done" },
+            { "name": "Database persistence", "status": "in-progress" },
+            { "name": "Multi-format fallback", "status": "planned" }
+          ]
+        },
+        {
+          "id": "bokforing-chat",
+          "name": "Bokføring via chat",
+          "description": "Regnskapsfører kan bokføre ved å skrive i chat",
+          "status": "planned",
+          "priority": "high",
+          "tasks": [
+            { "name": "Chat interface design", "status": "planned" },
+            { "name": "Natural language parsing", "status": "planned" },
+            { "name": "Booking validation", "status": "planned" },
+            { "name": "Confirmation flow", "status": "planned" }
+          ]
+        },
+        {
+          "id": "excel-import",
+          "name": "Excel-import for bokføring",
+          "description": "Importer bokføringsbilag fra Excel med bestemt format",
+          "status": "planned",
+          "priority": "medium",
+          "tasks": [
+            { "name": "Excel template design", "status": "planned" },
+            { "name": "Validation rules", "status": "planned" },
+            { "name": "Batch import processor", "status": "planned" },
+            { "name": "Error reporting", "status": "planned" }
+          ]
+        },
+        {
+          "id": "csv-import",
+          "name": "CSV-import for mange rader",
+          "description": "Massiv import via CSV-filer",
+          "status": "planned",
+          "priority": "medium",
+          "tasks": [
+            { "name": "CSV parser", "status": "planned" },
+            { "name": "Format validation", "status": "planned" },
+            { "name": "Bulk insert optimization", "status": "planned" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "rapportering",
+      "name": "Rapporteringsmodul",
+      "description": "Alle regnskapsrapporter med filtrering og drilldown",
+      "status": "planned",
+      "progress": 0,
+      "priority": "critical",
+      "features": [
+        {
+          "id": "hovedbok",
+          "name": "Hovedbok",
+          "description": "Komplett hovedbok med alle detaljer",
+          "status": "planned",
+          "priority": "high",
+          "tasks": [
+            { "name": "Hovedbok query med alle felt", "status": "planned" },
+            { "name": "Datofiltrering", "status": "planned" },
+            { "name": "Export til Excel/PDF", "status": "planned" }
+          ],
+          "fields": [
+            "Bilagsnummer",
+            "Bilagsart (AP=Leverandørfaktura, BA=Bankbilag, etc)",
+            "Debetkonto",
+            "Kreditkonto",
+            "Tekst",
+            "Reskontronummer",
+            "Beløp",
+            "MVA-kode",
+            "Prosjektnummer",
+            "Avdelingskode",
+            "Tekstbeskrivelse",
+            "Bokført av hvem"
+          ]
+        },
+        {
+          "id": "saldobalanse",
+          "name": "Saldobalanse",
+          "description": "Saldorapport for alle kontoer",
+          "status": "planned",
+          "priority": "high",
+          "tasks": [
+            { "name": "Saldo-beregning per konto", "status": "planned" },
+            { "name": "Datofiltrering", "status": "planned" },
+            { "name": "Gruppering etter kontotype", "status": "planned" }
+          ]
+        },
+        {
+          "id": "resultatrapport",
+          "name": "Resultatrapport",
+          "description": "Periodisk resultatregnskap",
+          "status": "planned",
+          "priority": "high",
+          "tasks": [
+            { "name": "Resultat-beregning", "status": "planned" },
+            { "name": "Datoperiode-filtrering", "status": "planned" },
+            { "name": "Drilldown til konto", "status": "planned" }
+          ]
+        },
+        {
+          "id": "balanserapport",
+          "name": "Balanserapport",
+          "description": "Balanseregnskap per dato",
+          "status": "planned",
+          "priority": "high",
+          "tasks": [
+            { "name": "Balanse-beregning", "status": "planned" },
+            { "name": "Periodisering", "status": "planned" }
+          ]
+        },
+        {
+          "id": "drilldown",
+          "name": "Drilldown-funksjonalitet",
+          "description": "Resultatrapport → Konto → Hovedbok → Bilag med PDF",
+          "status": "planned",
+          "priority": "high",
+          "tasks": [
+            { "name": "Navigasjonshierarki", "status": "planned" },
+            { "name": "PDF-viewer integration", "status": "planned" },
+            { "name": "Back-navigation", "status": "planned" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "avstemming",
+      "name": "Avstemmingsmodul",
+      "description": "Automatisk avstemming av bank og balanse",
+      "status": "planned",
+      "progress": 0,
+      "priority": "high",
+      "features": [
+        {
+          "id": "bankavstemming",
+          "name": "Bankavstemming",
+          "description": "Avstem banktransaksjoner mot bokførte bilag per periode",
+          "status": "planned",
+          "priority": "high",
+          "tasks": [
+            { "name": "Bank transaction import", "status": "planned" },
+            { "name": "Matching algorithm", "status": "planned" },
+            { "name": "Avviks-rapportering", "status": "planned" },
+            { "name": "Manual matching UI", "status": "planned" }
+          ]
+        },
+        {
+          "id": "balansekontoer",
+          "name": "Balansekonto-avstemming",
+          "description": "Avstem balansekontoer (1740, 1500, etc)",
+          "status": "planned",
+          "priority": "medium",
+          "tasks": [
+            { "name": "Per-konto saldo-check", "status": "planned" },
+            { "name": "Avviksdeteksjon", "status": "planned" },
+            { "name": "Reconciliation workflow", "status": "planned" }
+          ]
+        },
+        {
+          "id": "oppgave-oversikt",
+          "name": "Oppgaveoversikt per klient",
+          "description": "Vis status for alle avstemminger per klient og totalt",
+          "status": "planned",
+          "priority": "high",
+          "tasks": [
+            { "name": "Dashboard design", "status": "planned" },
+            { "name": "Status aggregering", "status": "planned" },
+            { "name": "Alert på avvik", "status": "planned" }
+          ],
+          "examples": [
+            "Bankavstemming januar: OK",
+            "Bankavstemming februar: AVVIK",
+            "Konto 1740: OK",
+            "Konto 1500: IKKE OK"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "reskontro",
+      "name": "Reskontromodul",
+      "description": "Kunde-, leverandør- og ansattereskontro",
+      "status": "planned",
+      "progress": 0,
+      "priority": "medium",
+      "features": [
+        {
+          "id": "reskontro-serier",
+          "name": "Reskontro-nummerserier",
+          "description": "Separate nummerserier for forskjellige typer reskontro",
+          "status": "planned",
+          "priority": "high",
+          "tasks": [
+            { "name": "Kunde: 10000-19999", "status": "planned" },
+            { "name": "Leverandør: 20000-29999", "status": "planned" },
+            { "name": "Ansatte: 1-999", "status": "planned" },
+            { "name": "Auto-numbering logic", "status": "planned" }
+          ]
+        },
+        {
+          "id": "kundefordringer",
+          "name": "Kundefordringsrapporter",
+          "description": "Rapporter for kundefordringer",
+          "status": "planned",
+          "priority": "medium",
+          "tasks": [
+            { "name": "Åpne poster rapport", "status": "planned" },
+            { "name": "Kontoutskrift per kunde", "status": "planned" },
+            { "name": "Aldringsanalyse", "status": "planned" }
+          ]
+        },
+        {
+          "id": "leverandorgjeld",
+          "name": "Leverandørgjeld-rapporter",
+          "description": "Oversikt over leverandørgjeld",
+          "status": "planned",
+          "priority": "medium",
+          "tasks": [
+            { "name": "Åpne poster rapport", "status": "planned" },
+            { "name": "Kontoutskrift per leverandør", "status": "planned" },
+            { "name": "Forfallsoversikt", "status": "planned" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "review-queue",
+      "name": "Review Queue",
+      "description": "AI review queue for regnskapsførere med chat i sentrum",
+      "status": "in-progress",
+      "progress": 60,
+      "priority": "critical",
+      "features": [
+        {
+          "id": "frontend-ui",
+          "name": "Review Queue UI",
+          "description": "Dark theme UI med 12 komponenter",
+          "status": "done",
+          "completedDate": "2026-02-05",
+          "tasks": [
+            { "name": "12 React components", "status": "done" },
+            { "name": "Dark theme styling", "status": "done" },
+            { "name": "Confidence visualization", "status": "done" },
+            { "name": "Filter/search functionality", "status": "done" }
+          ]
+        },
+        {
+          "id": "chat-interface",
+          "name": "Chat-interface sentralt",
+          "description": "Chat skal være sentralt i bildet for interaksjon",
+          "status": "planned",
+          "priority": "high",
+          "tasks": [
+            { "name": "Chat UI design", "status": "planned" },
+            { "name": "AI chat integration", "status": "planned" },
+            { "name": "Context awareness", "status": "planned" },
+            { "name": "Quick actions fra chat", "status": "planned" }
+          ]
+        },
+        {
+          "id": "multi-klient",
+          "name": "Multi-klient visning",
+          "description": "Bytte mellom klienter og se aggregert view",
+          "status": "planned",
+          "priority": "high",
+          "tasks": [
+            { "name": "Klient-selector dropdown", "status": "planned" },
+            { "name": "Isolert view per klient", "status": "planned" },
+            { "name": "Tvers-klient aggregering", "status": "planned" },
+            { "name": "Total review count per klient", "status": "planned" }
+          ]
+        },
+        {
+          "id": "backend-integration",
+          "name": "Backend database integration",
+          "description": "Koble review queue til PostgreSQL",
+          "status": "in-progress",
+          "progress": 70,
+          "tasks": [
+            { "name": "Database models", "status": "done" },
+            { "name": "GraphQL queries", "status": "done" },
+            { "name": "Save invoice to DB", "status": "in-progress" },
+            { "name": "Real-time updates", "status": "planned" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "periodesperre",
+      "name": "Periodesperre",
+      "description": "Låse regnskapsperioder for å forhindre endringer",
+      "status": "planned",
+      "progress": 0,
+      "priority": "medium",
+      "features": [
+        {
+          "id": "manuell-sperre",
+          "name": "Manuell periodesperre",
+          "description": "Regnskapsfører kan låse en periode (måned)",
+          "status": "planned",
+          "priority": "medium",
+          "tasks": [
+            { "name": "Lock period UI", "status": "planned" },
+            { "name": "Database lock mechanism", "status": "planned" },
+            { "name": "Permission check on all writes", "status": "planned" }
+          ]
+        },
+        {
+          "id": "auto-sperre-mva",
+          "name": "Auto-sperre ved MVA-innsending",
+          "description": "Periode låses automatisk når MVA sendes inn",
+          "status": "planned",
+          "priority": "high",
+          "tasks": [
+            { "name": "MVA submission hook", "status": "planned" },
+            { "name": "Auto-lock logic", "status": "planned" },
+            { "name": "Notification til bruker", "status": "planned" }
+          ]
+        },
+        {
+          "id": "oversikt-sperre",
+          "name": "Oversikt over låste perioder",
+          "description": "Vis hvilke perioder som er låst",
+          "status": "planned",
+          "priority": "low",
+          "tasks": [
+            { "name": "Period lock list view", "status": "planned" },
+            { "name": "Unlock capability (admin only)", "status": "planned" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mva-modul",
+      "name": "MVA-modul",
+      "description": "Automatisk MVA-beregning og innsending til Altinn",
+      "status": "ideas",
+      "progress": 0,
+      "priority": "medium",
+      "features": [
+        {
+          "id": "mva-beregning",
+          "name": "MVA-beregning",
+          "description": "Automatisk beregning av MVA-oppgave",
+          "status": "ideas",
+          "priority": "high"
+        },
+        {
+          "id": "altinn-innsending",
+          "name": "Altinn API-innsending",
+          "description": "Send MVA-oppgave direkte til Altinn",
+          "status": "ideas",
+          "priority": "medium"
+        },
+        {
+          "id": "mva-validering",
+          "name": "MVA-validering",
+          "description": "Valider MVA-oppgave før innsending",
+          "status": "ideas",
+          "priority": "high"
+        }
+      ]
+    },
+    {
+      "id": "kontrollsenter",
+      "name": "Kontrollsenter",
+      "description": "Dashboard med nøkkeltall og avviksoversikt",
+      "status": "ideas",
+      "progress": 0,
+      "priority": "medium",
+      "features": [
+        {
+          "id": "dashboard",
+          "name": "Dashboard med nøkkeltall",
+          "description": "Sentral oversikt over hele regnskapet",
+          "status": "ideas",
+          "priority": "high"
+        },
+        {
+          "id": "avviks-oversikt",
+          "name": "Avviksoversikt",
+          "description": "Alle avvik som krever oppfølging",
+          "status": "ideas",
+          "priority": "high"
+        },
+        {
+          "id": "oppgave-status",
+          "name": "Oppgavestatus",
+          "description": "Status for alle automatiske oppgaver Kontali utfører",
+          "status": "ideas",
+          "priority": "medium"
+        }
+      ]
+    },
+    {
+      "id": "system-admin",
+      "name": "Systemadministrasjon",
+      "description": "Tradisjonelle admin-funksjoner",
+      "status": "planned",
+      "progress": 10,
+      "priority": "medium",
+      "features": [
+        {
+          "id": "innstillinger",
+          "name": "Innstillinger",
+          "description": "System- og klientinnstillinger",
+          "status": "planned",
+          "priority": "medium"
+        },
+        {
+          "id": "brukere",
+          "name": "Brukerhåndtering",
+          "description": "Administrere brukere og tilganger",
+          "status": "planned",
+          "priority": "medium"
+        },
+        {
+          "id": "menysystem",
+          "name": "Menysystem",
+          "description": "Hovedmeny med alle funksjoner",
+          "status": "planned",
+          "priority": "high",
+          "menuItems": [
+            "Innstillinger",
+            "Brukere",
+            "Rapporter",
+            "Kontrollsenter"
+          ]
+        }
+      ]
+    }
+  ],
+  "stats": {
+    "totalModules": 9,
+    "completedModules": 0,
+    "inProgressModules": 2,
+    "plannedModules": 5,
+    "ideasModules": 2,
+    "totalFeatures": 38,
+    "completedFeatures": 4,
+    "inProgressFeatures": 3,
+    "plannedFeatures": 25,
+    "ideasFeatures": 6,
+    "overallProgress": 18
+  }
+}

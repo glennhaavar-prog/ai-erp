@@ -14,6 +14,7 @@ from app.database import get_db
 from app.models.vendor_invoice import VendorInvoice
 from app.models.vendor import Vendor
 from app.services.ehf import receive_ehf_invoice
+from app.services.invoice_processing import process_vendor_invoice
 
 router = APIRouter(prefix="/webhooks", tags=["webhooks"])
 
@@ -96,15 +97,20 @@ async def ehf_webhook(
     await db.commit()
     await db.refresh(invoice)
     
-    # TODO: Trigger async processing by Invoice Agent
-    # from app.tasks.invoice_processing import process_invoice
-    # process_invoice.delay(str(invoice.id))
+    # Process invoice through AI agent
+    processing_result = await process_vendor_invoice(db, invoice.id)
     
     return {
         "status": "received",
         "invoice_id": str(invoice.id),
         "ehf_invoice_id": result["ehf_invoice_id"],
-        "warnings": result["warnings"]
+        "warnings": result["warnings"],
+        "processing": {
+            "success": processing_result["success"],
+            "confidence": processing_result.get("confidence"),
+            "action": processing_result.get("action"),
+            "review_queue_id": processing_result.get("review_queue_id")
+        }
     }
 
 

@@ -3,7 +3,7 @@ Invoice Agent - AI for analyzing and booking invoices
 """
 import anthropic
 import json
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 from decimal import Decimal
 import logging
 
@@ -94,7 +94,17 @@ class InvoiceAgent:
             
             # Parse response
             response_text = message.content[0].text
-            result = json.loads(response_text)
+            
+            # Remove markdown code blocks if present (```json ... ```)
+            if response_text.strip().startswith('```'):
+                # Extract JSON from markdown code block
+                lines = response_text.strip().split('\n')
+                # Remove first line (```json or ```) and last line (```)
+                json_text = '\n'.join(lines[1:-1])
+            else:
+                json_text = response_text
+            
+            result = json.loads(json_text)
             
             # Adjust confidence based on patterns
             if learned_patterns:

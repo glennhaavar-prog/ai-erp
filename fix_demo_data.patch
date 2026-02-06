@@ -1,0 +1,31 @@
+--- a/generate_hovedbok_demo_data.py
++++ b/generate_hovedbok_demo_data.py
+@@ -274,6 +274,12 @@ async def create_diverse_manual_entries(
+     count -= 1 if count % categories_count != 0 else 0  # Adjust if not evenly divisible
+     entries_per_category = count // categories_count
+     
++    # Get next available voucher number ONCE
++    base_voucher_num = await get_next_voucher_number(db, client_id, "M")
++    next_voucher_num = int(base_voucher_num)
++    
++    print(f"\n📝 Starting voucher numbers from M-{str(next_voucher_num).zfill(6)}")
++    
+     created_entries = []
+     
+     for category in categories:
+@@ -323,13 +329,13 @@ async def create_diverse_manual_entries(
+             # Create entry
+             entry = await create_manual_journal_entry(
+                 db=db,
+                 client_id=client_id,
+                 description=description,
+                 accounting_date=accounting_date,
+                 lines=lines,
+-                series="M"  # Manual series
++                series="M",
++                voucher_num=str(next_voucher_num).zfill(6)
+             )
++            next_voucher_num += 1
+             
+             created_entries.append(entry)
+             print(f"      ✅ M-{entry.voucher_number}: {description[:60]}...")

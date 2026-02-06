@@ -1425,18 +1425,419 @@
           ]
         }
       ]
+    },
+    {
+      "id": "trust-dashboard",
+      "name": "Trust & Control Dashboard",
+      "description": "Gi regnskapsfører full kontroll og trygghetsfølelse",
+      "status": "planned",
+      "progress": 0,
+      "priority": "critical",
+      "features": [
+        {
+          "id": "receipt-verification",
+          "name": "Kvitteringsverifisering",
+          "description": "Bevis på at alle bilag er behandlet - ingen ligger og flyter rundt",
+          "status": "planned",
+          "priority": "critical",
+          "tasks": [
+            {
+              "name": "EHF receipt counter (X mottatt, Y behandlet, Z pending)",
+              "status": "planned"
+            },
+            {
+              "name": "Bank transaction tracker (alle banktransaksjoner håndtert?)",
+              "status": "planned"
+            },
+            {
+              "name": "PDF upload monitor (alle analysert?)",
+              "status": "planned"
+            },
+            {
+              "name": "Zero unprocessed items verification",
+              "status": "planned"
+            },
+            {
+              "name": "Real-time status updates",
+              "status": "planned"
+            }
+          ]
+        },
+        {
+          "id": "traffic-light-status",
+          "name": "Grønne trafikklys",
+          "description": "Visuell indikator på at alt er OK eller krever oppmerksomhet",
+          "status": "planned",
+          "priority": "high",
+          "tasks": [
+            {
+              "name": "Green light: All systems operational",
+              "status": "planned"
+            },
+            {
+              "name": "Yellow light: Some items need attention",
+              "status": "planned"
+            },
+            {
+              "name": "Red light: Critical issues detected",
+              "status": "planned"
+            },
+            {
+              "name": "Per-module status indicators",
+              "status": "planned"
+            },
+            {
+              "name": "Real-time status dashboard",
+              "status": "planned"
+            }
+          ]
+        },
+        {
+          "id": "exception-reports",
+          "name": "Avviksrapporter",
+          "description": "Hva gikk galt? Hva ble ikke behandlet? Full transparency.",
+          "status": "planned",
+          "priority": "critical",
+          "tasks": [
+            {
+              "name": "Failed processing log",
+              "status": "planned"
+            },
+            {
+              "name": "Unmatched transactions report",
+              "status": "planned"
+            },
+            {
+              "name": "Low confidence items requiring review",
+              "status": "planned"
+            },
+            {
+              "name": "Vendor mismatch alerts",
+              "status": "planned"
+            },
+            {
+              "name": "Export to Excel for analysis",
+              "status": "planned"
+            }
+          ]
+        },
+        {
+          "id": "event-log",
+          "name": "Hendelseslogg",
+          "description": "Full auditlog av alt systemet har gjort - full transparency",
+          "status": "planned",
+          "priority": "high",
+          "tasks": [
+            {
+              "name": "All AI decisions logged with reasoning",
+              "status": "planned"
+            },
+            {
+              "name": "User actions tracked (who approved/rejected what)",
+              "status": "planned"
+            },
+            {
+              "name": "System events (EHF received, OCR completed, etc.)",
+              "status": "planned"
+            },
+            {
+              "name": "Search and filter event log",
+              "status": "planned"
+            },
+            {
+              "name": "Export audit trail for compliance",
+              "status": "planned"
+            }
+          ]
+        },
+        {
+          "id": "message-center",
+          "name": "Message Center",
+          "description": "Viktige meldinger fra systemet til regnskapsfører",
+          "status": "planned",
+          "priority": "medium",
+          "tasks": [
+            {
+              "name": "System notifications (new EHF received, error detected)",
+              "status": "planned"
+            },
+            {
+              "name": "Priority-based inbox (urgent/normal/info)",
+              "status": "planned"
+            },
+            {
+              "name": "Email/SMS alerts for critical issues",
+              "status": "planned"
+            },
+            {
+              "name": "Read/unread tracking",
+              "status": "planned"
+            },
+            {
+              "name": "Actionable messages (approve from notification)",
+              "status": "planned"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chart-of-accounts",
+      "name": "Kontoplan Management",
+      "description": "Fleksibel kontoplan med chat-basert redigering",
+      "status": "planned",
+      "progress": 0,
+      "priority": "high",
+      "features": [
+        {
+          "id": "default-chart",
+          "name": "Standard kontoplan (NS 4102)",
+          "description": "Norwegian standard chart of accounts as default",
+          "status": "planned",
+          "priority": "high",
+          "tasks": [
+            {
+              "name": "Load NS 4102 as default",
+              "status": "planned"
+            },
+            {
+              "name": "Per-client chart customization",
+              "status": "planned"
+            },
+            {
+              "name": "Chart settings page",
+              "status": "planned"
+            },
+            {
+              "name": "Account validation rules",
+              "status": "planned"
+            }
+          ]
+        },
+        {
+          "id": "chat-create-accounts",
+          "name": "Opprett kontoer via chat",
+          "description": "Lag nye kontoer ved å si 'Opprett konto 6999 - Annet kontorforbruk'",
+          "status": "planned",
+          "priority": "high",
+          "tasks": [
+            {
+              "name": "Chat command: create account",
+              "status": "planned"
+            },
+            {
+              "name": "AI validates account number follows rules",
+              "status": "planned"
+            },
+            {
+              "name": "Auto-assign account to correct category",
+              "status": "planned"
+            },
+            {
+              "name": "Confirmation before creation",
+              "status": "planned"
+            },
+            {
+              "name": "Undo recently created accounts",
+              "status": "planned"
+            }
+          ]
+        },
+        {
+          "id": "account-management",
+          "name": "Account Management UI",
+          "description": "Administrer kontoplan via settings eller chat",
+          "status": "planned",
+          "priority": "medium",
+          "tasks": [
+            {
+              "name": "List all accounts",
+              "status": "planned"
+            },
+            {
+              "name": "Search/filter accounts",
+              "status": "planned"
+            },
+            {
+              "name": "Edit account name/description",
+              "status": "planned"
+            },
+            {
+              "name": "Deactivate/archive unused accounts",
+              "status": "planned"
+            },
+            {
+              "name": "Import custom chart from Excel",
+              "status": "planned"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "vat-configuration",
+      "name": "MVA-konfigurasjon",
+      "description": "Norske MVA-koder med kobling til kontoer",
+      "status": "planned",
+      "progress": 0,
+      "priority": "high",
+      "features": [
+        {
+          "id": "norwegian-vat-codes",
+          "name": "Standard norske MVA-koder",
+          "description": "5=25%, 3=15%, 0=exempt, etc.",
+          "status": "planned",
+          "priority": "high",
+          "tasks": [
+            {
+              "name": "Load standard Norwegian VAT codes",
+              "status": "planned"
+            },
+            {
+              "name": "VAT rate lookup table",
+              "status": "planned"
+            },
+            {
+              "name": "Validation of VAT codes",
+              "status": "planned"
+            },
+            {
+              "name": "Custom VAT codes for special cases",
+              "status": "planned"
+            }
+          ]
+        },
+        {
+          "id": "vat-account-mapping",
+          "name": "MVA-kode til konto mapping",
+          "description": "Knytt MVA-koder til kontoer (f.eks. kode 5 → konto 2740)",
+          "status": "planned",
+          "priority": "high",
+          "tasks": [
+            {
+              "name": "Default mappings (2740=Input VAT 25%, etc.)",
+              "status": "planned"
+            },
+            {
+              "name": "Per-client custom mappings",
+              "status": "planned"
+            },
+            {
+              "name": "AI learns which MVA codes apply to which accounts",
+              "status": "planned"
+            },
+            {
+              "name": "Validation rules (can't use wrong VAT code on account)",
+              "status": "planned"
+            },
+            {
+              "name": "MVA settings page",
+              "status": "planned"
+            }
+          ]
+        },
+        {
+          "id": "vat-reporting",
+          "name": "MVA-rapportering",
+          "description": "Generere MVA-meldinger for Altinn",
+          "status": "planned",
+          "priority": "medium",
+          "tasks": [
+            {
+              "name": "Calculate VAT amounts per code",
+              "status": "planned"
+            },
+            {
+              "name": "Generate MVA report (SAF-T format)",
+              "status": "planned"
+            },
+            {
+              "name": "Validate report before submission",
+              "status": "planned"
+            },
+            {
+              "name": "Altinn integration for submission",
+              "status": "planned"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "account-mapping",
+      "name": "Account Mapping",
+      "description": "Kobling mellom kontoer og regnskapslinjer",
+      "status": "planned",
+      "progress": 0,
+      "priority": "medium",
+      "features": [
+        {
+          "id": "ledger-line-types",
+          "name": "General Ledger Line Types",
+          "description": "Definere hvilke typer regnskapslinjer finnes",
+          "status": "planned",
+          "priority": "medium",
+          "tasks": [
+            {
+              "name": "Debit/Credit line types",
+              "status": "planned"
+            },
+            {
+              "name": "Balance sheet accounts",
+              "status": "planned"
+            },
+            {
+              "name": "Income statement accounts",
+              "status": "planned"
+            },
+            {
+              "name": "Special accounts (VAT, payables, etc.)",
+              "status": "planned"
+            }
+          ]
+        },
+        {
+          "id": "account-rules",
+          "name": "Account Mapping Rules",
+          "description": "Regler for hvilke kontoer som kan brukes til hva",
+          "status": "planned",
+          "priority": "medium",
+          "tasks": [
+            {
+              "name": "Expense accounts (6000-6999)",
+              "status": "planned"
+            },
+            {
+              "name": "Revenue accounts (3000-3999)",
+              "status": "planned"
+            },
+            {
+              "name": "Asset accounts (1000-1999)",
+              "status": "planned"
+            },
+            {
+              "name": "Liability accounts (2000-2999)",
+              "status": "planned"
+            },
+            {
+              "name": "AI learns from accountant's mappings",
+              "status": "planned"
+            }
+          ]
+        }
+      ]
     }
   ],
   "stats": {
-    "totalModules": 18,
+    "totalModules": 22,
     "completedModules": 0,
     "inProgressModules": 2,
-    "plannedModules": 11,
+    "plannedModules": 15,
     "ideasModules": 5,
-    "totalFeatures": 60,
+    "totalFeatures": 72,
     "completedFeatures": 3,
     "inProgressFeatures": 2,
-    "plannedFeatures": 41,
+    "plannedFeatures": 53,
     "ideasFeatures": 14,
     "overallProgress": 7
   }

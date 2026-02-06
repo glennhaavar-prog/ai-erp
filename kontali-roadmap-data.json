@@ -3,7 +3,7 @@
     "name": "Kontali ERP",
     "description": "AI-drevet regnskapssystem for Norge",
     "startDate": "2026-02-01",
-    "version": "0.1.0-alpha"
+    "version": "0.2.0-alpha"
   },
   "modules": [
     {
@@ -1388,6 +1388,334 @@
       ]
     },
     {
+      "id": "onboardingsagent",
+      "name": "Onboardingsagent",
+      "description": "AI-drevet migrering fra andre regnskapssystemer",
+      "status": "ideas",
+      "progress": 0,
+      "priority": "high",
+      "features": [
+        {
+          "id": "system-detection",
+          "name": "System-identifisering",
+          "description": "Identifiser hvilket system regnskapsfører kommer fra (PowerOffice, Tripletex, Visma, 24SevenOffice)",
+          "status": "ideas",
+          "priority": "high",
+          "tasks": [
+            {
+              "name": "PowerOffice detection",
+              "status": "ideas"
+            },
+            {
+              "name": "Tripletex detection",
+              "status": "ideas"
+            },
+            {
+              "name": "Visma detection",
+              "status": "ideas"
+            },
+            {
+              "name": "24SevenOffice detection",
+              "status": "ideas"
+            }
+          ]
+        },
+        {
+          "id": "export-guidance",
+          "name": "Eksport-veiledning",
+          "description": "Gi presise instruksjoner for eksport av data (CSV/Excel) med screenshots/video",
+          "status": "ideas",
+          "priority": "high",
+          "tasks": [
+            {
+              "name": "PowerOffice export guide (interactive)",
+              "status": "ideas"
+            },
+            {
+              "name": "Tripletex export guide (interactive)",
+              "status": "ideas"
+            },
+            {
+              "name": "Video tutorials embedded",
+              "status": "ideas"
+            },
+            {
+              "name": "Screenshot-based step-by-step",
+              "status": "ideas"
+            }
+          ]
+        },
+        {
+          "id": "file-parsing",
+          "name": "Fil-parsing og mapping",
+          "description": "Motta og parse filer (klientlister, kontoplaner, åpne poster, historikk)",
+          "status": "ideas",
+          "priority": "high",
+          "tasks": [
+            {
+              "name": "CSV/Excel parser (multiple formats)",
+              "status": "ideas"
+            },
+            {
+              "name": "Client list import",
+              "status": "ideas"
+            },
+            {
+              "name": "Chart of accounts mapping (NS 4102)",
+              "status": "ideas"
+            },
+            {
+              "name": "Open items import",
+              "status": "ideas"
+            },
+            {
+              "name": "Transaction history import",
+              "status": "ideas"
+            }
+          ]
+        },
+        {
+          "id": "auto-setup",
+          "name": "Automatisk oppsett",
+          "description": "Sett opp bankintegrasjoner, EHF-mottak, fakturaflyt automatisk",
+          "status": "ideas",
+          "priority": "high",
+          "tasks": [
+            {
+              "name": "Bank connection setup (PSD2/Open Banking)",
+              "status": "ideas"
+            },
+            {
+              "name": "EHF receiver registration",
+              "status": "ideas"
+            },
+            {
+              "name": "Invoice flow configuration",
+              "status": "ideas"
+            },
+            {
+              "name": "Altinn integration setup",
+              "status": "ideas"
+            }
+          ]
+        },
+        {
+          "id": "validation-reporting",
+          "name": "Validering og rapportering",
+          "description": "Kjør valideringssjekk og rapporter avvik til regnskapsfører",
+          "status": "ideas",
+          "priority": "high",
+          "tasks": [
+            {
+              "name": "Data integrity validation",
+              "status": "ideas"
+            },
+            {
+              "name": "Balance verification",
+              "status": "ideas"
+            },
+            {
+              "name": "Discrepancy reporting (with explanations)",
+              "status": "ideas"
+            },
+            {
+              "name": "Pre-migration confirmation UI",
+              "status": "ideas"
+            }
+          ]
+        },
+        {
+          "id": "conversational-ui",
+          "name": "Samtale-basert UI",
+          "description": "Natural language dialog med regnskapsfører gjennom hele prosessen",
+          "status": "ideas",
+          "priority": "high",
+          "tasks": [
+            {
+              "name": "Chat-based onboarding flow",
+              "status": "ideas"
+            },
+            {
+              "name": "Context-aware guidance",
+              "status": "ideas"
+            },
+            {
+              "name": "Progress tracking and milestones",
+              "status": "ideas"
+            },
+            {
+              "name": "Psychological reassurance (trust-building)",
+              "status": "ideas"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "skyggemodus",
+      "name": "Skyggemodus",
+      "description": "Prøv før du kjøper - Kontali kjører parallelt med eksisterende system",
+      "status": "ideas",
+      "progress": 0,
+      "priority": "critical",
+      "features": [
+        {
+          "id": "parallel-processing",
+          "name": "Parallell prosessering",
+          "description": "Kontali mottar og bokfører samme bilag som eksisterende system, uten å påvirke ekte regnskap",
+          "status": "ideas",
+          "priority": "critical",
+          "tasks": [
+            {
+              "name": "EHF parallel receiver (PEPPOL duplicate)",
+              "status": "ideas"
+            },
+            {
+              "name": "Bank feed parallel stream",
+              "status": "ideas"
+            },
+            {
+              "name": "Email receipt forwarding",
+              "status": "ideas"
+            },
+            {
+              "name": "Isolated shadow ledger",
+              "status": "ideas"
+            }
+          ]
+        },
+        {
+          "id": "comparison-engine",
+          "name": "Sammenligningsmotor",
+          "description": "Sammenlign Kontali sine bokføringer med regnskapsførerens bokføringer i eksisterende system",
+          "status": "ideas",
+          "priority": "critical",
+          "tasks": [
+            {
+              "name": "PowerOffice export parser (hovedbok)",
+              "status": "ideas"
+            },
+            {
+              "name": "Tripletex export parser (hovedbok)",
+              "status": "ideas"
+            },
+            {
+              "name": "Transaction matching algorithm",
+              "status": "ideas"
+            },
+            {
+              "name": "Difference categorization (identical/different-but-correct/flagged)",
+              "status": "ideas"
+            }
+          ]
+        },
+        {
+          "id": "shadow-report",
+          "name": "Skygge-rapport",
+          "description": "Generer rapport som viser Kontali vs. eksisterende system etter 2-4 uker",
+          "status": "ideas",
+          "priority": "critical",
+          "tasks": [
+            {
+              "name": "Visual comparison dashboard",
+              "status": "ideas"
+            },
+            {
+              "name": "Statistics: identical/different/flagged",
+              "status": "ideas"
+            },
+            {
+              "name": "Time savings calculation (340h → 40h)",
+              "status": "ideas"
+            },
+            {
+              "name": "Confidence metrics per transaction type",
+              "status": "ideas"
+            },
+            {
+              "name": "Export report as PDF/presentation",
+              "status": "ideas"
+            }
+          ]
+        },
+        {
+          "id": "zero-risk-setup",
+          "name": "Null-risiko oppsett",
+          "description": "Gjør det så enkelt som mulig å starte skyggemodus (5-10 klienter, gratis, null endring)",
+          "status": "ideas",
+          "priority": "critical",
+          "tasks": [
+            {
+              "name": "Client selection wizard",
+              "status": "ideas"
+            },
+            {
+              "name": "One-click parallel feed activation",
+              "status": "ideas"
+            },
+            {
+              "name": "Free trial license (2-4 weeks)",
+              "status": "ideas"
+            },
+            {
+              "name": "No changes to existing workflow guarantee",
+              "status": "ideas"
+            }
+          ]
+        },
+        {
+          "id": "learning-capture",
+          "name": "Læringsdatafangst",
+          "description": "Hver forskjell mellom Kontali og regnskapsfører = læringsmulighet for AI",
+          "status": "ideas",
+          "priority": "high",
+          "tasks": [
+            {
+              "name": "Difference analysis (why did accountant do differently?)",
+              "status": "ideas"
+            },
+            {
+              "name": "Pattern extraction from corrections",
+              "status": "ideas"
+            },
+            {
+              "name": "Model fine-tuning based on shadow data",
+              "status": "ideas"
+            },
+            {
+              "name": "Flywheel effect tracking (improvement over time)",
+              "status": "ideas"
+            }
+          ]
+        },
+        {
+          "id": "sales-funnel",
+          "name": "Salgstrakt-integrasjon",
+          "description": "Skyggemodus → Utvidet pilot → Full migrering (via Onboardingsagent)",
+          "status": "ideas",
+          "priority": "high",
+          "tasks": [
+            {
+              "name": "Stage 1: Free shadow (5-10 clients)",
+              "status": "ideas"
+            },
+            {
+              "name": "Stage 2: Report delivery + demo call",
+              "status": "ideas"
+            },
+            {
+              "name": "Stage 3: Extended pilot (50 clients, Review Queue)",
+              "status": "ideas"
+            },
+            {
+              "name": "Stage 4: Full migration handoff to Onboardingsagent",
+              "status": "ideas"
+            }
+          ]
+        }
+      ]
+    },
+    {
       "id": "svindeldeteksjon",
       "name": "Svindeldeteksjon",
       "description": "AI-basert deteksjon av falske fakturaer",
@@ -1428,16 +1756,16 @@
     }
   ],
   "stats": {
-    "totalModules": 18,
+    "totalModules": 20,
     "completedModules": 0,
     "inProgressModules": 2,
     "plannedModules": 11,
-    "ideasModules": 5,
-    "totalFeatures": 60,
+    "ideasModules": 7,
+    "totalFeatures": 72,
     "completedFeatures": 3,
     "inProgressFeatures": 2,
     "plannedFeatures": 41,
-    "ideasFeatures": 14,
+    "ideasFeatures": 26,
     "overallProgress": 7
   }
 }
