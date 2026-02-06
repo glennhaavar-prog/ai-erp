@@ -69,12 +69,13 @@ async def get_cross_client_tasks(
     
     # Get pending review queue items for these clients
     review_query = select(ReviewQueue, VendorInvoice, Client).join(
-        VendorInvoice, ReviewQueue.invoice_id == VendorInvoice.id
+        VendorInvoice, ReviewQueue.source_id == VendorInvoice.id
     ).join(
         Client, VendorInvoice.client_id == Client.id
     ).where(
         VendorInvoice.client_id.in_(client_ids),
-        cast(ReviewQueue.status, String) == 'pending'
+        ReviewQueue.source_type == 'vendor_invoice',
+        cast(ReviewQueue.status, String) == 'PENDING'
     ).order_by(ReviewQueue.created_at.desc())
     
     review_result = await db.execute(review_query)
