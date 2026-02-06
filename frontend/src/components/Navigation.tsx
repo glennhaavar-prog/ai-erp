@@ -16,6 +16,7 @@ export const Navigation = () => {
 
   const navItems = [
     { href: '/', label: 'Multi-Client Dashboard', icon: HomeIcon },
+    { href: '/bank', label: 'Bank Reconciliation', icon: ChartBarIcon },
     { href: '/dashboard', label: 'Trust Dashboard', icon: ChartBarIcon },
     { href: '/hovedbok', label: 'Hovedbok', icon: DocumentTextIcon },
     { href: '/accounts', label: 'Kontoplan', icon: DocumentTextIcon },
