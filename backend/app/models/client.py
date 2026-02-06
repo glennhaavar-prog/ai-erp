@@ -85,6 +85,7 @@ class Client(Base):
     vendors = relationship("Vendor", back_populates="client", cascade="all, delete-orphan")
     chart_of_accounts = relationship("Account", back_populates="client", cascade="all, delete-orphan")
     vendor_invoices = relationship("VendorInvoice", back_populates="client")
+    bank_transactions = relationship("BankTransaction", back_populates="client", cascade="all, delete-orphan")
     general_ledger_entries = relationship("GeneralLedger", back_populates="client")
     
     # Constraints

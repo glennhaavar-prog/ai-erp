@@ -113,6 +113,7 @@ class VendorInvoice(Base):
     vendor = relationship("Vendor", back_populates="invoices")
     document = relationship("Document")
     general_ledger_entry = relationship("GeneralLedger")
+    ai_matched_transactions = relationship("BankTransaction", foreign_keys="[BankTransaction.ai_matched_invoice_id]", back_populates="ai_matched_invoice")
     
     def __repr__(self):
         return (

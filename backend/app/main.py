@@ -12,7 +12,7 @@ from app.database import init_db, close_db
 from app.graphql.schema import schema
 from app.api.webhooks import ehf
 from app.api import chat
-from app.api.routes import review_queue, dashboard, reports, documents, accounts, audit
+from app.api.routes import review_queue, dashboard, reports, documents, accounts, audit, bank
 
 # Setup logging
 logging.basicConfig(
@@ -86,6 +86,9 @@ app.include_router(accounts.router)
 
 # Audit Trail API (System event history)
 app.include_router(audit.router)
+
+# Bank Reconciliation API (Upload and match transactions)
+app.include_router(bank.router)
 
 
 # Health check endpoint

@@ -6,6 +6,7 @@ from app.models.client import Client
 from app.models.user import User
 from app.models.vendor import Vendor
 from app.models.vendor_invoice import VendorInvoice
+from app.models.bank_transaction import BankTransaction
 from app.models.general_ledger import GeneralLedger, GeneralLedgerLine
 from app.models.chart_of_accounts import Account
 from app.models.review_queue import ReviewQueue
@@ -23,6 +24,7 @@ __all__ = [
     "User",
     "Vendor",
     "VendorInvoice",
+    "BankTransaction",
     "GeneralLedger",
     "GeneralLedgerLine",
     "Account",
