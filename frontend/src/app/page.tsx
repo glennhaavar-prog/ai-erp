@@ -1,10 +1,10 @@
 import { Layout } from '@/components/Layout';
-import { ReviewQueue } from '@/components/ReviewQueue';
+import { MultiClientDashboard } from '@/components/MultiClientDashboard';
 
 export default function Home() {
   return (
     <Layout>
-      <ReviewQueue />
+      <MultiClientDashboard />
     </Layout>
   );
 }

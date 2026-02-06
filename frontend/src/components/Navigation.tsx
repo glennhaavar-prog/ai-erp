@@ -15,13 +15,12 @@ export const Navigation = () => {
   const pathname = usePathname();
 
   const navItems = [
-    { href: '/', label: 'Review Queue', icon: HomeIcon },
-    { href: '/dashboard', label: 'Dashboard', icon: ChartBarIcon },
+    { href: '/', label: 'Multi-Client Dashboard', icon: HomeIcon },
+    { href: '/dashboard', label: 'Trust Dashboard', icon: ChartBarIcon },
     { href: '/hovedbok', label: 'Hovedbok', icon: DocumentTextIcon },
     { href: '/accounts', label: 'Kontoplan', icon: DocumentTextIcon },
     { href: '/vat', label: 'MVA-koder', icon: CalculatorIcon },
     { href: '/audit', label: 'Revisjonslogg', icon: ClipboardDocumentListIcon },
-    { href: '/chat', label: 'Chat', icon: ChatBubbleLeftRightIcon },
   ];
 
   return (

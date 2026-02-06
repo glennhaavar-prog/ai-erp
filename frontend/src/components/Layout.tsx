@@ -3,6 +3,7 @@
 import React from 'react';
 import { Navigation } from './Navigation';
 import { KontaliLogo } from './icons/KontaliLogo';
+import { FloatingChat } from './FloatingChat';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -60,6 +61,9 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
           </div>
         </div>
       </footer>
+
+      {/* Floating Chat - Always Available */}
+      <FloatingChat />
     </div>
   );
 };

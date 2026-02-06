@@ -1,17 +1,135 @@
 """
 Trust Dashboard API - System status and monitoring
+Multi-Client Dashboard - Cross-client task aggregation (KONTALI PARADIGM SHIFT)
 """
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 from datetime import datetime, timedelta
-from typing import Dict, Any
+from typing import Dict, Any, List
+from uuid import UUID
 
 from app.database import get_db
 from app.models.review_queue import ReviewQueue, ReviewStatus
 from app.models.vendor_invoice import VendorInvoice
+from app.models.client import Client
+from app.models.tenant import Tenant
 
 router = APIRouter(prefix="/api/dashboard", tags=["Dashboard"])
+
+
+@router.get("/multi-client/tasks")
+async def get_cross_client_tasks(
+    tenant_id: UUID = Query(..., description="Tenant ID (regnskapsbyrå)"),
+    category: str = Query(None, description="Filter by category: invoicing, bank, reporting, all"),
+    db: AsyncSession = Depends(get_db)
+) -> Dict[str, Any]:
+    """
+    🚀 KONTALI PARADIGM SHIFT: Multi-Client Dashboard
+    
+    Get tasks across ALL clients for a given regnskapsbyrå (tenant).
+    
+    This is THE fundamental difference from PowerOffice/Tripletex:
+    - Traditional: Work one client at a time
+    - Kontali: See ALL unsure cases across ALL clients at once
+    
+    Returns tasks organized by category:
+    - Invoicing tasks (vendor + customer invoices needing review)
+    - Bank reconciliation tasks (unmatched transactions)
+    - Reporting tasks (compliance, VAT, etc.)
+    """
+    
+    # Get all clients for this tenant
+    clients_query = select(Client).where(
+        Client.tenant_id == tenant_id,
+        Client.status == 'active'
+    )
+    clients_result = await db.execute(clients_query)
+    clients = clients_result.scalars().all()
+    
+    if not clients:
+        return {
+            "tenant_id": str(tenant_id),
+            "total_clients": 0,
+            "tasks": [],
+            "summary": {
+                "total_tasks": 0,
+                "by_category": {}
+            }
+        }
+    
+    client_ids = [c.id for c in clients]
+    
+    # INVOICING TASKS - Vendor invoices needing review
+    from sqlalchemy import cast, String
+    
+    invoicing_tasks = []
+    
+    # Get pending review queue items for these clients
+    review_query = select(ReviewQueue, VendorInvoice, Client).join(
+        VendorInvoice, ReviewQueue.invoice_id == VendorInvoice.id
+    ).join(
+        Client, VendorInvoice.client_id == Client.id
+    ).where(
+        VendorInvoice.client_id.in_(client_ids),
+        cast(ReviewQueue.status, String) == 'pending'
+    ).order_by(ReviewQueue.created_at.desc())
+    
+    review_result = await db.execute(review_query)
+    reviews = review_result.all()
+    
+    for review, invoice, client in reviews:
+        invoicing_tasks.append({
+            "id": str(review.id),
+            "type": "vendor_invoice_review",
+            "category": "invoicing",
+            "client_id": str(client.id),
+            "client_name": client.name,
+            "description": f"Review vendor invoice: {review.issue_category.value}",
+            "confidence": review.ai_confidence,
+            "created_at": review.created_at.isoformat(),
+            "priority": "high" if review.ai_confidence < 50 else "medium",
+            "data": {
+                "invoice_id": str(invoice.id),
+                "vendor_name": invoice.vendor_name,
+                "amount": float(invoice.total_amount) if invoice.total_amount else 0,
+                "invoice_number": invoice.invoice_number
+            }
+        })
+    
+    # BANK RECONCILIATION TASKS - Placeholder for now
+    bank_tasks = []
+    # TODO: When bank reconciliation is built, query unmatched transactions here
+    
+    # REPORTING TASKS - Placeholder for now
+    reporting_tasks = []
+    # TODO: VAT reconciliation, balance account reconciliation, etc.
+    
+    # Combine all tasks
+    all_tasks = invoicing_tasks + bank_tasks + reporting_tasks
+    
+    # Filter by category if specified
+    if category and category != "all":
+        all_tasks = [t for t in all_tasks if t["category"] == category]
+    
+    # Summary by category
+    summary_by_category = {
+        "invoicing": len(invoicing_tasks),
+        "bank": len(bank_tasks),
+        "reporting": len(reporting_tasks)
+    }
+    
+    return {
+        "tenant_id": str(tenant_id),
+        "total_clients": len(clients),
+        "clients": [{"id": str(c.id), "name": c.name} for c in clients],
+        "tasks": all_tasks,
+        "summary": {
+            "total_tasks": len(all_tasks),
+            "by_category": summary_by_category
+        },
+        "timestamp": datetime.utcnow().isoformat()
+    }
 
 
 @router.get("/status")
