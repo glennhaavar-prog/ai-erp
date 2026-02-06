@@ -82,6 +82,16 @@ async def get_cross_client_tasks(
     reviews = review_result.all()
     
     for review, invoice, client in reviews:
+        # Get vendor name if vendor_id exists
+        vendor_name = "Unknown Vendor"
+        if invoice.vendor_id:
+            from app.models.vendor import Vendor
+            vendor_query = select(Vendor).where(Vendor.id == invoice.vendor_id)
+            vendor_result = await db.execute(vendor_query)
+            vendor = vendor_result.scalar_one_or_none()
+            if vendor:
+                vendor_name = vendor.name
+        
         invoicing_tasks.append({
             "id": str(review.id),
             "type": "vendor_invoice_review",
@@ -94,7 +104,7 @@ async def get_cross_client_tasks(
             "priority": "high" if review.ai_confidence < 50 else "medium",
             "data": {
                 "invoice_id": str(invoice.id),
-                "vendor_name": invoice.vendor_name,
+                "vendor_name": vendor_name,
                 "amount": float(invoice.total_amount) if invoice.total_amount else 0,
                 "invoice_number": invoice.invoice_number
             }
