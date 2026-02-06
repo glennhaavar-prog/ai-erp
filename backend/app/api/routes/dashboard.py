@@ -12,6 +12,8 @@ from uuid import UUID
 from app.database import get_db
 from app.models.review_queue import ReviewQueue, ReviewStatus
 from app.models.vendor_invoice import VendorInvoice
+from app.models.customer_invoice import CustomerInvoice
+from app.models.bank_transaction import BankTransaction, TransactionStatus
 from app.models.client import Client
 from app.models.tenant import Tenant
 
@@ -97,13 +99,75 @@ async def get_cross_client_tasks(
             }
         })
     
-    # BANK RECONCILIATION TASKS - Placeholder for now
+    # BANK RECONCILIATION TASKS - Unmatched transactions
     bank_tasks = []
-    # TODO: When bank reconciliation is built, query unmatched transactions here
     
-    # REPORTING TASKS - Placeholder for now
+    bank_query = select(BankTransaction, Client).join(
+        Client, BankTransaction.client_id == Client.id
+    ).where(
+        BankTransaction.client_id.in_(client_ids),
+        cast(BankTransaction.status, String) == 'unmatched'
+    ).order_by(BankTransaction.transaction_date.desc()).limit(50)
+    
+    bank_result = await db.execute(bank_query)
+    bank_transactions = bank_result.all()
+    
+    for txn, client in bank_transactions:
+        bank_tasks.append({
+            "id": str(txn.id),
+            "type": "bank_transaction_unmatched",
+            "category": "bank",
+            "client_id": str(client.id),
+            "client_name": client.name,
+            "description": f"Unmatched bank transaction: {txn.description[:50]}",
+            "confidence": 0,  # Unmatched = no confidence
+            "created_at": txn.created_at.isoformat(),
+            "priority": "medium",
+            "data": {
+                "transaction_id": str(txn.id),
+                "amount": float(txn.amount),
+                "transaction_date": txn.transaction_date.isoformat(),
+                "description": txn.description
+            }
+        })
+    
+    # REPORTING TASKS - Customer invoices overdue
     reporting_tasks = []
-    # TODO: VAT reconciliation, balance account reconciliation, etc.
+    
+    from datetime import date
+    today = date.today()
+    
+    overdue_query = select(CustomerInvoice, Client).join(
+        Client, CustomerInvoice.client_id == Client.id
+    ).where(
+        CustomerInvoice.client_id.in_(client_ids),
+        CustomerInvoice.payment_status == 'unpaid',
+        CustomerInvoice.due_date < today
+    ).order_by(CustomerInvoice.due_date.asc()).limit(50)
+    
+    overdue_result = await db.execute(overdue_query)
+    overdue_invoices = overdue_result.all()
+    
+    for invoice, client in overdue_invoices:
+        days_overdue = (today - invoice.due_date).days
+        reporting_tasks.append({
+            "id": str(invoice.id),
+            "type": "customer_invoice_overdue",
+            "category": "reporting",
+            "client_id": str(client.id),
+            "client_name": client.name,
+            "description": f"Customer invoice {invoice.invoice_number} overdue by {days_overdue} days",
+            "confidence": 100,  # Fact, not AI suggestion
+            "created_at": invoice.created_at.isoformat(),
+            "priority": "high" if days_overdue > 30 else "medium",
+            "data": {
+                "invoice_id": str(invoice.id),
+                "customer_name": invoice.customer_name,
+                "amount": float(invoice.total_amount),
+                "due_date": invoice.due_date.isoformat(),
+                "days_overdue": days_overdue
+            }
+        })
     
     # Combine all tasks
     all_tasks = invoicing_tasks + bank_tasks + reporting_tasks
