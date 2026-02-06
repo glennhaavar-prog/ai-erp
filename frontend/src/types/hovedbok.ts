@@ -11,6 +11,8 @@ export interface HovedbokEntry {
   description: string;
   vat_code?: string;
   source_type: string;
+  source_invoice_id?: string;
+  invoice_number?: string;
   vendor_id?: string;
   vendor_name?: string;
   status: EntryStatus;
