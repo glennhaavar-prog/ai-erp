@@ -67,12 +67,35 @@ class GeneralLedger(Base):
     # Status
     status = Column(String(20), default="posted", nullable=False)  # draft/posted/reversed
     locked = Column(Boolean, default=False)  # Locked after period close
-    
+
+    # FK relationships to accounting schema (nullable for backward compatibility)
+    voucher_series_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("voucher_series.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True
+    )
+    fiscal_year_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("fiscal_years.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True
+    )
+    period_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("accounting_periods.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True
+    )
+
     # Timestamps
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
-    
+
     # Relationships
     client = relationship("Client", back_populates="general_ledger_entries")
+    voucher_series_rel = relationship("VoucherSeries", back_populates="journal_entries")
+    fiscal_year_rel = relationship("FiscalYear", back_populates="journal_entries")
+    period_rel = relationship("AccountingPeriod", back_populates="journal_entries")
     lines = relationship(
         "GeneralLedgerLine",
         back_populates="general_ledger_entry",

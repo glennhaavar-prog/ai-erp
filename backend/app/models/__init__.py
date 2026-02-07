@@ -19,6 +19,9 @@ from app.models.agent_event import AgentEvent
 from app.models.correction import Correction
 from app.models.document import Document
 from app.models.audit_trail import AuditTrail
+from app.models.voucher_series import VoucherSeries
+from app.models.fiscal_year import FiscalYear
+from app.models.accounting_period import AccountingPeriod
 
 __all__ = [
     "Tenant",
@@ -40,4 +43,7 @@ __all__ = [
     "Correction",
     "Document",
     "AuditTrail",
+    "VoucherSeries",
+    "FiscalYear",
+    "AccountingPeriod",
 ]

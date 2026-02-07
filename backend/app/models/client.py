@@ -71,6 +71,9 @@ class Client(Base):
     # Status
     status = Column(String(20), default="active")  # active/inactive/suspended
     
+    # Demo Environment Flag
+    is_demo = Column(Boolean, default=False, nullable=False, index=True)
+    
     # Timestamps
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(
@@ -88,6 +91,8 @@ class Client(Base):
     customer_invoices = relationship("CustomerInvoice", back_populates="client", cascade="all, delete-orphan")
     bank_transactions = relationship("BankTransaction", back_populates="client", cascade="all, delete-orphan")
     general_ledger_entries = relationship("GeneralLedger", back_populates="client")
+    voucher_series = relationship("VoucherSeries", back_populates="client", cascade="all, delete-orphan")
+    fiscal_years = relationship("FiscalYear", back_populates="client", cascade="all, delete-orphan")
     
     # Constraints
     __table_args__ = (
@@ -109,6 +114,7 @@ class Client(Base):
             "ai_automation_level": self.ai_automation_level.value,
             "ai_confidence_threshold": self.ai_confidence_threshold,
             "status": self.status,
+            "is_demo": self.is_demo,
             "created_at": self.created_at.isoformat(),
             "updated_at": self.updated_at.isoformat(),
         }
