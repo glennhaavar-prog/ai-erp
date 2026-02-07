@@ -93,6 +93,7 @@ class Client(Base):
     general_ledger_entries = relationship("GeneralLedger", back_populates="client")
     voucher_series = relationship("VoucherSeries", back_populates="client", cascade="all, delete-orphan")
     fiscal_years = relationship("FiscalYear", back_populates="client", cascade="all, delete-orphan")
+    accruals = relationship("Accrual", back_populates="client", cascade="all, delete-orphan")
     
     # Constraints
     __table_args__ = (

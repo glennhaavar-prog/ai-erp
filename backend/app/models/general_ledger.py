@@ -102,6 +102,7 @@ class GeneralLedger(Base):
         cascade="all, delete-orphan"
     )
     reversed_by = relationship("GeneralLedger", remote_side=[id])
+    accrual_postings = relationship("AccrualPosting", back_populates="general_ledger_entry")
     
     # Constraints
     __table_args__ = (
@@ -161,7 +162,13 @@ class GeneralLedgerLine(Base):
     credit_amount = Column(Numeric(15, 2), default=Decimal("0.00"), nullable=False)
     
     # VAT
-    vat_code = Column(String(10), nullable=True)
+    vat_code = Column(String(10), nullable=True)  # Legacy string code (kept for backward compatibility)
+    tax_code_id = Column(
+        UUID(as_uuid=True),
+        ForeignKey("tax_codes.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True
+    )
     vat_amount = Column(Numeric(15, 2), default=Decimal("0.00"))
     vat_base_amount = Column(Numeric(15, 2), nullable=True)  # Amount VAT calculated from
     
@@ -182,6 +189,7 @@ class GeneralLedgerLine(Base):
     
     # Relationships
     general_ledger_entry = relationship("GeneralLedger", back_populates="lines")
+    tax_code = relationship("TaxCode", foreign_keys=[tax_code_id])
     
     # Constraints
     __table_args__ = (

@@ -12,7 +12,8 @@ from app.database import init_db, close_db
 from app.graphql.schema import schema
 from app.api.webhooks import ehf
 from app.api import chat
-from app.api.routes import review_queue, dashboard, reports, documents, accounts, audit, bank, customer_invoices, invoices
+from app.api.routes import review_queue, dashboard, reports, documents, accounts, audit, bank, customer_invoices, invoices, demo, chat_booking, saldobalanse, clients, accruals, copilot, nlq, period_close
+from app.middleware.demo import DemoEnvironmentMiddleware
 
 # Setup logging
 logging.basicConfig(
@@ -56,6 +57,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Demo environment middleware
+app.add_middleware(DemoEnvironmentMiddleware)
+
 # GraphQL endpoint
 graphql_app = GraphQLRouter(
     schema,
@@ -69,6 +73,9 @@ app.include_router(ehf.router)
 # Chat API (with database integration)
 app.include_router(chat.router)
 
+# Chat Booking API (natural language invoice booking)
+app.include_router(chat_booking.router)
+
 # Review Queue REST API (for frontend)
 app.include_router(review_queue.router)
 
@@ -77,6 +84,12 @@ app.include_router(dashboard.router)
 
 # Reports API (Hovedbok and other reports)
 app.include_router(reports.router)
+
+# Saldobalanse API (Trial Balance report)
+app.include_router(saldobalanse.router)
+
+# Clients API (List clients)
+app.include_router(clients.router)
 
 # Documents API (PDF retrieval)
 app.include_router(documents.router)
@@ -95,6 +108,21 @@ app.include_router(customer_invoices.router)
 
 # Vendor Invoice Upload API (Manual invoice upload)
 app.include_router(invoices.router)
+
+# Demo Environment API (Demo control and test data generation)
+app.include_router(demo.router)
+
+# Accruals API (Periodisering - time-based expense allocation)
+app.include_router(accruals.router)
+
+# AI Copilot API (Context-aware assistant for accountants)
+app.include_router(copilot.router)
+
+# NLQ API (Natural Language Query interface)
+app.include_router(nlq.router)
+
+# Period Close API (Automated monthly/quarterly closing)
+app.include_router(period_close.router)
 
 
 # Health check endpoint

@@ -22,6 +22,9 @@ from app.models.audit_trail import AuditTrail
 from app.models.voucher_series import VoucherSeries
 from app.models.fiscal_year import FiscalYear
 from app.models.accounting_period import AccountingPeriod
+from app.models.accrual import Accrual
+from app.models.accrual_posting import AccrualPosting
+from app.models.tax_code import TaxCode
 
 __all__ = [
     "Tenant",
@@ -46,4 +49,7 @@ __all__ = [
     "VoucherSeries",
     "FiscalYear",
     "AccountingPeriod",
+    "Accrual",
+    "AccrualPosting",
+    "TaxCode",
 ]

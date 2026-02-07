@@ -17,7 +17,7 @@ export const Navigation = () => {
   const pathname = usePathname();
 
   const navItems = [
-    { href: '/', label: 'Multi-Client Dashboard', icon: HomeIcon },
+    { href: '/', label: 'Hjem', icon: HomeIcon, isHome: true },
     { href: '/upload', label: 'Last opp faktura', icon: CloudArrowUpIcon },
     { href: '/review-queue', label: 'Review Queue', icon: ClipboardDocumentListIcon },
     { href: '/saldobalanse', label: 'Saldobalanse', icon: ScaleIcon },
@@ -35,6 +35,7 @@ export const Navigation = () => {
       {navItems.map((item) => {
         const isActive = pathname === item.href;
         const Icon = item.icon;
+        const isHomeButton = 'isHome' in item && item.isHome;
         
         return (
           <Link
@@ -42,6 +43,7 @@ export const Navigation = () => {
             href={item.href}
             className={`
               flex items-center gap-2 px-4 py-2 rounded-lg transition-colors
+              ${isHomeButton ? 'mr-2 border-r-2 border-gray-600 pr-6' : ''}
               ${isActive 
                 ? 'bg-accent-blue text-white' 
                 : 'text-gray-300 hover:bg-dark-hover hover:text-gray-100'

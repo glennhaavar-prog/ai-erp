@@ -1,7 +1,7 @@
 """
 Tenant model - Regnskapsbyrå (Accounting Firms)
 """
-from sqlalchemy import Column, String, Integer, DateTime, JSON, Enum as SQLEnum
+from sqlalchemy import Column, String, Integer, Boolean, DateTime, JSON, Enum as SQLEnum
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from datetime import datetime
@@ -47,6 +47,10 @@ class Tenant(Base):
     # Settings (JSONB for flexibility)
     settings = Column(JSON, default=dict)
     
+    # Demo Environment Flag
+    is_demo = Column(Boolean, default=False, nullable=False, index=True)
+    demo_reset_at = Column(DateTime, nullable=True)
+    
     # Timestamps
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(
@@ -73,6 +77,8 @@ class Tenant(Base):
             "max_clients": self.max_clients,
             "billing_email": self.billing_email,
             "settings": self.settings,
+            "is_demo": self.is_demo,
+            "demo_reset_at": self.demo_reset_at.isoformat() if self.demo_reset_at else None,
             "created_at": self.created_at.isoformat(),
             "updated_at": self.updated_at.isoformat(),
         }

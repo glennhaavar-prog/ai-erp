@@ -166,6 +166,7 @@ async def approve_item(
         )
     
     # Book to General Ledger if this is a vendor invoice
+    booking_result = None
     if review_item.source_type == "vendor_invoice" and review_item.ai_suggestion:
         from app.services.booking_service import book_vendor_invoice
         
@@ -192,12 +193,22 @@ async def approve_item(
     await db.commit()
     await db.refresh(review_item)
     
-    return {
+    response = {
         "id": str(review_item.id),
         "status": review_item.status.value.lower(),
         "resolvedAt": review_item.resolved_at.isoformat(),
         "message": "Item approved and booked to General Ledger successfully"
     }
+    
+    # Include GL entry details if booking was performed
+    if booking_result:
+        response["generalLedger"] = {
+            "id": booking_result.get('general_ledger_id'),
+            "voucherNumber": booking_result.get('voucher_number'),
+            "linesCount": booking_result.get('lines_count')
+        }
+    
+    return response
 
 
 @router.post("/{item_id}/correct")

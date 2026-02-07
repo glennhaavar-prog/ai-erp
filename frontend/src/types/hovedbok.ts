@@ -21,6 +21,7 @@ export interface HovedbokEntry {
 }
 
 export interface HovedbokFilters {
+  client_id?: string;
   start_date?: string;
   end_date?: string;
   account_number?: string;

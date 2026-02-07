@@ -27,6 +27,7 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs, { Dayjs } from 'dayjs';
 import DownloadIcon from '@mui/icons-material/Download';
 import FilterListIcon from '@mui/icons-material/FilterList';
+import { useClient } from '@/contexts/ClientContext';
 
 interface AccountBalance {
   account_code: string;
@@ -49,15 +50,8 @@ interface SaldobalanseResponse {
   total_change: number;
 }
 
-interface Client {
-  id: string;
-  name: string;
-  org_number: string;
-}
-
 export default function SaldobalansePage() {
-  const [clients, setClients] = useState<Client[]>([]);
-  const [selectedClient, setSelectedClient] = useState<string>('');
+  const { selectedClient: contextClient, isLoading: clientLoading } = useClient();
   const [fromDate, setFromDate] = useState<Dayjs | null>(dayjs('2026-01-01'));
   const [toDate, setToDate] = useState<Dayjs | null>(dayjs());
   const [accountClass, setAccountClass] = useState<string>('');
@@ -77,27 +71,9 @@ export default function SaldobalansePage() {
     { value: '8', label: '8 - Ekstraordinære poster' },
   ];
 
-  useEffect(() => {
-    fetchClients();
-  }, []);
-
-  const fetchClients = async () => {
-    try {
-      const response = await fetch('http://localhost:8000/api/clients/');
-      if (!response.ok) throw new Error('Failed to fetch clients');
-      const clientsData = await response.json();
-      setClients(clientsData);
-      if (clientsData.length > 0) {
-        setSelectedClient(clientsData[0].id);
-      }
-    } catch (err) {
-      console.error('Error fetching clients:', err);
-      setError('Kunne ikke laste klienter');
-    }
-  };
 
   const fetchSaldobalanse = async () => {
-    if (!selectedClient) {
+    if (!contextClient) {
       setError('Vennligst velg en klient');
       return;
     }
@@ -107,7 +83,7 @@ export default function SaldobalansePage() {
 
     try {
       const params = new URLSearchParams({
-        client_id: selectedClient,
+        client_id: contextClient.id,
         from_date: fromDate?.format('YYYY-MM-DD') || '2026-01-01',
         to_date: toDate?.format('YYYY-MM-DD') || dayjs().format('YYYY-MM-DD'),
       });
@@ -135,11 +111,11 @@ export default function SaldobalansePage() {
   };
 
   const exportExcel = async () => {
-    if (!selectedClient) return;
+    if (!contextClient) return;
 
     try {
       const params = new URLSearchParams({
-        client_id: selectedClient,
+        client_id: contextClient.id,
         from_date: fromDate?.format('YYYY-MM-DD') || '2026-01-01',
         to_date: toDate?.format('YYYY-MM-DD') || dayjs().format('YYYY-MM-DD'),
       });
@@ -170,11 +146,11 @@ export default function SaldobalansePage() {
   };
 
   const exportPDF = async () => {
-    if (!selectedClient) return;
+    if (!contextClient) return;
 
     try {
       const params = new URLSearchParams({
-        client_id: selectedClient,
+        client_id: contextClient.id,
         from_date: fromDate?.format('YYYY-MM-DD') || '2026-01-01',
         to_date: toDate?.format('YYYY-MM-DD') || dayjs().format('YYYY-MM-DD'),
       });
@@ -232,19 +208,6 @@ export default function SaldobalansePage() {
             </Typography>
 
             <Stack spacing={2} direction={{ xs: 'column', md: 'row' }} sx={{ mt: 2 }}>
-              <TextField
-                select
-                label="Klient"
-                value={selectedClient}
-                onChange={(e) => setSelectedClient(e.target.value)}
-                fullWidth
-              >
-                {clients.map((client) => (
-                  <MenuItem key={client.id} value={client.id}>
-                    {client.name} ({client.org_number})
-                  </MenuItem>
-                ))}
-              </TextField>
 
               <DatePicker
                 label="Fra dato"

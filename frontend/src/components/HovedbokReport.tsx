@@ -4,8 +4,10 @@ import React, { useState, useEffect } from 'react';
 import { HovedbokEntry, HovedbokFilters, EntryStatus, Vendor } from '@/types/hovedbok';
 import { hovedbokApi } from '@/api/hovedbok';
 import { PdfViewerModal } from './PdfViewerModal';
+import { useClient } from '@/contexts/ClientContext';
 
 export const HovedbokReport: React.FC = () => {
+  const { selectedClient, isLoading: clientLoading } = useClient();
   const [entries, setEntries] = useState<HovedbokEntry[]>([]);
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [loading, setLoading] = useState(true);
@@ -51,11 +53,18 @@ export const HovedbokReport: React.FC = () => {
 
   // Fetch entries from API
   useEffect(() => {
+    // Don't fetch if no client is selected
+    if (!selectedClient) {
+      setLoading(false);
+      return;
+    }
+
     const fetchEntries = async () => {
       try {
         setLoading(true);
         const filterParams = {
           ...filters,
+          client_id: selectedClient.id,
           page: currentPage,
           page_size: pageSize,
         };
@@ -83,7 +92,7 @@ export const HovedbokReport: React.FC = () => {
     };
 
     fetchEntries();
-  }, [filters, currentPage]);
+  }, [filters, currentPage, selectedClient]);
 
   // Calculate running balance
   const calculateBalance = (index: number): number => {
@@ -156,6 +165,20 @@ export const HovedbokReport: React.FC = () => {
   const formatDate = (dateString: string): string => {
     return new Date(dateString).toLocaleDateString('nb-NO');
   };
+
+  // Show message if no client selected
+  if (!selectedClient && !clientLoading) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div className="text-center">
+          <p className="text-xl text-gray-400 mb-2">Ingen klient valgt</p>
+          <p className="text-sm text-gray-500">
+            Velg en klient fra dropdown-menyen øverst for å se hovedboken.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

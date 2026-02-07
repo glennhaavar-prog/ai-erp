@@ -42,8 +42,10 @@ class Settings(BaseSettings):
     # CORS
     CORS_ORIGINS: List[str] = [
         "http://localhost:3000",
+        "http://localhost:3003",
         "http://localhost:5173",
         "http://127.0.0.1:3000",
+        "http://127.0.0.1:3003",
     ]
     
     # Celery
@@ -53,6 +55,11 @@ class Settings(BaseSettings):
     # Agent Settings
     DEFAULT_CONFIDENCE_THRESHOLD: int = 85
     AUTO_BOOK_ENABLED: bool = True
+    
+    # Demo Environment Settings
+    ENVIRONMENT: str = "production"  # production/demo/development
+    DEMO_MODE_ENABLED: bool = False
+    DEMO_TENANT_ID: str = ""  # UUID of demo tenant
     
     # Logging
     LOG_LEVEL: str = "INFO"

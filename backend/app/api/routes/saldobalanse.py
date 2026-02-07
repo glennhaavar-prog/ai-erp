@@ -46,10 +46,11 @@ async def get_saldobalanse(
     - account_class: Filter by first digit(s) of account number (e.g., "1" for assets)
     
     Returns:
-    - accounts: List of accounts with balance data
-    - summary: Aggregated totals (if include_summary=true)
-    - filters: Applied filters
-    - timestamp: Report generation time
+    - balances: List of accounts with balance data (renamed from "accounts" for frontend compatibility)
+    - client_name: Name of the client
+    - from_date/to_date: Date range
+    - account_class: Filter value
+    - total_opening_balance/total_current_balance/total_change: Summary totals
     """
     
     # Validate account_class if provided
@@ -68,22 +69,41 @@ async def get_saldobalanse(
         account_class=account_class
     )
     
-    # Build response
-    response = {
-        "accounts": accounts,
-        "filters": {
-            "client_id": str(client_id),
-            "from_date": from_date.isoformat() if from_date else None,
-            "to_date": to_date.isoformat() if to_date else None,
-            "account_class": account_class,
-        },
-        "timestamp": datetime.utcnow().isoformat(),
-    }
+    # Get client name
+    from sqlalchemy import select
+    from app.models.client import Client
     
-    # Add summary if requested
-    if include_summary:
-        summary = await get_saldobalanse_summary(accounts)
-        response["summary"] = summary
+    client_result = await db.execute(select(Client).where(Client.id == client_id))
+    client = client_result.scalar_one_or_none()
+    client_name = client.name if client else "Unknown Client"
+    
+    # Get summary
+    summary = await get_saldobalanse_summary(accounts) if include_summary else None
+    
+    # Transform account data to match frontend expectations
+    balances = []
+    for account in accounts:
+        balances.append({
+            "account_code": account["account_number"],
+            "account_name": account["account_name"],
+            "account_type": account["account_type"],
+            "opening_balance": account["opening_balance"],
+            "current_balance": account["current_balance"],
+            "balance_change": account["net_change"]
+        })
+    
+    # Build response matching frontend structure
+    response = {
+        "client_id": str(client_id),
+        "client_name": client_name,
+        "from_date": from_date.isoformat() if from_date else None,
+        "to_date": to_date.isoformat() if to_date else None,
+        "account_class": account_class,
+        "balances": balances,
+        "total_opening_balance": summary["total_opening_balance"] if summary else 0.0,
+        "total_current_balance": summary["total_current_balance"] if summary else 0.0,
+        "total_change": summary["total_current_balance"] - summary["total_opening_balance"] if summary else 0.0,
+    }
     
     return response
 

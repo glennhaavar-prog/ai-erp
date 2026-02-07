@@ -1,10 +1,9 @@
-import { Layout } from '@/components/Layout';
 import TrustDashboard from '@/components/TrustDashboard';
 import ReceiptVerificationDashboard from '@/components/ReceiptVerificationDashboard';
 
 export default function DashboardPage() {
   return (
-    <Layout>
+    
       <div className="space-y-8">
         {/* Receipt Verification Dashboard - Primary view for accountant */}
         <ReceiptVerificationDashboard />
@@ -15,6 +14,6 @@ export default function DashboardPage() {
           <TrustDashboard />
         </div>
       </div>
-    </Layout>
+    
   );
 }

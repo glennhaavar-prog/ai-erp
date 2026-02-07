@@ -8,20 +8,32 @@
   :root {
     /* === KONTALI DESIGN SYSTEM === */
     
-    /* Background layers */
+    /* Background layers (wireframe spec) */
     --background: 220 30% 5%; /* #0A0E1A - Deep */
     --background-surface: 220 25% 9%; /* #111827 - Surface */
     --background-card: 220 22% 15%; /* #1A2235 - Card */
+    
+    /* Wireframe-specific background colors */
+    --bg-darkest: #0a0c10;
+    --bg-dark: #0f1117;
+    --bg-sidebar: #11131a;
+    --bg-card: #161923;
+    --bg-hover: #1c2030;
+    --bg-active: #1e2440;
     
     /* Borders */
     --border: 220 20% 24%; /* #2A3450 */
     --input: 220 20% 24%;
     --ring: 239 84% 67%; /* Indigo */
+    --border-light: #252a3a;
     
     /* Text hierarchy */
     --foreground: 210 40% 96%; /* #F1F5F9 - Primary */
     --muted: 215 16% 47%; /* #64748B */
     --muted-foreground: 215 20% 65%; /* #94A3B8 - Secondary */
+    --text-primary: #e8eaf0;
+    --text-secondary: #8b90a0;
+    --text-muted: #555a6e;
     
     /* Primary - Indigo */
     --primary: 239 84% 67%; /* #6366F1 */
@@ -37,6 +49,17 @@
     
     /* Teal */
     --teal: 168 76% 40%; /* #14B8A6 */
+    
+    /* Wireframe accent colors */
+    --accent-blue: #4a7cff;
+    --accent-blue-dim: rgba(74, 124, 255, 0.12);
+    --accent-green: #34d399;
+    --accent-green-dim: rgba(52, 211, 153, 0.12);
+    --accent-amber: #f59e0b;
+    --accent-amber-dim: rgba(245, 158, 11, 0.12);
+    --accent-red: #f87171;
+    --accent-red-dim: rgba(248, 113, 113, 0.12);
+    --accent-purple: #a78bfa;
     
     /* Semantic colors */
     --success: 160 84% 39%; /* #34D399 - Mint */
