@@ -10,6 +10,7 @@ from app.models.customer_invoice import CustomerInvoice
 from app.models.bank_transaction import BankTransaction
 from app.models.general_ledger import GeneralLedger, GeneralLedgerLine
 from app.models.chart_of_accounts import Account
+from app.models.account_balance import AccountBalance
 from app.models.review_queue import ReviewQueue
 from app.models.agent_decision import AgentDecision
 from app.models.agent_learned_pattern import AgentLearnedPattern
@@ -30,6 +31,7 @@ __all__ = [
     "GeneralLedger",
     "GeneralLedgerLine",
     "Account",
+    "AccountBalance",
     "ReviewQueue",
     "AgentDecision",
     "AgentLearnedPattern",

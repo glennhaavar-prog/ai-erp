@@ -53,11 +53,17 @@ async def get_cross_client_tasks(
         return {
             "tenant_id": str(tenant_id),
             "total_clients": 0,
+            "clients": [],
             "tasks": [],
             "summary": {
                 "total_tasks": 0,
-                "by_category": {}
-            }
+                "by_category": {
+                    "invoicing": 0,
+                    "bank": 0,
+                    "reporting": 0
+                }
+            },
+            "timestamp": datetime.utcnow().isoformat()
         }
     
     client_ids = [c.id for c in clients]

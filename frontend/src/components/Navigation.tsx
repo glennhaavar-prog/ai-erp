@@ -8,7 +8,9 @@ import {
   DocumentTextIcon, 
   ChatBubbleLeftRightIcon,
   CalculatorIcon,
-  ClipboardDocumentListIcon
+  ClipboardDocumentListIcon,
+  CloudArrowUpIcon,
+  ScaleIcon
 } from '@heroicons/react/24/outline';
 
 export const Navigation = () => {
@@ -16,13 +18,16 @@ export const Navigation = () => {
 
   const navItems = [
     { href: '/', label: 'Multi-Client Dashboard', icon: HomeIcon },
+    { href: '/upload', label: 'Last opp faktura', icon: CloudArrowUpIcon },
+    { href: '/review-queue', label: 'Review Queue', icon: ClipboardDocumentListIcon },
+    { href: '/saldobalanse', label: 'Saldobalanse', icon: ScaleIcon },
+    { href: '/hovedbok', label: 'Hovedbok', icon: DocumentTextIcon },
     { href: '/bank', label: 'Bank Reconciliation', icon: ChartBarIcon },
     { href: '/customer-invoices', label: 'Customer Invoices', icon: DocumentTextIcon },
-    { href: '/dashboard', label: 'Trust Dashboard', icon: ChartBarIcon },
-    { href: '/hovedbok', label: 'Hovedbok', icon: DocumentTextIcon },
     { href: '/accounts', label: 'Kontoplan', icon: DocumentTextIcon },
     { href: '/vat', label: 'MVA-koder', icon: CalculatorIcon },
     { href: '/audit', label: 'Revisjonslogg', icon: ClipboardDocumentListIcon },
+    { href: '/dashboard', label: 'Trust Dashboard', icon: ChartBarIcon },
   ];
 
   return (
