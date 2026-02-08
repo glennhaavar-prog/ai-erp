@@ -1753,19 +1753,333 @@
           ]
         }
       ]
+    },
+    {
+      "id": "saft-lovpalagt",
+      "name": "SAF-T og Lovpålagte Krav",
+      "description": "SAF-T Financial v1.30 eksport + bokføringsloven §5 spesifikasjoner",
+      "status": "planned",
+      "progress": 5,
+      "priority": "critical",
+      "phase": "1b",
+      "features": [
+        {
+          "id": "reskontro",
+          "name": "Kunde/Leverandørreskontro",
+          "description": "Sideordnet bokføring per kunde/leverandør med automatisk avstemming",
+          "status": "planned",
+          "priority": "critical",
+          "dependencies": [
+            "Bokførings-API"
+          ],
+          "tasks": [
+            {
+              "name": "customer_ledger_entries tabell",
+              "status": "planned"
+            },
+            {
+              "name": "supplier_ledger_entries tabell",
+              "status": "planned"
+            },
+            {
+              "name": "Reskontro-hooks i bokførings-API (konto 1500/2400)",
+              "status": "planned"
+            },
+            {
+              "name": "Avstemmingsjobb (SUM reskontro = hovedbok saldo)",
+              "status": "planned"
+            },
+            {
+              "name": "Automated tests (Test 6 fra spec)",
+              "status": "planned"
+            }
+          ]
+        },
+        {
+          "id": "kontoplankartlegging",
+          "name": "Kontoplankartlegging til Næringsoppgave",
+          "description": "Mapping NS 4102 → Næringsspesifikasjon (GroupingCategory/GroupingCode)",
+          "status": "planned",
+          "priority": "critical",
+          "dependencies": [
+            "Kontoplan"
+          ],
+          "tasks": [
+            {
+              "name": "chart_of_accounts_mapping tabell",
+              "status": "planned"
+            },
+            {
+              "name": "Seed script: NS 4102 → RF-1167 standard mapping",
+              "status": "planned"
+            },
+            {
+              "name": "API: Hent/endre mapping per klient",
+              "status": "planned"
+            },
+            {
+              "name": "UI: Rediger mapping under Innstillinger",
+              "status": "planned"
+            },
+            {
+              "name": "Validering: Advarsel om kontoer uten mapping",
+              "status": "planned"
+            }
+          ]
+        },
+        {
+          "id": "periodelukking",
+          "name": "Periodelukking",
+          "description": "Lukke regnskapsperioder mot endring (Bokføringsforskriften §7-6)",
+          "status": "planned",
+          "priority": "critical",
+          "dependencies": [
+            "Audit log"
+          ],
+          "tasks": [
+            {
+              "name": "accounting_periods tabell (OPEN/CLOSED/LOCKED)",
+              "status": "planned"
+            },
+            {
+              "name": "validate_period_open() i alle bokføringsendepunkter",
+              "status": "planned"
+            },
+            {
+              "name": "API: /api/accounting-periods (close/reopen/lock)",
+              "status": "planned"
+            },
+            {
+              "name": "UI: Periodestyring under Innstillinger",
+              "status": "planned"
+            },
+            {
+              "name": "Automated tests (Test 7 fra spec)",
+              "status": "planned"
+            }
+          ]
+        },
+        {
+          "id": "mva-koderegister",
+          "name": "MVA-Koderegister",
+          "description": "Standard norske MVA-koder med SAF-T mapping",
+          "status": "planned",
+          "priority": "high",
+          "dependencies": [],
+          "tasks": [
+            {
+              "name": "Utvid tax_codes med saft_standard_code kolonne",
+              "status": "planned"
+            },
+            {
+              "name": "Seed script: 8 standard norske MVA-koder",
+              "status": "planned"
+            },
+            {
+              "name": "Mapping: MV25→3, MI25→5, MV15→31, etc.",
+              "status": "planned"
+            },
+            {
+              "name": "Automated tests (Test 9 fra spec)",
+              "status": "planned"
+            }
+          ]
+        },
+        {
+          "id": "company-owners",
+          "name": "Eierinformasjon",
+          "description": "Company owners tabell for SAF-T MasterFiles",
+          "status": "planned",
+          "priority": "medium",
+          "dependencies": [],
+          "tasks": [
+            {
+              "name": "company_owners tabell",
+              "status": "planned"
+            },
+            {
+              "name": "API: CRUD for owners",
+              "status": "planned"
+            },
+            {
+              "name": "UI: Eieroppsett under Innstillinger → Klient",
+              "status": "planned"
+            }
+          ]
+        },
+        {
+          "id": "saft-eksport",
+          "name": "SAF-T Financial v1.30 Eksport",
+          "description": "XML-eksport i henhold til Skatteetatens SAF-T spesifikasjon",
+          "status": "planned",
+          "priority": "critical",
+          "dependencies": [
+            "Reskontro",
+            "Kontoplankartlegging",
+            "MVA-koder",
+            "Company owners"
+          ],
+          "tasks": [
+            {
+              "name": "SAFTExporter-klasse (Header builder)",
+              "status": "planned"
+            },
+            {
+              "name": "MasterFiles builder (Accounts, Customers, Suppliers, TaxTable, Owners)",
+              "status": "planned"
+            },
+            {
+              "name": "GeneralLedgerEntries builder",
+              "status": "planned"
+            },
+            {
+              "name": "XSD-validering mot Skatteetatens skjema",
+              "status": "planned"
+            },
+            {
+              "name": "Regnskapsmessig validering (debet=kredit, nummerserie)",
+              "status": "planned"
+            },
+            {
+              "name": "Streaming XML-generering (chunks)",
+              "status": "planned"
+            },
+            {
+              "name": "Bakgrunnsjobb-infrastruktur",
+              "status": "planned"
+            },
+            {
+              "name": "API: POST /api/saft/export",
+              "status": "planned"
+            },
+            {
+              "name": "API: GET /api/saft/export/{id}/status",
+              "status": "planned"
+            },
+            {
+              "name": "API: GET /api/saft/export/{id}/download",
+              "status": "planned"
+            },
+            {
+              "name": "UI: SAF-T eksport-knapp og fremdriftsindikator",
+              "status": "planned"
+            },
+            {
+              "name": "Automated tests (Test 8 fra spec)",
+              "status": "planned"
+            }
+          ]
+        },
+        {
+          "id": "lovpalagte-spesifikasjoner",
+          "name": "Lovpålagte Spesifikasjoner (§5)",
+          "description": "9 lovpålagte spesifikasjoner med PDF/CSV-eksport",
+          "status": "planned",
+          "priority": "high",
+          "phase": "1a (delvis), 1b (komplett)",
+          "dependencies": [
+            "Reskontro",
+            "MVA-koder"
+          ],
+          "tasks": [
+            {
+              "name": "Bokføringsspesifikasjon (rapport)",
+              "status": "done",
+              "note": "Hovedbok fungerer som bokføringsspesifikasjon"
+            },
+            {
+              "name": "Kontospesifikasjon (rapport)",
+              "status": "done",
+              "note": "Hovedbok per konto"
+            },
+            {
+              "name": "Kundespesifikasjon (rapport - krever reskontro)",
+              "status": "planned"
+            },
+            {
+              "name": "Leverandørspesifikasjon (rapport - krever reskontro)",
+              "status": "planned"
+            },
+            {
+              "name": "MVA-spesifikasjon (per sats, per transaksjon)",
+              "status": "planned"
+            },
+            {
+              "name": "Kontantsalgsspesifikasjon (>40k)",
+              "status": "ideas"
+            },
+            {
+              "name": "Uttaksspesifikasjon",
+              "status": "ideas"
+            },
+            {
+              "name": "Nærstående-partsspesifikasjon",
+              "status": "ideas"
+            },
+            {
+              "name": "Lønnsoppgavepliktige ytelser",
+              "status": "ideas"
+            },
+            {
+              "name": "PDF-eksport for alle spesifikasjoner",
+              "status": "planned"
+            },
+            {
+              "name": "CSV-eksport for alle spesifikasjoner",
+              "status": "planned"
+            }
+          ]
+        },
+        {
+          "id": "backup-immutability",
+          "name": "Backup og Immutability",
+          "description": "Backup-strategi og immutable bilagsdokumenter (§7-2)",
+          "status": "ideas",
+          "priority": "high",
+          "dependencies": [
+            "Infrastruktur (AWS)"
+          ],
+          "tasks": [
+            {
+              "name": "Backup-policy dokumentasjon",
+              "status": "ideas"
+            },
+            {
+              "name": "PostgreSQL RDS automated backups (daglig)",
+              "status": "ideas"
+            },
+            {
+              "name": "S3 cross-region replication",
+              "status": "ideas"
+            },
+            {
+              "name": "S3 Object Lock for bilagsdokumenter",
+              "status": "ideas"
+            },
+            {
+              "name": "Recovery testing prosedyre",
+              "status": "ideas"
+            },
+            {
+              "name": "5-års backup retention policy",
+              "status": "ideas"
+            }
+          ]
+        }
+      ]
     }
   ],
   "stats": {
-    "totalModules": 20,
+    "totalModules": 21,
     "completedModules": 0,
     "inProgressModules": 2,
-    "plannedModules": 11,
+    "plannedModules": 12,
     "ideasModules": 7,
-    "totalFeatures": 72,
+    "totalFeatures": 80,
     "completedFeatures": 3,
     "inProgressFeatures": 2,
-    "plannedFeatures": 41,
-    "ideasFeatures": 26,
-    "overallProgress": 7
+    "plannedFeatures": 48,
+    "ideasFeatures": 27,
+    "overallProgress": 6
   }
 }
