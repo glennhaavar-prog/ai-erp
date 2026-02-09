@@ -142,7 +142,7 @@ class ConfidenceScorer:
         - invoice_number  
         - invoice_date
         - due_date
-        - amount_ex_vat
+        - amount_excl_vat (or amount_ex_vat)
         - vat_amount
         - total_amount
         - suggested_account
@@ -153,7 +153,8 @@ class ConfidenceScorer:
             'invoice_number',
             'invoice_date',
             'due_date',
-            'amount_ex_vat',
+            'amount_excl_vat',
+            'amount_ex_vat',  # Legacy name support
             'vat_amount',
             'total_amount',
             'suggested_account'
@@ -173,14 +174,17 @@ class ConfidenceScorer:
         Valider at beløp henger sammen.
         
         Sjekk:
-        1. total_amount = amount_ex_vat + vat_amount
-        2. vat_amount ≈ amount_ex_vat * vat_rate (hvis vat_rate oppgitt)
+        1. total_amount = amount_excl_vat + vat_amount
+        2. vat_amount ≈ amount_excl_vat * vat_rate (hvis vat_rate oppgitt)
         
         Hvis validering feiler = lav score (krever manuell review)
         """
         
         try:
-            amount_ex_vat = Decimal(str(invoice_data.get('amount_ex_vat', 0)))
+            # Support both field names (amount_excl_vat and amount_ex_vat)
+            amount_ex_vat = Decimal(str(
+                invoice_data.get('amount_excl_vat') or invoice_data.get('amount_ex_vat', 0)
+            ))
             vat_amount = Decimal(str(invoice_data.get('vat_amount', 0)))
             total_amount = Decimal(str(invoice_data.get('total_amount', 0)))
             
