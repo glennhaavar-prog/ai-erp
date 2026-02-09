@@ -25,7 +25,7 @@ export const Sidebar = () => {
   const pathname = usePathname();
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['innboks']));
 
-  // Complete menu structure from wireframe
+  // Complete menu structure - SIMPLIFIED (One unified dashboard)
   const navSections: NavSection[] = [
     {
       label: 'Oversikt',
@@ -35,47 +35,44 @@ export const Sidebar = () => {
           label: 'Dashboard',
           icon: '📊',
           path: '/',
-          enabled: true,
-        },
-        {
-          id: 'innboks',
-          label: 'Innboks',
-          icon: '📥',
           badge: 12,
           badgeVariant: 'amber',
           enabled: true,
-          children: [
-            {
-              id: 'review-queue',
-              label: 'Review Queue',
-              icon: '·',
-              path: '/review-queue',
-              badge: 8,
-              badgeVariant: 'blue',
-              enabled: true,
-            },
-            {
-              id: 'leverandorfakturaer',
-              label: 'Leverandørfakturaer',
-              icon: '·',
-              path: '/upload',
-              enabled: true,
-            },
-            {
-              id: 'banktransaksjoner',
-              label: 'Banktransaksjoner',
-              icon: '·',
-              path: '/bank',
-              enabled: true,
-            },
-            {
-              id: 'kundefakturaer',
-              label: 'Kundefakturaer',
-              icon: '·',
-              path: '/customer-invoices',
-              enabled: true,
-            },
-          ],
+        },
+        {
+          id: 'review-queue',
+          label: 'Review Queue',
+          icon: '✓',
+          path: '/review-queue',
+          badge: 8,
+          badgeVariant: 'blue',
+          enabled: true,
+        },
+      ],
+    },
+    {
+      label: 'Innboks',
+      items: [
+        {
+          id: 'leverandorfakturaer',
+          label: 'Leverandørfakturaer',
+          icon: '📄',
+          path: '/upload',
+          enabled: true,
+        },
+        {
+          id: 'banktransaksjoner',
+          label: 'Banktransaksjoner',
+          icon: '🏦',
+          path: '/bank',
+          enabled: true,
+        },
+        {
+          id: 'kundefakturaer',
+          label: 'Kundefakturaer',
+          icon: '💰',
+          path: '/customer-invoices',
+          enabled: true,
         },
       ],
     },
@@ -389,7 +386,7 @@ export const Sidebar = () => {
   return (
     <aside className="w-[260px] h-screen bg-bg-sidebar border-r border-border flex flex-col shrink-0 overflow-y-auto scrollbar-thin scrollbar-thumb-border-light scrollbar-track-transparent">
       {/* Logo */}
-      <div className="px-[22px] py-5 pb-4 border-b border-border flex items-center gap-2.5">
+      <Link href="/" className="px-[22px] py-5 pb-4 border-b border-border flex items-center gap-2.5 hover:opacity-80 transition-opacity">
         <div className="w-8 h-8 bg-gradient-to-br from-accent-blue to-accent-purple rounded-lg flex items-center justify-center font-bold text-[15px] text-white tracking-tight">
           K
         </div>
@@ -399,7 +396,7 @@ export const Sidebar = () => {
         <span className="ml-auto text-[9px] font-semibold uppercase tracking-wider text-accent-blue bg-accent-blue-dim px-1.5 py-0.5 rounded">
           AI
         </span>
-      </div>
+      </Link>
 
       {/* Navigation */}
       <nav className="flex-1 px-2.5 py-3">

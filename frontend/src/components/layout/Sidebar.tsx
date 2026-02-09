@@ -173,26 +173,26 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
     >
       {/* Header */}
       <div className="h-16 flex items-center justify-between px-4 border-b border-border">
+        <Link href="/">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity"
+          >
+            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-primary-foreground font-bold">
+              K
+            </div>
+            {!collapsed && <span className="text-lg font-bold text-foreground">Kontali</span>}
+          </motion.div>
+        </Link>
         {!collapsed && (
-          <Link href="/fremdrift">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity"
-            >
-              <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-primary-foreground font-bold">
-                K
-              </div>
-              <span className="text-lg font-bold text-foreground">Kontali</span>
-            </motion.div>
-          </Link>
+          <button
+            onClick={onToggle}
+            className="p-2 rounded-lg hover:bg-muted/50 transition-colors text-muted-foreground hover:text-foreground"
+          >
+            <Menu className="w-5 h-5" />
+          </button>
         )}
-        <button
-          onClick={onToggle}
-          className="p-2 rounded-lg hover:bg-muted/50 transition-colors text-muted-foreground hover:text-foreground"
-        >
-          {collapsed ? <Menu className="w-5 h-5" /> : <X className="w-5 h-5" />}
-        </button>
       </div>
 
       {/* Menu */}
