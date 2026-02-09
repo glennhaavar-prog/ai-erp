@@ -143,9 +143,9 @@ export default function ResultatPage() {
 
       {/* Results */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Inntekter */}
-        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
-          <div className="px-4 py-3 bg-green-50 dark:bg-green-900/20 border-b border-green-200 dark:border-green-800">
+        {/* Inntekter - Task 17: Green accent with left border */}
+        <div className="bg-card border border-border rounded-lg overflow-hidden border-l-4 border-l-success">
+          <div className="px-4 py-3 bg-success/5 border-b border-success/20">
             <h2 className="font-semibold text-green-800 dark:text-green-300">
               Inntekter (Konto 3000-3999)
             </h2>
@@ -186,9 +186,9 @@ export default function ResultatPage() {
           </div>
         </div>
 
-        {/* Kostnader */}
-        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
-          <div className="px-4 py-3 bg-red-50 dark:bg-red-900/20 border-b border-red-200 dark:border-red-800">
+        {/* Kostnader - Task 17: Red accent with left border */}
+        <div className="bg-card border border-border rounded-lg overflow-hidden border-l-4 border-l-destructive">
+          <div className="px-4 py-3 bg-destructive/5 border-b border-destructive/20">
             <h2 className="font-semibold text-red-800 dark:text-red-300">
               Kostnader (Konto 4000-8999)
             </h2>
@@ -230,24 +230,24 @@ export default function ResultatPage() {
         </div>
       </div>
 
-      {/* Resultat */}
-      <div className="bg-white dark:bg-gray-800 border-2 border-blue-300 dark:border-blue-700 rounded-lg overflow-hidden">
+      {/* Resultat - Task 17: Teal accent for results */}
+      <div className="bg-primary/5 border-2 border-primary/30 rounded-lg overflow-hidden shadow-glow-teal">
         <div className="px-6 py-4">
           <div className="flex justify-between items-center">
-            <span className="text-xl font-bold text-gray-900 dark:text-white">
+            <span className="text-xl font-bold text-foreground">
               Resultat før skatt
             </span>
             <span
-              className={`text-3xl font-mono font-bold ${
+              className={`text-3xl font-mono font-bold tabular-nums ${
                 data.resultat >= 0
-                  ? "text-green-600 dark:text-green-400"
-                  : "text-red-600 dark:text-red-400"
+                  ? "text-success"
+                  : "text-destructive"
               }`}
             >
               {formatAmount(data.resultat)}
             </span>
           </div>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+          <p className="text-sm text-muted-foreground mt-2">
             {data.resultat >= 0 ? "Overskudd" : "Underskudd"} = Inntekter - Kostnader
           </p>
         </div>

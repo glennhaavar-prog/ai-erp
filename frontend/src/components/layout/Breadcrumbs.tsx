@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ChevronRight, Home } from 'lucide-react';
+import { ChevronRight, Home, Building2 } from 'lucide-react';
 import { findMenuItemByRoute } from '@/config/menuConfig';
 import { useTenant } from '@/contexts/TenantContext';
 import { useClient } from '@/contexts/ClientContext';
@@ -59,7 +59,7 @@ export default function Breadcrumbs() {
     
     // Task 8: ALWAYS include client name when in client context (Glenn's feedback 2026-02-09)
     // Format: 🏠 > Bergen Byggeservice AS > Resultatregnskap
-    if (selectedClient && pathname !== '/' && pathname !== '/dashboard') {
+    if (selectedClient && pathname !== '/') {
       crumbs.push({ 
         label: selectedClient.name, 
         href: `/clients/${selectedClient.id}` 
@@ -114,13 +114,24 @@ export default function Breadcrumbs() {
   return (
     <nav className="h-12 border-b border-border bg-card/50 flex items-center px-6">
       <div className="flex items-center gap-2 text-sm">
-        {/* Home link */}
-        <Link 
-          href="/" 
-          className="text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <Home className="w-4 h-4" />
-        </Link>
+        {/* Home link - Task 16: Contextual home icon */}
+        {selectedClient ? (
+          <Link 
+            href={`/clients/${selectedClient.id}`}
+            className="text-muted-foreground hover:text-foreground transition-colors"
+            title="Klientens dashboard"
+          >
+            <Home className="w-4 h-4" />
+          </Link>
+        ) : (
+          <Link 
+            href="/" 
+            className="text-muted-foreground hover:text-foreground transition-colors"
+            title="Global oversikt"
+          >
+            <Building2 className="w-4 h-4" />
+          </Link>
+        )}
 
         {/* Breadcrumb items */}
         {breadcrumbs.map((crumb, index) => (

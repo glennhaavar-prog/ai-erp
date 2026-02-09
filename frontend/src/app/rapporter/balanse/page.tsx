@@ -221,31 +221,41 @@ export default function BalansePage() {
         </div>
       </div>
 
-      {/* Balance check */}
+      {/* Balance check - Task 15: Improved error message */}
       <div className={`border-2 rounded-lg p-4 ${
         data.is_balanced
-          ? "bg-green-50 dark:bg-green-900/20 border-green-300 dark:border-green-700"
-          : "bg-yellow-50 dark:bg-yellow-900/20 border-yellow-300 dark:border-yellow-700"
+          ? "bg-success/10 border-success/30"
+          : "bg-destructive/10 border-destructive/30"
       }`}>
         <div className="flex items-center justify-between">
-          <div>
-            <h3 className={`font-semibold ${
+          <div className="flex-1">
+            <h3 className={`font-semibold flex items-center gap-2 ${
               data.is_balanced
-                ? "text-green-800 dark:text-green-300"
-                : "text-yellow-800 dark:text-yellow-300"
+                ? "text-success"
+                : "text-destructive"
             }`}>
               {data.is_balanced ? "✓ Balansen balanserer" : "⚠️ Balansen balanserer ikke"}
             </h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+            <p className="text-sm text-muted-foreground mt-1">
               Eiendeler skal være lik gjeld + egenkapital
             </p>
+            {!data.is_balanced && (
+              <div className="mt-3 flex items-center gap-3">
+                <button className="text-sm text-primary hover:text-accent font-medium underline transition-colors">
+                  Hvordan fikse dette? →
+                </button>
+                <button className="text-sm text-foreground hover:text-primary font-medium px-3 py-1.5 bg-background border border-border rounded-md hover:border-primary transition-all">
+                  Se hovedbok
+                </button>
+              </div>
+            )}
           </div>
           <div className="text-right">
-            <div className="text-sm text-gray-600 dark:text-gray-400">Differanse:</div>
-            <div className={`text-lg font-mono font-bold ${
+            <div className="text-sm text-muted-foreground">Differanse:</div>
+            <div className={`text-lg font-mono font-bold tabular-nums ${
               data.is_balanced
-                ? "text-green-600 dark:text-green-400"
-                : "text-yellow-600 dark:text-yellow-400"
+                ? "text-success"
+                : "text-destructive"
             }`}>
               {formatAmount(data.sum_eiendeler - data.sum_gjeld_egenkapital)}
             </div>
