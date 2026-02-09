@@ -20,15 +20,18 @@ export default {
   	extend: {
   		fontFamily: {
   			sans: [
-  				'Outfit',
+  				'Inter',
+  				'system-ui',
   				'sans-serif'
   			],
   			heading: [
-  				'Sora',
+  				'Inter',
+  				'system-ui',
   				'sans-serif'
   			],
   			body: [
-  				'Outfit',
+  				'Inter',
+  				'system-ui',
   				'sans-serif'
   			],
   			mono: [
