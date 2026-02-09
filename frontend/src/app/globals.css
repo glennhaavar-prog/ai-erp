@@ -4,62 +4,57 @@
 
 @layer base {
   :root {
-    /* Bakgrunnslag (mørkest til lysest) */
-    --background: 0 0% 100%;        /* #0a0c10 - Darkest */
-    --background-surface: 225 26% 7%; /* #0f1117 - Surface (sidebar) */
-    --background-card: 224 24% 12%;   /* #161923 - Card */
-    --background-hover: 226 23% 15%;  /* #1c2030 - Hover */
-    --background-active: 228 31% 18%; /* #1e2440 - Active */
-
-    /* Primærfarger */
-    --primary: 0 0% 9%;          /* #6366F1 - Indigo */
-    --primary-foreground: 0 0% 98%;
-    --secondary: 0 0% 96.1%;        /* #8B5CF6 - Violet */
-    --accent: 0 0% 96.1%;           /* #06B6D4 - Cyan */
-    --teal: 168 76% 40%;             /* #14B8A6 - Teal */
-
-    /* Semantiske farger */
-    --success: 160 84% 39%;          /* #34D399 - Mint/Grønn */
-    --warning: 38 92% 50%;           /* #F59E0B - Amber/Gul */
-    --destructive: 0 84.2% 60.2%;      /* #F43F5E - Rose/Rød */
-
-    /* Tekst */
-    --foreground: 0 0% 3.9%;       /* #F1F5F9 - Primær tekst */
-    --muted: 0 0% 96.1%;            /* #64748B - Dempet */
-    --muted-foreground: 0 0% 45.1%; /* #94A3B8 - Sekundær tekst */
-
-    /* Border */
-    --border: 0 0% 89.8%;           /* #2A3450 */
+    /* Light mode colors */
+    --background: 0 0% 100%;        /* White background */
+    --foreground: 222 47% 11%;      /* Dark slate text (#0F172A) */
     
+    /* Card colors */
+    --card: 0 0% 100%;              /* White cards */
+    --card-foreground: 222 47% 11%; /* Dark text on cards */
+    
+    /* Primary brand color - Indigo */
+    --primary: 239 84% 67%;         /* #6366F1 - Indigo-500 */
+    --primary-foreground: 0 0% 100%; /* White text on primary */
+    
+    /* Secondary colors */
+    --secondary: 214 32% 91%;       /* Light gray (#E2E8F0) */
+    --secondary-foreground: 222 47% 11%; /* Dark text */
+    
+    /* Muted colors */
+    --muted: 214 32% 91%;           /* Light gray background */
+    --muted-foreground: 215 16% 47%; /* Medium gray text (#64748B) */
+    
+    /* Accent color - Cyan */
+    --accent: 189 94% 43%;          /* #06B6D4 - Cyan-500 */
+    --accent-foreground: 0 0% 100%; /* White text on accent */
+    
+    /* Borders */
+    --border: 214 32% 91%;          /* Light gray borders (#E2E8F0) */
+    --input: 214 32% 91%;           /* Input borders */
+    --ring: 239 84% 67%;            /* Focus ring - same as primary */
+    
+    /* Semantic colors */
+    --success: 160 84% 39%;         /* #10B981 - Green */
+    --warning: 38 92% 50%;          /* #F59E0B - Amber */
+    --destructive: 0 84% 60%;       /* #EF4444 - Red */
+    --destructive-foreground: 0 0% 100%;
+    
+    /* Popover */
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+    
+    /* Radius */
     --radius: 0.5rem;
     
-    --card: 0 0% 100%;
+    /* Chart colors */
+    --chart-1: 239 84% 67%;         /* Indigo */
+    --chart-2: 189 94% 43%;         /* Cyan */
+    --chart-3: 160 84% 39%;         /* Green */
+    --chart-4: 38 92% 50%;          /* Amber */
+    --chart-5: 0 84% 60%;           /* Red */
     
-    --card-foreground: 0 0% 3.9%;
-    
-    --popover: 0 0% 100%;
-    
-    --popover-foreground: 0 0% 3.9%;
-    
-    --secondary-foreground: 0 0% 9%;
-    
-    --accent-foreground: 0 0% 9%;
-    
-    --destructive-foreground: 0 0% 98%;
-    
-    --input: 0 0% 89.8%;
-    
-    --ring: 0 0% 3.9%;
-    
-    --chart-1: 12 76% 61%;
-    
-    --chart-2: 173 58% 39%;
-    
-    --chart-3: 197 37% 24%;
-    
-    --chart-4: 43 74% 66%;
-    
-    --chart-5: 27 87% 67%;
+    /* Teal utility */
+    --teal: 168 76% 40%;            /* #14B8A6 */
   }
   .dark {
     --background: 0 0% 3.9%;
@@ -102,6 +97,16 @@
   }
   code, pre, .font-mono {
     font-family: 'JetBrains Mono', monospace;
+  }
+  
+  /* Keyboard focus states for accessibility */
+  *:focus-visible {
+    @apply outline-none ring-2 ring-primary ring-offset-2 ring-offset-background;
+  }
+  
+  /* Smooth transitions for focus states */
+  button, a, input, textarea, select {
+    @apply transition-colors duration-200;
   }
 }
 

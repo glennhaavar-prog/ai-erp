@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, ChevronRight, Menu, X } from 'lucide-react';
 import { getMenuForView, chatMenuItem, type MenuItem, type MenuCategory } from '@/config/menuConfig';
 import { useViewMode } from '@/contexts/ViewModeContext';
+import { getIcon } from '@/lib/iconMap';
 
 interface SidebarProps {
   collapsed: boolean;
@@ -54,6 +55,7 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
     const hasChildren = item.children && item.children.length > 0;
     const isExpanded = expandedItems.has(item.id);
     const active = isActive(item.route);
+    const IconComponent = getIcon(item.icon);
 
     if (hasChildren) {
       // Parent item with children
@@ -72,7 +74,7 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
             `}
             style={{ paddingLeft: collapsed ? undefined : `${level * 12 + 16}px` }}
           >
-            <span className="text-lg">{item.icon}</span>
+            <IconComponent className="w-5 h-5 flex-shrink-0" />
             {!collapsed && (
               <>
                 <span className="flex-1 text-left">{item.label}</span>
@@ -114,7 +116,7 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
         style={{ paddingLeft: collapsed ? undefined : `${level * 12 + 16}px` }}
         title={item.disabled ? item.tooltip : undefined}
       >
-        <span className="text-lg">{item.icon}</span>
+        <IconComponent className="w-5 h-5 flex-shrink-0" />
         {!collapsed && <span className="flex-1 text-left">{item.label}</span>}
       </div>
     );
@@ -136,6 +138,7 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
 
   const renderChatItem = () => {
     const active = isActive(chatMenuItem.route);
+    const ChatIcon = getIcon(chatMenuItem.icon);
     
     const ItemContent = (
       <div
@@ -145,7 +148,7 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
           ${active ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'}
         `}
       >
-        <span className="text-lg">{chatMenuItem.icon}</span>
+        <ChatIcon className="w-5 h-5 flex-shrink-0" />
         {!collapsed && <span className="flex-1 text-left">{chatMenuItem.label}</span>}
       </div>
     );

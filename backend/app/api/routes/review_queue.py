@@ -18,7 +18,7 @@ from app.models.vendor import Vendor
 from app.services.confidence_scoring import calculate_invoice_confidence
 from app.services.corrections_learning import record_invoice_correction
 
-router = APIRouter(prefix="/api/v1/review-queue", tags=["Review Queue"])
+router = APIRouter(prefix="/api/review-queue", tags=["Review Queue"])
 
 
 class ApproveRequest(BaseModel):

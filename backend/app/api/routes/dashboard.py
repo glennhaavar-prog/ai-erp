@@ -17,7 +17,7 @@ from app.models.bank_transaction import BankTransaction, TransactionStatus
 from app.models.client import Client
 from app.models.tenant import Tenant
 
-router = APIRouter(prefix="/api/v1/dashboard", tags=["Dashboard"])
+router = APIRouter(prefix="/api/dashboard", tags=["Dashboard"])
 
 
 @router.get("/")

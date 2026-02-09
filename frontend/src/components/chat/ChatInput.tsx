@@ -97,7 +97,7 @@ export default function ChatInput({ onSend, disabled }: ChatInputProps) {
             <button
               key={idx}
               onClick={() => selectSuggestion(suggestion)}
-              className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-50 transition-colors ${
+              className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-50 transition-colors cursor-pointer ${
                 selectedSuggestion === idx ? 'bg-blue-50 text-blue-600' : 'text-gray-700'
               }`}
             >
@@ -122,7 +122,7 @@ export default function ChatInput({ onSend, disabled }: ChatInputProps) {
         <button
           onClick={handleSend}
           disabled={disabled || !message.trim()}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed cursor-pointer transition-colors flex items-center gap-2"
         >
           <Send className="w-4 h-4" />
           <span className="hidden sm:inline">Send</span>

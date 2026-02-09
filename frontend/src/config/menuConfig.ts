@@ -7,10 +7,12 @@
  * Last updated: 2026-02-09
  */
 
+import { type IconName } from '@/lib/iconMap';
+
 export interface MenuItem {
   id: string;
   label: string;
-  icon: string;
+  icon: IconName;
   route?: string;
   disabled?: boolean;
   tooltip?: string;
@@ -33,35 +35,35 @@ export const menuConfig: MenuCategory[] = [
       {
         id: 'saldobalanse',
         label: 'Saldobalanse',
-        icon: '📋',
+        icon: 'clipboardList',
         route: '/rapporter/saldobalanse',
         visibility: 'client',
       },
       {
         id: 'resultatregnskap',
         label: 'Resultatregnskap',
-        icon: '📊',
+        icon: 'trendingUp',
         route: '/rapporter/resultat',
         visibility: 'client',
       },
       {
         id: 'balanse',
         label: 'Balanse',
-        icon: '⚖️',
+        icon: 'scale',
         route: '/rapporter/balanse',
         visibility: 'client',
       },
       {
         id: 'hovedbok',
         label: 'Hovedbok',
-        icon: '📖',
+        icon: 'bookOpen',
         route: '/rapporter/hovedbok',
         visibility: 'client',
       },
       {
         id: 'leverandorreskontro',
         label: 'Leverandørreskontro',
-        icon: '🏢',
+        icon: 'building',
         route: '/rapporter/leverandorreskontro',
         visibility: 'client',
         disabled: true,
@@ -70,7 +72,7 @@ export const menuConfig: MenuCategory[] = [
       {
         id: 'kundereskontro',
         label: 'Kundereskontro',
-        icon: '👤',
+        icon: 'user',
         route: '/rapporter/kundereskontro',
         visibility: 'client',
         disabled: true,
@@ -85,14 +87,14 @@ export const menuConfig: MenuCategory[] = [
       {
         id: 'bilagsforing',
         label: 'Bilagsføring',
-        icon: '📄',
+        icon: 'fileText',
         route: '/bilagsforing',
         visibility: 'both',
       },
       {
         id: 'bankavstemming',
         label: 'Bankavstemming',
-        icon: '🏦',
+        icon: 'building2',
         route: '/bankavstemming',
         visibility: 'client',
         disabled: true,
@@ -101,21 +103,21 @@ export const menuConfig: MenuCategory[] = [
       {
         id: 'fremdrift',
         label: 'Fremdrift',
-        icon: '📊',
+        icon: 'dashboard',
         route: '/fremdrift',
         visibility: 'multi',
       },
       {
         id: 'dashboard-klient',
         label: 'Dashboard klient',
-        icon: '📈',
+        icon: 'trendingUp',
         route: '/dashboard',
         visibility: 'client',
       },
       {
         id: 'avstemming',
         label: 'Avstemming',
-        icon: '✓',
+        icon: 'checkCircle2',
         route: '/avstemming',
         visibility: 'client',
         disabled: true,
@@ -130,7 +132,7 @@ export const menuConfig: MenuCategory[] = [
       {
         id: 'faktura',
         label: 'Faktura',
-        icon: '💰',
+        icon: 'banknote',
         route: '/faktura',
         visibility: 'client',
         disabled: true,
@@ -139,7 +141,7 @@ export const menuConfig: MenuCategory[] = [
       {
         id: 'repeterende-faktura',
         label: 'Repeterende faktura',
-        icon: '🔁',
+        icon: 'refreshCw',
         route: '/faktura/repeterende',
         visibility: 'client',
         disabled: true,
@@ -148,7 +150,7 @@ export const menuConfig: MenuCategory[] = [
       {
         id: 'produkter',
         label: 'Produkter',
-        icon: '📦',
+        icon: 'package',
         route: '/produkter',
         visibility: 'client',
         disabled: true,
@@ -163,7 +165,7 @@ export const menuConfig: MenuCategory[] = [
       {
         id: 'kunder',
         label: 'Kunder',
-        icon: '👤',
+        icon: 'user',
         route: '/kunder',
         visibility: 'client',
         disabled: true,
@@ -172,7 +174,7 @@ export const menuConfig: MenuCategory[] = [
       {
         id: 'leverandorer',
         label: 'Leverandører',
-        icon: '🏢',
+        icon: 'building',
         route: '/leverandorer',
         visibility: 'client',
         disabled: true,
@@ -181,7 +183,7 @@ export const menuConfig: MenuCategory[] = [
       {
         id: 'ansatte',
         label: 'Ansatte',
-        icon: '👥',
+        icon: 'users',
         route: '/ansatte',
         visibility: 'client',
         disabled: true,
@@ -190,7 +192,7 @@ export const menuConfig: MenuCategory[] = [
       {
         id: 'prosjekter',
         label: 'Prosjekter',
-        icon: '📁',
+        icon: 'folderOpen',
         route: '/prosjekter',
         visibility: 'client',
         disabled: true,
@@ -199,7 +201,7 @@ export const menuConfig: MenuCategory[] = [
       {
         id: 'avdelinger',
         label: 'Avdelinger',
-        icon: '🏛️',
+        icon: 'landmark',
         route: '/avdelinger',
         visibility: 'client',
         disabled: true,
@@ -214,14 +216,14 @@ export const menuConfig: MenuCategory[] = [
       {
         id: 'kontoplan',
         label: 'Kontoplan',
-        icon: '🗂️',
+        icon: 'archive',
         route: '/accounts',
         visibility: 'client',
       },
       {
         id: 'byrainnstillinger',
         label: 'Byråinnstillinger',
-        icon: '⚙️',
+        icon: 'settings',
         route: '/innstillinger/byra',
         visibility: 'multi',
         disabled: true,
@@ -230,7 +232,7 @@ export const menuConfig: MenuCategory[] = [
       {
         id: 'integrasjoner',
         label: 'Integrasjoner',
-        icon: '🔌',
+        icon: 'plug',
         route: '/innstillinger/integrasjoner',
         visibility: 'client',
         disabled: true,
@@ -239,7 +241,7 @@ export const menuConfig: MenuCategory[] = [
       {
         id: 'brukere',
         label: 'Brukere',
-        icon: '👥',
+        icon: 'users',
         route: '/innstillinger/brukere',
         visibility: 'client',
         disabled: true,
@@ -255,7 +257,7 @@ export const menuConfig: MenuCategory[] = [
 export const chatMenuItem: MenuItem = {
   id: 'chat',
   label: 'Chat',
-  icon: '💬',
+  icon: 'messageSquare',
   route: '/chat',
   visibility: 'both',
 };

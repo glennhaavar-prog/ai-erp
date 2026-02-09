@@ -25,7 +25,7 @@ export default function Topbar() {
           <div className="relative">
             <button
               onClick={() => setClientDropdownOpen(!clientDropdownOpen)}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg border border-border bg-background hover:bg-muted/50 transition-colors"
+              className="flex items-center gap-2 px-4 py-2 rounded-lg border border-border bg-background hover:bg-muted/50 transition-colors cursor-pointer"
             >
               <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-medium text-sm">
                 {selectedClient.name.substring(0, 2).toUpperCase()}
@@ -54,7 +54,7 @@ export default function Topbar() {
                         setClientDropdownOpen(false);
                       }}
                       className={`
-                        w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors
+                        w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors cursor-pointer
                         ${selectedClient.id === client.id 
                           ? 'bg-primary/10 text-primary' 
                           : 'hover:bg-muted/50 text-foreground'}
@@ -76,7 +76,7 @@ export default function Topbar() {
         <div className="flex items-center gap-2 px-3 py-2 rounded-lg border border-border bg-background">
           <button
             onClick={toggleViewMode}
-            className={`p-2 rounded transition-colors ${
+            className={`p-2 rounded transition-colors cursor-pointer ${
               viewMode === 'multi-client' 
                 ? 'bg-primary text-primary-foreground' 
                 : 'text-muted-foreground hover:text-foreground'
@@ -87,7 +87,7 @@ export default function Topbar() {
           </button>
           <button
             onClick={toggleViewMode}
-            className={`p-2 rounded transition-colors ${
+            className={`p-2 rounded transition-colors cursor-pointer ${
               viewMode === 'client' 
                 ? 'bg-primary text-primary-foreground' 
                 : 'text-muted-foreground hover:text-foreground'

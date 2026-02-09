@@ -12,7 +12,7 @@ from app.database import get_db
 from app.models.client import Client
 from app.models.review_queue import ReviewQueue
 
-router = APIRouter(prefix="/api/v1/clients", tags=["Clients"])
+router = APIRouter(prefix="/api/clients", tags=["Clients"])
 
 
 class StatusSummary(BaseModel):
