@@ -1,37 +1,45 @@
 'use client';
 
 import React from 'react';
-import { useViewMode } from '@/contexts/ViewModeContext';
+import { useViewMode, ViewMode } from '@/contexts/ViewModeContext';
+import { Globe, User } from 'lucide-react';
 
-export default function ViewModeToggle() {
-  const { viewMode, toggleViewMode } = useViewMode();
+export function ViewModeToggle() {
+  const { viewMode, setViewMode } = useViewMode();
+
+  const handleToggle = (mode: ViewMode) => {
+    setViewMode(mode);
+  };
 
   return (
-    <div className="flex items-center gap-2 bg-card border border-border rounded-lg p-1">
+    <div className="flex gap-1 p-1 bg-muted rounded-lg">
       <button
-        onClick={() => viewMode !== 'multi-client' && toggleViewMode()}
+        onClick={() => handleToggle('multi-client')}
         className={`
-          px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200
-          ${viewMode === 'multi-client' 
-            ? 'bg-primary text-primary-foreground' 
-            : 'text-muted-foreground hover:text-foreground'
+          flex items-center gap-2 px-4 py-2 rounded-md transition-all text-sm font-medium
+          ${
+            viewMode === 'multi-client'
+              ? 'bg-background text-foreground shadow-sm'
+              : 'text-muted-foreground hover:bg-background/50'
           }
         `}
       >
-        Multi-klient
+        <Globe className="w-4 h-4" />
+        Multi-Client
       </button>
-      
       <button
-        onClick={() => viewMode !== 'client' && toggleViewMode()}
+        onClick={() => handleToggle('client')}
         className={`
-          px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200
-          ${viewMode === 'client' 
-            ? 'bg-primary text-primary-foreground' 
-            : 'text-muted-foreground hover:text-foreground'
+          flex items-center gap-2 px-4 py-2 rounded-md transition-all text-sm font-medium
+          ${
+            viewMode === 'client'
+              ? 'bg-background text-foreground shadow-sm'
+              : 'text-muted-foreground hover:bg-background/50'
           }
         `}
       >
-        Klient
+        <User className="w-4 h-4" />
+        Single Client
       </button>
     </div>
   );

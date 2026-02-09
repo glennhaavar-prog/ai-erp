@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { useTenant } from '@/contexts/TenantContext';
+import { useViewMode } from '@/contexts/ViewModeContext';
 
 interface ClientStatus {
   client_id: string;
@@ -31,6 +32,9 @@ export function ClientListDashboard({ onClientSelect }: ClientListDashboardProps
   
   // Get tenant from context
   const { tenantId, isLoading: tenantLoading, error: tenantError } = useTenant();
+  
+  // Get view mode context for setting selected item
+  const { setSelectedItem } = useViewMode();
 
   useEffect(() => {
     console.log('ClientListDashboard: tenantId changed:', tenantId, 'tenantLoading:', tenantLoading);
@@ -150,6 +154,12 @@ export function ClientListDashboard({ onClientSelect }: ClientListDashboardProps
   };
 
   const handleClientClick = (clientId: string) => {
+    // Find the client and set it as selected for RightPanel
+    const client = clients.find(c => c.client_id === clientId);
+    if (client) {
+      setSelectedItem(client);
+    }
+
     if (onClientSelect) {
       onClientSelect(clientId);
     } else {

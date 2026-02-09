@@ -10,7 +10,11 @@ interface Message {
   timestamp: Date;
 }
 
-export function FixedChatPanel() {
+interface FixedChatPanelProps {
+  context?: any;
+}
+
+export function FixedChatPanel({ context }: FixedChatPanelProps = {}) {
   const [mounted, setMounted] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
@@ -20,15 +24,19 @@ export function FixedChatPanel() {
   // Initialize messages on client-side only to avoid hydration mismatch
   useEffect(() => {
     setMounted(true);
+    const contextMessage = context 
+      ? `Jeg ser du har valgt ${context.client_name || context.title}. Hva kan jeg hjelpe deg med?`
+      : 'Hei! Jeg er din AI-assistent for Kontali. Jeg kan hjelpe deg med spørsmål om bilag, kontoer, rapporter og mye mer. Hva kan jeg hjelpe deg med i dag?';
+    
     setMessages([
       {
         id: '1',
         role: 'assistant',
-        content: 'Hei! Jeg er din AI-assistent for Kontali. Jeg kan hjelpe deg med spørsmål om bilag, kontoer, rapporter og mye mer. Hva kan jeg hjelpe deg med i dag?',
+        content: contextMessage,
         timestamp: new Date(),
       },
     ]);
-  }, []);
+  }, [context]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
