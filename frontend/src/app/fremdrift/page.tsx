@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import ClientStatusRow from '@/components/ClientStatusRow';
 import InvoicePreviewModal from '@/components/InvoicePreviewModal';
 import { Filter, SortAsc, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { ClientStatusRowSkeleton } from '@/components/ui/skeleton';
 import {
   fetchMultiClientDashboard,
   calculateClientStatuses,
@@ -122,11 +123,30 @@ export default function MultiClientDashboard() {
   // Loading state
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Laster multi-klient oversikt...</p>
-          <p className="text-sm text-muted-foreground/60 mt-2">Henter data fra {totalClients || '?'} klienter</p>
+      <div className="min-h-screen bg-background p-8">
+        <div className="max-w-7xl mx-auto">
+          {/* Header Skeleton */}
+          <div className="mb-8 space-y-4">
+            <div className="h-8 w-64 bg-muted/50 rounded animate-pulse" />
+            <div className="h-4 w-96 bg-muted/30 rounded animate-pulse" />
+          </div>
+
+          {/* Stats Skeleton */}
+          <div className="grid grid-cols-4 gap-6 mb-8">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="bg-card border border-border rounded-xl p-6 space-y-2">
+                <div className="h-4 w-24 bg-muted/50 rounded animate-pulse" />
+                <div className="h-8 w-16 bg-muted/30 rounded animate-pulse" />
+              </div>
+            ))}
+          </div>
+
+          {/* Client Rows Skeleton */}
+          <div className="space-y-4">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <ClientStatusRowSkeleton key={i} />
+            ))}
+          </div>
         </div>
       </div>
     );

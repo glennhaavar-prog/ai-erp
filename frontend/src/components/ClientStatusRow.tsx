@@ -2,7 +2,8 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { ChevronRight, Circle } from 'lucide-react';
+import { ChevronRight, Circle, AlertCircle } from 'lucide-react';
+import { StatusBadge } from '@/components/ui/status-badge';
 
 interface ClientStatusRowProps {
   client: {
@@ -34,7 +35,8 @@ export default function ClientStatusRow({ client, onClick }: ClientStatusRowProp
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      whileHover={{ scale: 1.01 }}
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
       onClick={onClick}
       className={`
         group relative bg-card border border-border rounded-2xl p-6 
@@ -49,9 +51,13 @@ export default function ClientStatusRow({ client, onClick }: ClientStatusRowProp
             {client.name}
           </h3>
           {priority > 10 && (
-            <span className="inline-block mt-1 px-2 py-0.5 text-xs font-medium bg-destructive/10 text-destructive rounded-full">
+            <StatusBadge 
+              variant="error" 
+              icon={<AlertCircle className="w-3 h-3" />}
+              className="mt-1"
+            >
               Høy prioritet ({priority} åpne)
-            </span>
+            </StatusBadge>
           )}
         </div>
 
