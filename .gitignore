@@ -31,3 +31,4 @@ data/*.db
 # Temporary
 tmp/
 *.tmp
+backup-*.tar.gz
