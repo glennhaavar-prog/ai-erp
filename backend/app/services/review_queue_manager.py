@@ -12,7 +12,7 @@ from datetime import datetime
 from app.models.review_queue import ReviewQueue, ReviewPriority, ReviewStatus, IssueCategory
 from app.models.vendor_invoice import VendorInvoice
 from app.services.confidence_scoring import calculate_invoice_confidence
-from app.services.booking_service import book_vendor_invoice
+from app.services.voucher_service import VoucherGenerator, VoucherValidationError
 
 logger = logging.getLogger(__name__)
 
@@ -75,15 +75,17 @@ class ReviewQueueManager:
             
             # 3. Decision: Auto-approve or escalate
             if should_auto_approve:
-                # Auto-approve and book to GL
-                booking_result = await book_vendor_invoice(
-                    db=self.db,
-                    invoice_id=invoice_id,
-                    booking_suggestion=booking_suggestion,
-                    created_by_type="ai_agent"
-                )
-                
-                if booking_result['success']:
+                # Auto-approve and book to GL using VoucherGenerator
+                try:
+                    generator = VoucherGenerator(self.db)
+                    voucher_dto = await generator.create_voucher_from_invoice(
+                        invoice_id=invoice_id,
+                        tenant_id=invoice.client_id,
+                        user_id="ai_agent_auto",
+                        accounting_date=None,  # Use invoice date
+                        override_account=booking_suggestion.get('account')
+                    )
+                    
                     invoice.review_status = 'auto_approved'
                     await self.db.commit()
                     
@@ -97,14 +99,14 @@ class ReviewQueueManager:
                         'confidence': total_score,
                         'confidence_breakdown': confidence_result['breakdown'],
                         'reasoning': confidence_result['reasoning'],
-                        'general_ledger_id': booking_result['general_ledger_id'],
-                        'voucher_number': booking_result['voucher_number']
+                        'general_ledger_id': voucher_dto.id,
+                        'voucher_number': voucher_dto.voucher_number,
+                        'voucher_id': voucher_dto.id
                     }
-                else:
+                except (ValueError, VoucherValidationError) as e:
                     # Booking failed, escalate to review
                     logger.warning(
-                        f"Invoice {invoice_id} booking failed despite high confidence: "
-                        f"{booking_result.get('error')}"
+                        f"Invoice {invoice_id} booking failed despite high confidence: {str(e)}"
                     )
                     should_auto_approve = False
             

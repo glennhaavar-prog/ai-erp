@@ -1,136 +1,233 @@
 """
-Vouchers API - Bilagsvisning (General Ledger entries with documents)
+Vouchers API - Automatic Voucher Creation + Viewing
+KONTALI SPRINT 1 - Task 2
 
-Kontali ERP - Fase 1
+Supports:
+- POST /create-from-invoice/{invoice_id} - Create voucher from vendor invoice
+- GET /{voucher_id} - Get voucher details
+- GET /by-number/{voucher_number} - Get voucher by number
+- GET /list - List vouchers with filters
 """
 from uuid import UUID
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import select
+from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy import select, func
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
+from typing import Optional
+import logging
 
 from app.database import get_db
 from app.models.general_ledger import GeneralLedger, GeneralLedgerLine
 from app.models.document import Document
 from app.models.chart_of_accounts import Account
+from app.services.voucher_service import (
+    VoucherGenerator,
+    VoucherValidationError,
+    get_voucher_by_id,
+    list_vouchers
+)
+from app.schemas.voucher import (
+    VoucherCreateRequest,
+    VoucherCreateResponse,
+    VoucherDTO,
+    VoucherListResponse
+)
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/vouchers", tags=["vouchers"])
 
 
-@router.get("/{voucher_id}")
+@router.post("/create-from-invoice/{invoice_id}", response_model=VoucherCreateResponse)
+async def create_voucher_from_invoice(
+    invoice_id: UUID,
+    request: VoucherCreateRequest,
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Create voucher (General Ledger entry) from vendor invoice
+    
+    **SkatteFUNN-kritisk**: Dette er kjernen i automatisk bokføring!
+    
+    Workflow:
+    1. Fetch invoice from database
+    2. Generate voucher lines (Norwegian accounting logic)
+    3. Validate balance (debit = credit)
+    4. Create voucher + lines in database (ACID transaction)
+    5. Update invoice status to 'approved'
+    
+    Example:
+    ```
+    POST /api/vouchers/create-from-invoice/550e8400-e29b-41d4-a716-446655440000
+    {
+      "tenant_id": "123e4567-e89b-12d3-a456-426614174000",
+      "user_id": "admin",
+      "accounting_date": "2026-02-09",
+      "override_account": null
+    }
+    ```
+    
+    Response:
+    ```
+    {
+      "success": true,
+      "voucher_id": "...",
+      "voucher_number": "2026-0042",
+      "total_debit": 12500.00,
+      "total_credit": 12500.00,
+      "is_balanced": true,
+      "lines_count": 3,
+      "message": "Voucher created successfully"
+    }
+    ```
+    """
+    try:
+        # Create voucher using VoucherGenerator service
+        generator = VoucherGenerator(db)
+        
+        voucher_dto = await generator.create_voucher_from_invoice(
+            invoice_id=invoice_id,
+            tenant_id=request.tenant_id,
+            user_id=request.user_id,
+            accounting_date=request.accounting_date,
+            override_account=request.override_account
+        )
+        
+        logger.info(
+            f"✅ Created voucher {voucher_dto.voucher_number} from invoice {invoice_id}"
+        )
+        
+        return VoucherCreateResponse(
+            success=True,
+            voucher_id=voucher_dto.id,
+            voucher_number=voucher_dto.voucher_number,
+            total_debit=voucher_dto.total_debit,
+            total_credit=voucher_dto.total_credit,
+            is_balanced=voucher_dto.is_balanced,
+            lines_count=len(voucher_dto.lines),
+            message=f"Voucher {voucher_dto.voucher_number} created successfully"
+        )
+    
+    except ValueError as e:
+        # Invoice not found or already posted
+        logger.warning(f"⚠️ Validation error: {str(e)}")
+        raise HTTPException(status_code=400, detail=str(e))
+    
+    except VoucherValidationError as e:
+        # Voucher doesn't balance
+        logger.error(f"❌ Voucher validation failed: {str(e)}")
+        raise HTTPException(status_code=422, detail=str(e))
+    
+    except Exception as e:
+        # Unexpected error
+        logger.error(f"❌ Error creating voucher: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
+
+@router.get("/list", response_model=VoucherListResponse)
+async def list_vouchers_endpoint(
+    client_id: UUID = Query(..., description="Client ID"),
+    period: Optional[str] = Query(None, description="Filter by period (YYYY-MM)"),
+    page: int = Query(1, ge=1, description="Page number"),
+    page_size: int = Query(50, ge=1, le=100, description="Items per page"),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    List vouchers for a client with optional period filter
+    
+    Example:
+    ```
+    GET /api/vouchers/list?client_id=123e4567-e89b-12d3-a456-426614174000&period=2026-02&page=1&page_size=50
+    ```
+    
+    Returns paginated list of vouchers (without line details for performance)
+    """
+    try:
+        # Calculate offset
+        offset = (page - 1) * page_size
+        
+        # Get total count
+        count_query = select(func.count(GeneralLedger.id)).where(
+            GeneralLedger.client_id == client_id
+        )
+        if period:
+            count_query = count_query.where(GeneralLedger.period == period)
+        
+        count_result = await db.execute(count_query)
+        total = count_result.scalar()
+        
+        # Get vouchers
+        vouchers = await list_vouchers(
+            db=db,
+            client_id=client_id,
+            period=period,
+            limit=page_size,
+            offset=offset
+        )
+        
+        # Calculate total pages
+        total_pages = (total + page_size - 1) // page_size
+        
+        return VoucherListResponse(
+            items=vouchers,
+            total=total,
+            page=page,
+            page_size=page_size,
+            total_pages=total_pages
+        )
+    
+    except Exception as e:
+        logger.error(f"Error listing vouchers: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/{voucher_id}", response_model=VoucherDTO)
 async def get_voucher(
     voucher_id: UUID,
+    client_id: UUID = Query(..., description="Client ID for security"),
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Hent bilag med konteringer og vedlagt dokument.
+    Get voucher by ID with complete details
     
-    Returnerer:
-    - Bilagsinformasjon (voucher_number, dato, beskrivelse)
-    - Konteringslinjer (konto, debet, kredit, beskrivelse)
-    - Vedlagt dokument (PDF/bilde/EHF) hvis finnes
+    Returns:
+    - Voucher information (number, date, description)
+    - All voucher lines (account, debit, credit, description)
+    - Balance validation
+    
+    Example:
+    ```
+    GET /api/vouchers/550e8400-e29b-41d4-a716-446655440000?client_id=123e4567-e89b-12d3-a456-426614174000
+    ```
     """
+    voucher = await get_voucher_by_id(db, voucher_id, client_id)
     
-    # Hent bilag med linjer
-    query = (
-        select(GeneralLedger)
-        .where(GeneralLedger.id == voucher_id)
-        .options(selectinload(GeneralLedger.lines))
-    )
+    if not voucher:
+        raise HTTPException(status_code=404, detail="Voucher not found")
     
-    result = await db.execute(query)
-    entry = result.scalar_one_or_none()
-    
-    if not entry:
-        raise HTTPException(status_code=404, detail="Bilag ikke funnet")
-    
-    # Hent kontonavn fra chart_of_accounts
-    accounts_query = select(Account).where(Account.client_id == entry.client_id)
-    accounts_result = await db.execute(accounts_query)
-    accounts = {acc.account_number: acc.account_name for acc in accounts_result.scalars().all()}
-    
-    # Bygg response med konteringslinjer
-    lines = []
-    for line in sorted(entry.lines, key=lambda x: x.line_number):
-        lines.append({
-            "line_number": line.line_number,
-            "account_number": line.account_number,
-            "account_name": accounts.get(line.account_number, "Ukjent konto"),
-            "line_description": line.line_description,
-            "debit_amount": float(line.debit_amount or 0),
-            "credit_amount": float(line.credit_amount or 0),
-            "vat_code": line.vat_code,
-            "vat_amount": float(line.vat_amount or 0) if line.vat_amount else None,
-        })
-    
-    # Hent dokument hvis source_id peker til vendor_invoice
-    document_url = None
-    document_type = None
-    
-    if entry.source_type == "vendor_invoice" and entry.source_id:
-        # Hent dokument knyttet til vendor_invoice
-        doc_query = (
-            select(Document)
-            .where(Document.entity_type == "vendor_invoice")
-            .where(Document.entity_id == entry.source_id)
-            .order_by(Document.created_at.desc())
-        )
-        doc_result = await db.execute(doc_query)
-        document = doc_result.scalar_one_or_none()
-        
-        if document:
-            document_url = document.file_path or document.s3_key
-            document_type = document.mime_type
-    
-    # Beregn totaler
-    total_debit = sum(line.debit_amount for line in entry.lines)
-    total_credit = sum(line.credit_amount for line in entry.lines)
-    is_balanced = abs(total_debit - total_credit) < 0.01
-    
-    return {
-        "id": str(entry.id),
-        "client_id": str(entry.client_id),
-        "voucher_number": entry.voucher_number,
-        "voucher_series": entry.voucher_series,
-        "entry_date": entry.entry_date.isoformat(),
-        "accounting_date": entry.accounting_date.isoformat(),
-        "period": entry.period,
-        "fiscal_year": entry.fiscal_year,
-        "description": entry.description,
-        "source_type": entry.source_type,
-        "source_id": str(entry.source_id) if entry.source_id else None,
-        "created_by_type": entry.created_by_type,
-        "status": entry.status,
-        "is_reversed": entry.is_reversed,
-        "lines": lines,
-        "total_debit": float(total_debit),
-        "total_credit": float(total_credit),
-        "is_balanced": is_balanced,
-        "document": {
-            "url": document_url,
-            "type": document_type,
-        } if document_url else None,
-        "created_at": entry.created_at.isoformat(),
-    }
+    return voucher
 
 
-@router.get("/by-number/{voucher_number}")
+@router.get("/by-number/{voucher_number}", response_model=VoucherDTO)
 async def get_voucher_by_number(
     voucher_number: str,
-    client_id: UUID,
+    client_id: UUID = Query(..., description="Client ID"),
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Hent bilag basert på bilagsnummer (f.eks. 2026-0001).
+    Get voucher by voucher number (e.g., "2026-0001")
     
-    Nyttig for kryssnavigering når man bare har bilagsnummer.
+    Useful for cross-navigation when you only have the voucher number.
+    
+    Example:
+    ```
+    GET /api/vouchers/by-number/2026-0042?client_id=123e4567-e89b-12d3-a456-426614174000
+    ```
     """
-    
     query = (
         select(GeneralLedger)
         .where(GeneralLedger.client_id == client_id)
         .where(GeneralLedger.voucher_number == voucher_number)
-        .options(selectinload(GeneralLedger.lines))
     )
     
     result = await db.execute(query)
@@ -139,8 +236,8 @@ async def get_voucher_by_number(
     if not entry:
         raise HTTPException(
             status_code=404,
-            detail=f"Bilag {voucher_number} ikke funnet for klient {client_id}"
+            detail=f"Voucher {voucher_number} not found for client {client_id}"
         )
     
-    # Bruk samme logikk som get_voucher
-    return await get_voucher(entry.id, db)
+    # Reuse get_voucher_by_id logic
+    return await get_voucher_by_id(db, entry.id, client_id)

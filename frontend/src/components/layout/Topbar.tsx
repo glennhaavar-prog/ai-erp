@@ -99,15 +99,15 @@ export default function Topbar() {
         </div>
       </div>
 
-      {/* Center: Global search (Task 7: Improved visibility) */}
+      {/* Center: Global search (Task 7: HIGH CONTRAST for peripheral vision) */}
       <div className="flex-1 max-w-md mx-8">
         <div className="relative" title="Global søk (kommer snart)">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-primary/60" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-primary" />
           <input
             type="text"
             placeholder="Søk etter bilag, faktura, klient..."
             disabled
-            className="w-full pl-11 pr-4 py-2.5 rounded-lg border-2 border-border/50 bg-background/80 text-foreground placeholder:text-muted-foreground/70 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all disabled:cursor-not-allowed disabled:opacity-60"
+            className="w-full pl-11 pr-4 py-2.5 rounded-lg border-2 border-primary/30 bg-card text-foreground placeholder:text-foreground/60 text-sm font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-all disabled:cursor-not-allowed disabled:opacity-60"
           />
         </div>
       </div>

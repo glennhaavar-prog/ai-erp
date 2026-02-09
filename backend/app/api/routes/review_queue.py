@@ -302,22 +302,28 @@ async def approve_item(
         )
     
     # Book to General Ledger if this is a vendor invoice
-    booking_result = None
+    voucher_dto = None
     if review_item.source_type == "vendor_invoice" and review_item.ai_suggestion:
-        from app.services.booking_service import book_vendor_invoice
+        from app.services.voucher_service import VoucherGenerator, VoucherValidationError
         
-        booking_result = await book_vendor_invoice(
-            db=db,
-            invoice_id=review_item.source_id,
-            booking_suggestion=review_item.ai_suggestion,
-            created_by_type="user",
-            created_by_id=None  # TODO: Set when auth is implemented
-        )
-        
-        if not booking_result['success']:
+        try:
+            generator = VoucherGenerator(db)
+            voucher_dto = await generator.create_voucher_from_invoice(
+                invoice_id=review_item.source_id,
+                tenant_id=review_item.client_id,
+                user_id="review_queue_user",  # TODO: Set actual user when auth is implemented
+                accounting_date=None,  # Use invoice date
+                override_account=review_item.ai_suggestion.get('account')
+            )
+        except (ValueError, VoucherValidationError) as e:
+            raise HTTPException(
+                status_code=422,
+                detail=f"Failed to create voucher: {str(e)}"
+            )
+        except Exception as e:
             raise HTTPException(
                 status_code=500,
-                detail=f"Failed to book invoice: {booking_result.get('error')}"
+                detail=f"Internal error creating voucher: {str(e)}"
             )
     
     # Update status
@@ -336,12 +342,15 @@ async def approve_item(
         "message": "Item approved and booked to General Ledger successfully"
     }
     
-    # Include GL entry details if booking was performed
-    if booking_result:
-        response["general_ledger"] = {
-            "id": booking_result.get('general_ledger_id'),
-            "voucher_number": booking_result.get('voucher_number'),
-            "lines_count": booking_result.get('lines_count')
+    # Include voucher details if booking was performed
+    if voucher_dto:
+        response["voucher"] = {
+            "id": voucher_dto.id,
+            "voucher_number": voucher_dto.voucher_number,
+            "total_debit": float(voucher_dto.total_debit),
+            "total_credit": float(voucher_dto.total_credit),
+            "is_balanced": voucher_dto.is_balanced,
+            "lines_count": len(voucher_dto.lines)
         }
     
     return response

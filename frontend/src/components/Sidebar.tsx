@@ -32,7 +32,7 @@ export const Sidebar = () => {
       items: [
         {
           id: 'dashboard',
-          label: 'Dashboard',
+          label: 'Hovedoversikt',
           icon: '📊',
           path: '/',
           badge: 12,
@@ -41,7 +41,7 @@ export const Sidebar = () => {
         },
         {
           id: 'review-queue',
-          label: 'Review Queue',
+          label: 'Behandlingskø',
           icon: '✓',
           path: '/review-queue',
           badge: 8,

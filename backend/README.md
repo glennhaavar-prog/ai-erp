@@ -174,9 +174,136 @@ pytest tests/test_invoice_agent.py
 - Audit trail on all changes
 - Encrypted secrets (AWS Secrets Manager)
 
-## 📊 GraphQL Examples
+## 📊 API Endpoints
 
-### Query Clients
+### Review Queue API
+
+**Base Path**: `/api/review-queue`
+
+#### GET /api/review-queue/list
+
+List all invoices in review queue with filtering and pagination.
+
+**Query Parameters:**
+- `status`: Filter by status (pending/approved/rejected)
+- `client_id`: Filter by client UUID
+- `date_from`: Filter by invoice date (from)
+- `date_to`: Filter by invoice date (to)
+- `page`: Page number (default: 1)
+- `page_size`: Items per page (default: 50, max: 100)
+
+**Response:**
+```json
+{
+  "items": [
+    {
+      "id": "uuid",
+      "vendor_name": "Supplier AS",
+      "invoice_number": "INV-001",
+      "amount": 10000.00,
+      "invoice_date": "2025-02-09",
+      "ai_suggested_account": "6000",
+      "confidence_score": 0.75,
+      "review_status": "pending",
+      "priority": "medium",
+      "created_at": "2025-02-09T10:00:00Z"
+    }
+  ],
+  "total": 42,
+  "page": 1,
+  "page_size": 50,
+  "total_pages": 1
+}
+```
+
+#### POST /api/review-queue/approve/{invoice_id}
+
+Approve an invoice and trigger voucher creation.
+
+**Request Body:**
+```json
+{
+  "approved_by": "user-uuid",
+  "notes": "Approved - looks correct"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "voucher_id": "uuid",
+  "general_ledger_id": "uuid",
+  "voucher_number": "B-2025-001",
+  "message": "Invoice approved and booked successfully"
+}
+```
+
+#### POST /api/review-queue/reject/{invoice_id}
+
+Reject an invoice with reason.
+
+**Request Body:**
+```json
+{
+  "rejected_by": "user-uuid",
+  "reason": "Invalid VAT calculation"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Invoice rejected successfully"
+}
+```
+
+#### PATCH /api/review-queue/{invoice_id}/status
+
+Update review status (re-open, escalate, etc.).
+
+**Request Body:**
+```json
+{
+  "status": "in_progress",
+  "updated_by": "user-uuid",
+  "notes": "Working on this"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Status updated from pending to in_progress",
+  "new_status": "in_progress"
+}
+```
+
+#### GET /api/review-queue/stats
+
+Get review queue statistics.
+
+**Query Parameters:**
+- `client_id`: Optional client filter
+
+**Response:**
+```json
+{
+  "pending": 15,
+  "approved": 120,
+  "rejected": 5,
+  "total_resolved": 125,
+  "average_confidence": 78.5,
+  "approval_rate": 96.0,
+  "rejection_rate": 4.0
+}
+```
+
+### GraphQL Examples
+
+#### Query Clients
 
 ```graphql
 query GetClients {
@@ -191,7 +318,7 @@ query GetClients {
 }
 ```
 
-### Create Client
+#### Create Client
 
 ```graphql
 mutation CreateClient($input: ClientInput!) {
