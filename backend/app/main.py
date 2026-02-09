@@ -12,7 +12,7 @@ from app.database import init_db, close_db
 from app.graphql.schema import schema
 from app.api.webhooks import ehf
 from app.api import chat
-from app.api.routes import review_queue, dashboard, reports, documents, accounts, audit, bank, customer_invoices, invoices, demo, chat_booking, saldobalanse, clients, accruals, copilot, nlq, period_close
+from app.api.routes import review_queue, dashboard, reports, documents, accounts, audit, bank, customer_invoices, invoices, demo, chat_booking, saldobalanse, clients, accruals, copilot, nlq, period_close, bank_reconciliation, trust, income_statement, balance_sheet, journal_entries, auto_booking, tenants
 from app.middleware.demo import DemoEnvironmentMiddleware
 
 # Setup logging
@@ -91,11 +91,25 @@ app.include_router(saldobalanse.router)
 # Clients API (List clients)
 app.include_router(clients.router)
 
+# Tenants API (Get tenant information)
+app.include_router(tenants.router)
+
 # Documents API (PDF retrieval)
 app.include_router(documents.router)
 
 # Accounts API (Chart of Accounts management)
 app.include_router(accounts.router)
+
+# Journal Entries API (Bokføring - create and manage journal entries)
+app.include_router(journal_entries.router)
+
+# Reports API (Saldobalanse, Resultat, Balanse, Hovedbok)
+from app.api.routes import reports
+app.include_router(reports.router)
+
+# Vouchers API (Bilagsvisning)
+from app.api.routes import vouchers
+app.include_router(vouchers.router)
 
 # Audit Trail API (System event history)
 app.include_router(audit.router)
@@ -123,6 +137,21 @@ app.include_router(nlq.router)
 
 # Period Close API (Automated monthly/quarterly closing)
 app.include_router(period_close.router)
+
+# Bank Reconciliation API (Upload statements + auto-matching)
+app.include_router(bank_reconciliation.router)
+
+# Trust Dashboard API (Transparency and control for accountants)
+app.include_router(trust.router)
+
+# Income Statement API (Resultatregnskap / Profit & Loss report)
+app.include_router(income_statement.router)
+
+# Balance Sheet API (Balanserapport / Statement of Financial Position)
+app.include_router(balance_sheet.router)
+
+# Auto-Booking API (Automated invoice processing and booking)
+app.include_router(auto_booking.router)
 
 
 # Health check endpoint

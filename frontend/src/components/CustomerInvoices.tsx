@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import { useClient } from '@/contexts/ClientContext';
+import { ClientSafeTimestamp } from '@/lib/date-utils';
 
 interface CustomerInvoice {
   id: string;
@@ -28,17 +30,23 @@ export function CustomerInvoices() {
   const [loading, setLoading] = useState(false);
   const [filterStatus, setFilterStatus] = useState<string>('all');
 
-  const mockClientId = '00000000-0000-0000-0000-000000000001';
+  // Get selected client from context
+  const { selectedClient, isLoading: clientLoading } = useClient();
+  const clientId = selectedClient?.id;
 
   useEffect(() => {
-    fetchInvoices();
-    fetchStats();
-  }, [filterStatus]);
+    if (clientId) {
+      fetchInvoices();
+      fetchStats();
+    }
+  }, [filterStatus, clientId]);
 
   const fetchInvoices = async () => {
+    if (!clientId) return;
+    
     setLoading(true);
     try {
-      const url = `http://localhost:8000/api/customer-invoices/?client_id=${mockClientId}${filterStatus !== 'all' ? `&payment_status=${filterStatus}` : ''}`;
+      const url = `http://localhost:8000/api/customer-invoices/?client_id=${clientId}${filterStatus !== 'all' ? `&payment_status=${filterStatus}` : ''}`;
       const response = await fetch(url);
       if (response.ok) {
         const data = await response.json();
@@ -52,9 +60,11 @@ export function CustomerInvoices() {
   };
 
   const fetchStats = async () => {
+    if (!clientId) return;
+    
     try {
       const response = await fetch(
-        `http://localhost:8000/api/customer-invoices/stats?client_id=${mockClientId}`
+        `http://localhost:8000/api/customer-invoices/stats?client_id=${clientId}`
       );
       if (response.ok) {
         const data = await response.json();
@@ -170,10 +180,10 @@ export function CustomerInvoices() {
                     {invoice.customer_name}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                    {new Date(invoice.invoice_date).toLocaleDateString('nb-NO')}
+                    <ClientSafeTimestamp date={invoice.invoice_date} format="date" />
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                    {new Date(invoice.due_date).toLocaleDateString('nb-NO')}
+                    <ClientSafeTimestamp date={invoice.due_date} format="date" />
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-medium text-gray-900">
                     {invoice.total_amount.toFixed(2)} NOK

@@ -1,82 +1,85 @@
 #!/usr/bin/env python3
 """
-Auto-post due accruals (Periodisering)
+Auto-post accruals cron job
 
-This script is called by a daily cron job to automatically post
-all pending accruals that are due today or earlier.
+Runs daily to automatically post pending accruals that are due.
+Should be scheduled via cron:
+  0 6 * * * cd /path/to/backend && python scripts/auto_post_accruals.py >> logs/accruals_cron.log 2>&1
 
-Usage:
-    python scripts/auto_post_accruals.py [--date YYYY-MM-DD]
+Or via systemd timer.
 """
 
 import asyncio
 import sys
-from datetime import date
-from pathlib import Path
+import os
+from datetime import date, datetime
 
 # Add parent directory to path
-sys.path.insert(0, str(Path(__file__).parent.parent))
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from app.database import get_db
+from sqlalchemy.ext.asyncio import AsyncSession
+from app.database import get_db_session
 from app.services.accrual_service import AccrualService
+import logging
+
+# Setup logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 
-async def main(as_of_date: date = None):
-    """
-    Auto-post all due accruals.
+async def run_auto_post():
+    """Main cron job function"""
+    logger.info("=" * 60)
+    logger.info(f"Starting accrual auto-post job at {datetime.now()}")
+    logger.info("=" * 60)
     
-    Args:
-        as_of_date: Date to check (defaults to today)
-    """
-    
-    if as_of_date is None:
-        as_of_date = date.today()
-    
-    print(f"🔄 Auto-posting accruals due on or before {as_of_date.isoformat()}...")
-    
-    service = AccrualService()
-    
-    async for db in get_db():
-        try:
+    try:
+        # Get database session
+        async with get_db_session() as db:
+            service = AccrualService()
+            
+            # Auto-post all due accruals
             result = await service.auto_post_due_accruals(
                 db=db,
-                as_of_date=as_of_date
+                as_of_date=date.today()
             )
             
-            if result["success"]:
-                print(f"✅ Posted {result['posted_count']} accruals")
-                print(f"💰 Total amount: {result['total_amount']:.2f} NOK")
-                
-                if result["errors"]:
-                    print(f"⚠️  {len(result['errors'])} errors:")
-                    for error in result["errors"]:
-                        print(f"   - Posting {error['posting_id']}: {error['error']}")
-            else:
-                print("❌ Auto-posting failed")
-                sys.exit(1)
+            logger.info(f"✅ Auto-post completed successfully")
+            logger.info(f"   Posted: {result['posted_count']} accruals")
+            logger.info(f"   Total amount: kr {result['total_amount']:,.2f}")
+            
+            if result['errors']:
+                logger.warning(f"⚠️  {len(result['errors'])} errors occurred:")
+                for error in result['errors']:
+                    logger.error(f"   - Posting {error['posting_id']}: {error['error']}")
+            
+            logger.info("=" * 60)
+            
+            return result
+    
+    except Exception as e:
+        logger.error(f"❌ Fatal error in auto-post job: {e}", exc_info=True)
+        raise
+
+
+async def main():
+    """Entry point"""
+    try:
+        result = await run_auto_post()
         
-        except Exception as e:
-            print(f"❌ Error: {e}")
+        # Exit with error code if there were errors
+        if result['errors']:
             sys.exit(1)
-        
-        finally:
-            break  # Only one iteration from async generator
+        else:
+            sys.exit(0)
+    
+    except Exception as e:
+        logger.error(f"Fatal error: {e}")
+        sys.exit(1)
 
 
 if __name__ == "__main__":
-    import argparse
-    
-    parser = argparse.ArgumentParser(description="Auto-post due accruals")
-    parser.add_argument(
-        "--date",
-        type=str,
-        help="Date to check (YYYY-MM-DD), defaults to today"
-    )
-    
-    args = parser.parse_args()
-    
-    target_date = None
-    if args.date:
-        target_date = date.fromisoformat(args.date)
-    
-    asyncio.run(main(target_date))
+    asyncio.run(main())

@@ -21,7 +21,7 @@ interface Transaction {
 
 export default function ClientPortalPage() {
   const params = useParams();
-  const clientId = params.client_id as string;
+  const clientId = params?.client_id as string;
   
   const [client, setClient] = useState<Client | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);

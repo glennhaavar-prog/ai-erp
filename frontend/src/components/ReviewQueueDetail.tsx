@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
+import { toast } from '@/lib/toast';
+import { ClientSafeTimestamp } from '@/lib/date-utils';
 
 interface ReviewItemDetail {
   id: string;
@@ -66,15 +68,15 @@ export const ReviewQueueDetail: React.FC<ReviewQueueDetailProps> = ({ itemId }) 
       });
       
       if (response.ok) {
-        alert('✅ Approved and booked to General Ledger!');
+        toast.success('✅ Approved and booked to General Ledger!');
         router.push('/');
       } else {
         const error = await response.json();
-        alert(`❌ Error: ${error.detail}`);
+        toast.error(`❌ Error: ${error.detail}`);
       }
     } catch (error) {
       console.error('Failed to approve:', error);
-      alert('❌ Failed to approve');
+      toast.error('❌ Failed to approve');
     } finally {
       setActionLoading(false);
     }
@@ -93,15 +95,15 @@ export const ReviewQueueDetail: React.FC<ReviewQueueDetailProps> = ({ itemId }) 
       });
       
       if (response.ok) {
-        alert('✅ Marked for correction!');
+        toast.success('✅ Marked for correction!');
         router.push('/');
       } else {
         const error = await response.json();
-        alert(`❌ Error: ${error.detail}`);
+        toast.error(`❌ Error: ${error.detail}`);
       }
     } catch (error) {
       console.error('Failed to reject:', error);
-      alert('❌ Failed to reject');
+      toast.error('❌ Failed to reject');
     } finally {
       setActionLoading(false);
     }
@@ -169,13 +171,13 @@ export const ReviewQueueDetail: React.FC<ReviewQueueDetailProps> = ({ itemId }) 
               
               <div>
                 <label className="text-sm text-gray-600">Invoice Date</label>
-                <p className="font-medium text-gray-900">{new Date(item.invoiceDate).toLocaleDateString('nb-NO')}</p>
+                <p className="font-medium text-gray-900"><ClientSafeTimestamp date={item.invoiceDate} format="date" /></p>
               </div>
               
               {item.dueDate && (
                 <div>
                   <label className="text-sm text-gray-600">Due Date</label>
-                  <p className="font-medium text-gray-900">{new Date(item.dueDate).toLocaleDateString('nb-NO')}</p>
+                  <p className="font-medium text-gray-900"><ClientSafeTimestamp date={item.dueDate} format="date" /></p>
                 </div>
               )}
               
@@ -334,7 +336,7 @@ export const ReviewQueueDetail: React.FC<ReviewQueueDetailProps> = ({ itemId }) 
                 <div className="flex justify-between">
                   <span className="text-gray-600">Created:</span>
                   <span className="font-medium text-gray-900">
-                    {new Date(item.createdAt).toLocaleDateString('nb-NO')}
+                    <ClientSafeTimestamp date={item.createdAt} format="date" />
                   </span>
                 </div>
               </div>

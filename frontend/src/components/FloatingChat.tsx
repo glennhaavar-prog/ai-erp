@@ -3,17 +3,20 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ChatWindow from './chat/ChatWindow';
+import { useClient } from '@/contexts/ClientContext';
 
 interface FloatingChatProps {
-  clientId?: string;
   userId?: string;
 }
 
 export function FloatingChat({ 
-  clientId = '00000000-0000-0000-0000-000000000001', // Default demo client
   userId 
 }: FloatingChatProps) {
   const [isOpen, setIsOpen] = useState(false);
+  
+  // Get selected client from context
+  const { selectedClient } = useClient();
+  const clientId = selectedClient?.id;
 
   return (
     <>

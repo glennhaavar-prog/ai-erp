@@ -1,0 +1,270 @@
+{
+  "summary": {
+    "total_tests": 19,
+    "passed": 7,
+    "failed": 4,
+    "skipped": 8,
+    "pass_rate": 63.63636363636363,
+    "total_time_seconds": 0.7729377746582031,
+    "timestamp": "2026-02-08T14:48:33.286458"
+  },
+  "category_stats": {
+    "Review Queue": {
+      "pass": 2,
+      "fail": 3,
+      "skip": 0
+    },
+    "Auto-Booking": {
+      "pass": 0,
+      "fail": 0,
+      "skip": 4
+    },
+    "Bank Reconciliation": {
+      "pass": 2,
+      "fail": 1,
+      "skip": 2
+    },
+    "Chat (bokf\u00f8ring)": {
+      "pass": 0,
+      "fail": 0,
+      "skip": 1
+    },
+    "Chat API": {
+      "pass": 0,
+      "fail": 0,
+      "skip": 1
+    },
+    "Demo API": {
+      "pass": 3,
+      "fail": 0,
+      "skip": 0
+    }
+  },
+  "performance": {
+    "avg_ms": 12.725999999999999,
+    "min_ms": 1.33,
+    "max_ms": 93.46
+  },
+  "detailed_results": [
+    {
+      "category": "Review Queue",
+      "endpoint": "/api/review-queue",
+      "method": "GET",
+      "status": "PASS",
+      "http_code": 200,
+      "response_time_ms": 93.46,
+      "error": null,
+      "warning": null,
+      "timestamp": "2026-02-08T14:48:32.687204"
+    },
+    {
+      "category": "Review Queue",
+      "endpoint": "/api/review-queue/stats",
+      "method": "GET",
+      "status": "FAIL",
+      "http_code": 500,
+      "response_time_ms": 7.08,
+      "error": "Route order bug: /stats matches /{item_id} first",
+      "warning": "BUG: Move /stats route BEFORE /{item_id} in review_queue.py",
+      "timestamp": "2026-02-08T14:48:32.694449"
+    },
+    {
+      "category": "Review Queue",
+      "endpoint": "/api/review-queue/{id}",
+      "method": "GET",
+      "status": "PASS",
+      "http_code": 200,
+      "response_time_ms": 5.71,
+      "error": null,
+      "warning": null,
+      "timestamp": "2026-02-08T14:48:32.700252"
+    },
+    {
+      "category": "Review Queue",
+      "endpoint": "/api/review-queue/{{id}}/approve",
+      "method": "POST",
+      "status": "FAIL",
+      "http_code": 400,
+      "response_time_ms": 4.28,
+      "error": "Item already corrected",
+      "warning": null,
+      "timestamp": "2026-02-08T14:48:32.704650"
+    },
+    {
+      "category": "Review Queue",
+      "endpoint": "/api/review-queue/{{id}}/correct",
+      "method": "POST",
+      "status": "FAIL",
+      "http_code": 400,
+      "response_time_ms": 3.39,
+      "error": "Item already corrected",
+      "warning": null,
+      "timestamp": "2026-02-08T14:48:32.708136"
+    },
+    {
+      "category": "Auto-Booking",
+      "endpoint": "/api/auto-booking/stats",
+      "method": "GET",
+      "status": "SKIP",
+      "http_code": 404,
+      "response_time_ms": 1.41,
+      "error": null,
+      "warning": "Endpoint not yet implemented",
+      "timestamp": "2026-02-08T14:48:32.709633"
+    },
+    {
+      "category": "Auto-Booking",
+      "endpoint": "/api/auto-booking/status",
+      "method": "GET",
+      "status": "SKIP",
+      "http_code": 404,
+      "response_time_ms": 1.34,
+      "error": null,
+      "warning": "Endpoint not yet implemented",
+      "timestamp": "2026-02-08T14:48:32.711047"
+    },
+    {
+      "category": "Auto-Booking",
+      "endpoint": "/api/auto-booking/process-single",
+      "method": "POST",
+      "status": "SKIP",
+      "http_code": null,
+      "response_time_ms": null,
+      "error": null,
+      "warning": "Requires real invoice ID - tested in integration tests",
+      "timestamp": "2026-02-08T14:48:32.711077"
+    },
+    {
+      "category": "Auto-Booking",
+      "endpoint": "/api/auto-booking/process",
+      "method": "POST",
+      "status": "SKIP",
+      "http_code": null,
+      "response_time_ms": null,
+      "error": null,
+      "warning": "Requires client setup - tested in integration tests",
+      "timestamp": "2026-02-08T14:48:32.711082"
+    },
+    {
+      "category": "Bank Reconciliation",
+      "endpoint": "/api/bank/reconciliation/stats",
+      "method": "GET",
+      "status": "PASS",
+      "http_code": 200,
+      "response_time_ms": 9.06,
+      "error": null,
+      "warning": null,
+      "timestamp": "2026-02-08T14:48:32.720219"
+    },
+    {
+      "category": "Bank Reconciliation",
+      "endpoint": "/api/bank/import",
+      "method": "POST",
+      "status": "FAIL",
+      "http_code": 400,
+      "response_time_ms": 4.49,
+      "error": "No valid transactions found in file",
+      "warning": null,
+      "timestamp": "2026-02-08T14:48:32.724797"
+    },
+    {
+      "category": "Bank Reconciliation",
+      "endpoint": "/api/bank/transactions",
+      "method": "GET",
+      "status": "PASS",
+      "http_code": 200,
+      "response_time_ms": 4.39,
+      "error": null,
+      "warning": null,
+      "timestamp": "2026-02-08T14:48:32.729290"
+    },
+    {
+      "category": "Bank Reconciliation",
+      "endpoint": "/api/bank/transactions/{{id}}/suggestions",
+      "method": "GET/POST",
+      "status": "SKIP",
+      "http_code": null,
+      "response_time_ms": null,
+      "error": null,
+      "warning": "No transactions to test with",
+      "timestamp": "2026-02-08T14:48:32.729307"
+    },
+    {
+      "category": "Bank Reconciliation",
+      "endpoint": "/api/bank/transactions/{{id}}/match",
+      "method": "GET/POST",
+      "status": "SKIP",
+      "http_code": null,
+      "response_time_ms": null,
+      "error": null,
+      "warning": "No transactions to test with",
+      "timestamp": "2026-02-08T14:48:32.729313"
+    },
+    {
+      "category": "Chat (bokf\u00f8ring)",
+      "endpoint": "/api/chat/message",
+      "method": "POST",
+      "status": "SKIP",
+      "http_code": 404,
+      "response_time_ms": 1.35,
+      "error": null,
+      "warning": "Chat endpoint not yet fully implemented",
+      "timestamp": "2026-02-08T14:48:32.730753"
+    },
+    {
+      "category": "Chat API",
+      "endpoint": "/api/chat/history",
+      "method": "GET",
+      "status": "SKIP",
+      "http_code": 404,
+      "response_time_ms": 1.33,
+      "error": null,
+      "warning": "Endpoint not yet implemented",
+      "timestamp": "2026-02-08T14:48:32.732158"
+    },
+    {
+      "category": "Demo API",
+      "endpoint": "/demo/status",
+      "method": "GET",
+      "status": "PASS",
+      "http_code": 200,
+      "response_time_ms": 47.28,
+      "error": null,
+      "warning": null,
+      "timestamp": "2026-02-08T14:48:32.779560"
+    },
+    {
+      "category": "Demo API",
+      "endpoint": "/demo/run-test",
+      "method": "POST",
+      "status": "PASS",
+      "http_code": 200,
+      "response_time_ms": 3.05,
+      "error": null,
+      "warning": null,
+      "timestamp": "2026-02-08T14:48:32.782721"
+    },
+    {
+      "category": "Demo API",
+      "endpoint": "/demo/task/{{task_id}}",
+      "method": "GET",
+      "status": "PASS",
+      "http_code": 200,
+      "response_time_ms": 3.27,
+      "error": null,
+      "warning": null,
+      "timestamp": "2026-02-08T14:48:33.286246"
+    }
+  ],
+  "warnings": [
+    "Review Queue | /api/review-queue/stats: BUG: Move /stats route BEFORE /{item_id} in review_queue.py",
+    "Auto-Booking | /api/auto-booking/stats: Endpoint not yet implemented",
+    "Auto-Booking | /api/auto-booking/status: Endpoint not yet implemented",
+    "Auto-Booking | /api/auto-booking/process-single: Requires real invoice ID - tested in integration tests",
+    "Auto-Booking | /api/auto-booking/process: Requires client setup - tested in integration tests",
+    "Bank Reconciliation | /api/bank/transactions/{{id}}/suggestions: No transactions to test with",
+    "Bank Reconciliation | /api/bank/transactions/{{id}}/match: No transactions to test with",
+    "Chat (bokf\u00f8ring) | /api/chat/message: Chat endpoint not yet fully implemented",
+    "Chat API | /api/chat/history: Endpoint not yet implemented"
+  ]
+}

@@ -2,6 +2,7 @@
 
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
+import { ClientSafeTimestamp } from '@/lib/date-utils';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -74,10 +75,7 @@ export default function ChatMessage({ message }: ChatMessageProps) {
         {/* Timestamp */}
         {message.timestamp && (
           <div className={`text-xs mt-2 ${isUser ? 'text-blue-100' : 'text-gray-400'}`}>
-            {new Date(message.timestamp).toLocaleTimeString('nb-NO', { 
-              hour: '2-digit', 
-              minute: '2-digit' 
-            })}
+            <ClientSafeTimestamp date={message.timestamp} format="time" />
           </div>
         )}
         

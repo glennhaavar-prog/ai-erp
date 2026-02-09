@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { ClientSafeTimestamp } from '@/lib/date-utils';
 
 interface VerificationStatus {
   overall_status: 'green' | 'yellow' | 'red';
@@ -296,7 +297,7 @@ export const ReceiptVerificationDashboard: React.FC = () => {
 
       {/* Last Updated */}
       <div className="text-center text-sm text-gray-600">
-        Last updated: {new Date(status.timestamp).toLocaleString()}
+        Last updated: <ClientSafeTimestamp date={status.timestamp} format="datetime" />
       </div>
     </div>
   );

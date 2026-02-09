@@ -1,0 +1,37 @@
+# ============================================
+# AI-AGENT ERP - DEVELOPMENT REQUIREMENTS
+# ============================================
+# Install with: pip install -r requirements-dev.txt
+# This automatically includes requirements.txt
+# ============================================
+
+# Include production requirements
+-r requirements.txt
+
+# === Testing ===
+pytest==7.4.4
+pytest-asyncio==0.23.3
+pytest-cov==4.1.0
+coverage==7.13.3
+iniconfig==2.3.0
+pluggy==1.6.0
+
+# === Code Formatting ===
+black==23.12.1
+ruff==0.1.11
+
+# === Type Checking ===
+mypy==1.8.0
+mypy-extensions==1.1.1
+
+# === Code Quality ===
+pathspec==1.0.4
+platformdirs==4.5.1
+filelock==3.20.3
+
+# === Interactive Development ===
+pexpect==4.9.0
+ptyprocess==0.7.0
+
+# === Documentation ===
+docstring_parser==0.17.0

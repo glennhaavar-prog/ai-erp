@@ -20,8 +20,10 @@ from reportlab.pdfgen import canvas
 
 from app.database import get_db
 from app.services.report_service import calculate_saldobalanse, get_saldobalanse_summary
+from app.services.account_balance_service import AccountBalanceService
 
 router = APIRouter(prefix="/api/reports/saldobalanse", tags=["Reports - Saldobalanse"])
+account_balance_service = AccountBalanceService()
 
 
 @router.get("/")
@@ -475,3 +477,95 @@ async def export_saldobalanse_pdf(
         media_type="application/pdf",
         headers={"Content-Disposition": f"attachment; filename={filename}"}
     )
+
+
+@router.get("/{account_number}/transactions")
+async def get_account_transactions(
+    account_number: str,
+    client_id: UUID = Query(..., description="Client ID"),
+    from_date: Optional[date] = Query(None, description="Start date"),
+    to_date: Optional[date] = Query(None, description="End date"),
+    limit: int = Query(100, description="Max transactions to return"),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Drill-down: Get all transactions for a specific account.
+    
+    This endpoint allows users to click on an account in Saldobalanse
+    and see all GL transactions that make up that balance.
+    
+    Returns:
+    - account: Account details (number, name, type)
+    - transactions: List of GL entries affecting this account
+    - summary: Total debit/credit and balance
+    """
+    
+    try:
+        result = await account_balance_service.get_account_transactions(
+            db=db,
+            client_id=client_id,
+            account_number=account_number,
+            from_date=from_date,
+            to_date=to_date,
+            limit=limit
+        )
+        
+        return {
+            "success": True,
+            **result
+        }
+    
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
+
+
+@router.post("/recalculate")
+async def recalculate_balances(
+    client_id: UUID = Query(..., description="Client ID"),
+    period: Optional[str] = Query(None, description="Period to recalculate (YYYY-MM)"),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Recalculate account balances from GL entries.
+    
+    Useful for ensuring data consistency and fixing discrepancies.
+    """
+    
+    try:
+        result = await account_balance_service.recalculate_balances(
+            db=db,
+            client_id=client_id,
+            period=period
+        )
+        
+        return result
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
+
+
+@router.get("/validate")
+async def validate_balance(
+    client_id: UUID = Query(..., description="Client ID"),
+    period: Optional[str] = Query(None, description="Period to validate (YYYY-MM)"),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Validate that all GL entries balance (Debit = Credit).
+    
+    Returns validation status and any discrepancies.
+    """
+    
+    try:
+        result = await account_balance_service.validate_balance(
+            db=db,
+            client_id=client_id,
+            period=period
+        )
+        
+        return result
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")

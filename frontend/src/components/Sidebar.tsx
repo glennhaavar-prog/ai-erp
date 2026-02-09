@@ -151,6 +151,20 @@ export const Sidebar = () => {
             },
           ],
         },
+        {
+          id: 'periodisering',
+          label: 'Periodisering',
+          icon: '📅',
+          path: '/accruals',
+          enabled: true,
+        },
+        {
+          id: 'period-close',
+          label: 'Månedsavslutning',
+          icon: '🔒',
+          path: '/period-close',
+          enabled: true,
+        },
       ],
     },
     {

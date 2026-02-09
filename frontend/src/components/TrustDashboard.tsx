@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { ClientSafeTimestamp } from '@/lib/date-utils';
 
 interface DashboardStatus {
   status: 'green' | 'yellow' | 'red';
@@ -219,7 +220,7 @@ export const TrustDashboard: React.FC = () => {
 
       {/* Last Updated */}
       <div className="text-center text-sm text-gray-500">
-        Last updated: {new Date(status.timestamp).toLocaleString()}
+        Last updated: <ClientSafeTimestamp date={status.timestamp} format="datetime" />
       </div>
     </div>
   );

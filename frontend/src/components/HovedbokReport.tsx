@@ -5,6 +5,8 @@ import { HovedbokEntry, HovedbokFilters, EntryStatus, Vendor } from '@/types/hov
 import { hovedbokApi } from '@/api/hovedbok';
 import { PdfViewerModal } from './PdfViewerModal';
 import { useClient } from '@/contexts/ClientContext';
+import { toast } from '@/lib/toast';
+import { ClientSafeTimestamp } from '@/lib/date-utils';
 
 export const HovedbokReport: React.FC = () => {
   const { selectedClient, isLoading: clientLoading } = useClient();
@@ -148,7 +150,7 @@ export const HovedbokReport: React.FC = () => {
       document.body.removeChild(a);
     } catch (err) {
       console.error('Error exporting to Excel:', err);
-      alert('Kunne ikke eksportere til Excel. Funksjonen kommer snart.');
+      toast.error('Kunne ikke eksportere til Excel. Funksjonen kommer snart.');
     }
   };
 
@@ -387,7 +389,7 @@ export const HovedbokReport: React.FC = () => {
                           )}
                         </td>
                         <td className="px-4 py-3 text-sm text-gray-300">
-                          {formatDate(entry.accounting_date)}
+                          <ClientSafeTimestamp date={entry.accounting_date} format="date" />
                         </td>
                         <td className="px-4 py-3 text-sm">
                           <div className="text-gray-300 font-medium">{entry.account_number}</div>
@@ -484,7 +486,7 @@ export const HovedbokReport: React.FC = () => {
                     </svg>
                     <span className="text-accent-red font-medium">
                       Denne posteringen er reversert
-                      {selectedEntry.reversed_at && ` den ${formatDate(selectedEntry.reversed_at)}`}
+                      {selectedEntry.reversed_at && <> den <ClientSafeTimestamp date={selectedEntry.reversed_at} format="date" /></>}
                     </span>
                   </div>
                 </div>
@@ -502,7 +504,7 @@ export const HovedbokReport: React.FC = () => {
                   <label className="block text-sm font-medium text-gray-400 mb-1">
                     Dato
                   </label>
-                  <p className="text-gray-100 font-medium">{formatDate(selectedEntry.accounting_date)}</p>
+                  <p className="text-gray-100 font-medium"><ClientSafeTimestamp date={selectedEntry.accounting_date} format="date" /></p>
                 </div>
               </div>
 
@@ -583,7 +585,7 @@ export const HovedbokReport: React.FC = () => {
                     <label className="block text-xs text-gray-500 mb-1">
                       Opprettet
                     </label>
-                    <p className="text-gray-400">{formatDate(selectedEntry.created_at)}</p>
+                    <p className="text-gray-400"><ClientSafeTimestamp date={selectedEntry.created_at} format="date" /></p>
                   </div>
                   <div>
                     <label className="block text-xs text-gray-500 mb-1">

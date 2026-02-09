@@ -134,7 +134,7 @@ export default function SaldobalansePage() {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `saldobalanse_${selectedClient}_${dayjs().format('YYYY-MM-DD')}.xlsx`;
+      a.download = `saldobalanse_${contextClient?.name || 'klient'}_${dayjs().format('YYYY-MM-DD')}.xlsx`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
@@ -169,7 +169,7 @@ export default function SaldobalansePage() {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `saldobalanse_${selectedClient}_${dayjs().format('YYYY-MM-DD')}.pdf`;
+      a.download = `saldobalanse_${contextClient?.name || "klient"}_${dayjs().format('YYYY-MM-DD')}.pdf`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
@@ -242,7 +242,7 @@ export default function SaldobalansePage() {
               <Button
                 variant="contained"
                 onClick={fetchSaldobalanse}
-                disabled={loading || !selectedClient}
+                disabled={loading || !contextClient}
               >
                 Hent rapport
               </Button>

@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { AuditEntry, AuditFilters, AuditAction, ChangedByType, AuditTable } from '@/types/audit';
 import { auditApi } from '@/api/audit';
+import { useClient } from '@/contexts/ClientContext';
 
 export default function AuditTrailPage() {
   const [entries, setEntries] = useState<AuditEntry[]>([]);
@@ -31,14 +32,17 @@ export default function AuditTrailPage() {
     page_size: pageSize,
   });
 
-  // TODO: Replace with actual client_id from auth context
-  const CLIENT_ID = '00000000-0000-0000-0000-000000000001';
+  // Get selected client from context
+  const { selectedClient, isLoading: clientLoading } = useClient();
+  const clientId = selectedClient?.id;
 
   // Fetch tables for dropdown
   useEffect(() => {
+    if (!clientId) return;
+    
     const fetchTables = async () => {
       try {
-        const data = await auditApi.getTables(CLIENT_ID);
+        const data = await auditApi.getTables(clientId);
         setTables(data.tables);
       } catch (err) {
         console.error('Error fetching tables:', err);
@@ -46,16 +50,18 @@ export default function AuditTrailPage() {
     };
 
     fetchTables();
-  }, []);
+  }, [clientId]);
 
   // Fetch audit entries from API
   useEffect(() => {
+    if (!clientId) return;
+    
     const fetchEntries = async () => {
       try {
         setLoading(true);
         const filterParams = {
           ...filters,
-          client_id: CLIENT_ID,
+          client_id: clientId,
           page: currentPage,
           page_size: pageSize,
         };
@@ -83,7 +89,7 @@ export default function AuditTrailPage() {
     };
 
     fetchEntries();
-  }, [filters, currentPage]);
+  }, [filters, currentPage, clientId]);
 
   // Handle filter changes
   const handleFilterChange = (key: keyof AuditFilters, value: any) => {

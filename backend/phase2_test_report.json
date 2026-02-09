@@ -1,0 +1,327 @@
+{
+  "summary": {
+    "total_tests": 23,
+    "passed": 17,
+    "failed": 6,
+    "pass_rate": 73.91304347826086,
+    "total_time_seconds": 3.69405198097229,
+    "timestamp": "2026-02-08T14:45:06.348797"
+  },
+  "category_stats": {
+    "Review Queue": {
+      "pass": 2,
+      "fail": 3,
+      "skip": 0
+    },
+    "Auto-Booking": {
+      "pass": 4,
+      "fail": 0,
+      "skip": 0
+    },
+    "Bank Reconciliation": {
+      "pass": 2,
+      "fail": 1,
+      "skip": 2
+    },
+    "Chat API (bokf\u00f8ring)": {
+      "pass": 1,
+      "fail": 0,
+      "skip": 0
+    },
+    "Chat API (rapport)": {
+      "pass": 1,
+      "fail": 0,
+      "skip": 0
+    },
+    "Chat API (s\u00f8k)": {
+      "pass": 1,
+      "fail": 0,
+      "skip": 0
+    },
+    "Chat API (status)": {
+      "pass": 1,
+      "fail": 0,
+      "skip": 0
+    },
+    "Chat API (greeting)": {
+      "pass": 1,
+      "fail": 0,
+      "skip": 0
+    },
+    "Chat API": {
+      "pass": 1,
+      "fail": 0,
+      "skip": 0
+    },
+    "Demo API": {
+      "pass": 3,
+      "fail": 0,
+      "skip": 0
+    }
+  },
+  "performance": {
+    "avg_response_ms": 9.07904761904762,
+    "min_response_ms": 1.04,
+    "max_response_ms": 127.75
+  },
+  "detailed_results": [
+    {
+      "category": "Review Queue",
+      "endpoint": "/api/review-queue",
+      "method": "GET",
+      "status": "PASS",
+      "http_code": 200,
+      "response_time_ms": 14.9,
+      "error": null,
+      "timestamp": "2026-02-08T14:45:02.669979"
+    },
+    {
+      "category": "Review Queue",
+      "endpoint": "/api/review-queue/stats",
+      "method": "GET",
+      "status": "FAIL",
+      "http_code": 500,
+      "response_time_ms": 4.97,
+      "error": null,
+      "timestamp": "2026-02-08T14:45:02.675123"
+    },
+    {
+      "category": "Review Queue",
+      "endpoint": "/api/review-queue/da5dbfaf-94ee-412c-afa8-9ddfebff5d0f",
+      "method": "GET",
+      "status": "PASS",
+      "http_code": 200,
+      "response_time_ms": 5.5,
+      "error": null,
+      "timestamp": "2026-02-08T14:45:02.680737"
+    },
+    {
+      "category": "Review Queue",
+      "endpoint": "/api/review-queue/da5dbfaf-94ee-412c-afa8-9ddfebff5d0f/approve",
+      "method": "POST",
+      "status": "FAIL",
+      "http_code": 500,
+      "response_time_ms": 7.1,
+      "error": "Failed to book invoice: No booking lines in AI suggestion",
+      "timestamp": "2026-02-08T14:45:02.687931"
+    },
+    {
+      "category": "Review Queue",
+      "endpoint": "/api/review-queue/da5dbfaf-94ee-412c-afa8-9ddfebff5d0f/correct",
+      "method": "POST",
+      "status": "FAIL",
+      "http_code": 422,
+      "response_time_ms": 1.58,
+      "error": [
+        {
+          "type": "missing",
+          "loc": [
+            "body",
+            "bookingEntries"
+          ],
+          "msg": "Field required",
+          "input": {
+            "corrections": {
+              "account": "5000"
+            },
+            "notes": "Test correction",
+            "learn": true
+          },
+          "url": "https://errors.pydantic.dev/2.5/v/missing"
+        }
+      ],
+      "timestamp": "2026-02-08T14:45:02.689579"
+    },
+    {
+      "category": "Auto-Booking",
+      "endpoint": "/api/auto-booking/stats",
+      "method": "GET",
+      "status": "PASS",
+      "http_code": 404,
+      "response_time_ms": 1.82,
+      "error": "Not Found",
+      "timestamp": "2026-02-08T14:45:02.691460"
+    },
+    {
+      "category": "Auto-Booking",
+      "endpoint": "/api/auto-booking/status",
+      "method": "GET",
+      "status": "PASS",
+      "http_code": 404,
+      "response_time_ms": 1.14,
+      "error": "Not Found",
+      "timestamp": "2026-02-08T14:45:02.692661"
+    },
+    {
+      "category": "Auto-Booking",
+      "endpoint": "/api/auto-booking/process-single",
+      "method": "POST",
+      "status": "PASS",
+      "http_code": 404,
+      "response_time_ms": 1.09,
+      "error": "Not Found",
+      "timestamp": "2026-02-08T14:45:02.693806"
+    },
+    {
+      "category": "Auto-Booking",
+      "endpoint": "/api/auto-booking/process",
+      "method": "POST",
+      "status": "PASS",
+      "http_code": 404,
+      "response_time_ms": 1.09,
+      "error": "Not Found",
+      "timestamp": "2026-02-08T14:45:02.694959"
+    },
+    {
+      "category": "Bank Reconciliation",
+      "endpoint": "/api/bank/reconciliation/stats",
+      "method": "GET",
+      "status": "PASS",
+      "http_code": 404,
+      "response_time_ms": 1.04,
+      "error": "Not Found",
+      "timestamp": "2026-02-08T14:45:02.696065"
+    },
+    {
+      "category": "Bank Reconciliation",
+      "endpoint": "/api/bank/import",
+      "method": "POST",
+      "status": "PASS",
+      "http_code": 404,
+      "response_time_ms": 1.12,
+      "error": "Not Found",
+      "timestamp": "2026-02-08T14:45:02.697248"
+    },
+    {
+      "category": "Bank Reconciliation",
+      "endpoint": "/api/bank/transactions",
+      "method": "GET",
+      "status": "FAIL",
+      "http_code": 422,
+      "response_time_ms": 1.29,
+      "error": [
+        {
+          "type": "missing",
+          "loc": [
+            "query",
+            "client_id"
+          ],
+          "msg": "Field required",
+          "input": null,
+          "url": "https://errors.pydantic.dev/2.5/v/missing"
+        }
+      ],
+      "timestamp": "2026-02-08T14:45:02.698598"
+    },
+    {
+      "category": "Bank Reconciliation",
+      "endpoint": "/api/bank/transactions/{id}/suggestions",
+      "method": "GET/POST",
+      "status": "SKIP",
+      "http_code": null,
+      "response_time_ms": null,
+      "error": "No transactions available",
+      "timestamp": "2026-02-08T14:45:02.698610"
+    },
+    {
+      "category": "Bank Reconciliation",
+      "endpoint": "/api/bank/transactions/{id}/match",
+      "method": "GET/POST",
+      "status": "SKIP",
+      "http_code": null,
+      "response_time_ms": null,
+      "error": "No transactions available",
+      "timestamp": "2026-02-08T14:45:02.698613"
+    },
+    {
+      "category": "Chat API (bokf\u00f8ring)",
+      "endpoint": "/api/chat/message",
+      "method": "POST",
+      "status": "PASS",
+      "http_code": 404,
+      "response_time_ms": 1.09,
+      "error": "Not Found",
+      "timestamp": "2026-02-08T14:45:02.699760"
+    },
+    {
+      "category": "Chat API (rapport)",
+      "endpoint": "/api/chat/message",
+      "method": "POST",
+      "status": "PASS",
+      "http_code": 404,
+      "response_time_ms": 2.66,
+      "error": "Not Found",
+      "timestamp": "2026-02-08T14:45:03.202670"
+    },
+    {
+      "category": "Chat API (s\u00f8k)",
+      "endpoint": "/api/chat/message",
+      "method": "POST",
+      "status": "PASS",
+      "http_code": 404,
+      "response_time_ms": 2.61,
+      "error": "Not Found",
+      "timestamp": "2026-02-08T14:45:03.705567"
+    },
+    {
+      "category": "Chat API (status)",
+      "endpoint": "/api/chat/message",
+      "method": "POST",
+      "status": "PASS",
+      "http_code": 404,
+      "response_time_ms": 2.62,
+      "error": "Not Found",
+      "timestamp": "2026-02-08T14:45:04.208607"
+    },
+    {
+      "category": "Chat API (greeting)",
+      "endpoint": "/api/chat/message",
+      "method": "POST",
+      "status": "PASS",
+      "http_code": 404,
+      "response_time_ms": 2.6,
+      "error": "Not Found",
+      "timestamp": "2026-02-08T14:45:04.711445"
+    },
+    {
+      "category": "Chat API",
+      "endpoint": "/api/chat/history",
+      "method": "GET",
+      "status": "PASS",
+      "http_code": 404,
+      "response_time_ms": 2.72,
+      "error": "Not Found",
+      "timestamp": "2026-02-08T14:45:05.214402"
+    },
+    {
+      "category": "Demo API",
+      "endpoint": "/demo/status",
+      "method": "GET",
+      "status": "PASS",
+      "http_code": 200,
+      "response_time_ms": 127.75,
+      "error": null,
+      "timestamp": "2026-02-08T14:45:05.342285"
+    },
+    {
+      "category": "Demo API",
+      "endpoint": "/demo/run-test",
+      "method": "POST",
+      "status": "PASS",
+      "http_code": 200,
+      "response_time_ms": 2.96,
+      "error": "Test data generation started with 20 invoices per client",
+      "timestamp": "2026-02-08T14:45:05.345317"
+    },
+    {
+      "category": "Demo API",
+      "endpoint": "/demo/task/e2eb09b8-511a-428c-b163-9333d7f19b7c",
+      "method": "GET",
+      "status": "PASS",
+      "http_code": 200,
+      "response_time_ms": 3.01,
+      "error": "Error: 'payment_terms_days' is an invalid keyword argument for Vendor",
+      "timestamp": "2026-02-08T14:45:06.348592"
+    }
+  ]
+}

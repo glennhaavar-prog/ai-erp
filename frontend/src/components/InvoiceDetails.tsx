@@ -1,9 +1,10 @@
+'use client';
+
 import React from 'react';
 import { ReviewItem } from '@/types/review-queue';
-import { format } from 'date-fns';
-import { nb } from 'date-fns/locale';
 import { ConfidenceScore } from './ConfidenceScore';
 import clsx from 'clsx';
+import { ClientSafeTimestamp } from '@/lib/date-utils';
 
 interface InvoiceDetailsProps {
   item: ReviewItem;
@@ -60,11 +61,11 @@ export const InvoiceDetails: React.FC<InvoiceDetailsProps> = ({ item }) => {
         </div>
         <div>
           <div className="text-xs text-gray-500 uppercase tracking-wide mb-1">Dato</div>
-          <div className="text-gray-100">{format(new Date(item.date), 'dd.MM.yyyy', { locale: nb })}</div>
+          <div className="text-gray-100"><ClientSafeTimestamp date={item.date} format="date" /></div>
         </div>
         <div>
           <div className="text-xs text-gray-500 uppercase tracking-wide mb-1">Mottatt</div>
-          <div className="text-gray-100">{format(new Date(item.createdAt), 'dd.MM.yyyy HH:mm', { locale: nb })}</div>
+          <div className="text-gray-100"><ClientSafeTimestamp date={item.createdAt} format="datetime" /></div>
         </div>
         <div>
           <div className="text-xs text-gray-500 uppercase tracking-wide mb-1">AI Konfidensgrad</div>
@@ -78,7 +79,7 @@ export const InvoiceDetails: React.FC<InvoiceDetailsProps> = ({ item }) => {
           <div className="bg-dark-bg border border-dark-border rounded-lg p-4">
             <div className="text-sm text-gray-400">
               Godkjent av <span className="text-gray-100 font-medium">{item.reviewedBy}</span>
-              {' '}den {format(new Date(item.reviewedAt), 'dd.MM.yyyy \'kl.\' HH:mm', { locale: nb })}
+              {' '}den <ClientSafeTimestamp date={item.reviewedAt} format="datetime" />
             </div>
           </div>
         </div>

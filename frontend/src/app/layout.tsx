@@ -1,8 +1,11 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import DemoBanner from '@/components/DemoBanner';
-import { Layout } from '@/components/Layout';
+import AppLayout from '@/components/layout/AppLayout';
 import { ClientProvider } from '@/contexts/ClientContext';
+import { ViewModeProvider } from '@/contexts/ViewModeContext';
+import { TenantProvider } from '@/contexts/TenantContext';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 export const metadata: Metadata = {
   title: 'Kontali ERP - AI-drevet Regnskapsautomatisering',
@@ -21,10 +24,16 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       </head>
       <body className="font-body">
-        <ClientProvider>
-          <DemoBanner />
-          <Layout>{children}</Layout>
-        </ClientProvider>
+        <ErrorBoundary>
+          <TenantProvider>
+            <ViewModeProvider>
+              <ClientProvider>
+                <DemoBanner />
+                <AppLayout>{children}</AppLayout>
+              </ClientProvider>
+            </ViewModeProvider>
+          </TenantProvider>
+        </ErrorBoundary>
       </body>
     </html>
   );

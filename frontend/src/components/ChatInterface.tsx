@@ -1,7 +1,9 @@
+'use client';
+
 import React, { useState, useRef, useEffect } from 'react';
 import { ChatMessage } from '@/types/review-queue';
-import { format } from 'date-fns';
 import clsx from 'clsx';
+import { ClientSafeTimestamp } from '@/lib/date-utils';
 
 interface ChatInterfaceProps {
   itemId: string;
@@ -65,7 +67,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({ itemId, messages, 
                   'text-xs mt-1',
                   msg.role === 'user' ? 'text-blue-200' : 'text-gray-500'
                 )}>
-                  {format(new Date(msg.timestamp), 'HH:mm')}
+                  <ClientSafeTimestamp date={msg.timestamp} format="time" />
                 </div>
               </div>
             </div>

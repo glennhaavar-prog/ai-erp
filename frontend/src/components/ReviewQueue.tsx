@@ -11,6 +11,7 @@ import { CorrectButton } from './CorrectButton';
 import { ChatInterface } from './ChatInterface';
 import { PatternList } from './PatternList';
 import { reviewQueueApi } from '@/api/review-queue';
+import { toast } from '@/lib/toast';
 
 export const ReviewQueue: React.FC = () => {
   const [items, setItems] = useState<ReviewItem[]>([]);
@@ -109,7 +110,7 @@ export const ReviewQueue: React.FC = () => {
       }
     } catch (err) {
       console.error('Error approving item:', err);
-      alert('Failed to approve item. Please try again.');
+      toast.error('Failed to approve item. Please try again.');
     }
   };
 
@@ -132,7 +133,7 @@ export const ReviewQueue: React.FC = () => {
       }
     } catch (err) {
       console.error('Error correcting item:', err);
-      alert('Failed to correct item. Please try again.');
+      toast.error('Failed to correct item. Please try again.');
     }
   };
 

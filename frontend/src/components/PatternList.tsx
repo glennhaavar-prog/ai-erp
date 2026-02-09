@@ -1,8 +1,9 @@
+'use client';
+
 import React from 'react';
 import { Pattern } from '@/types/review-queue';
 import { ConfidenceScore } from './ConfidenceScore';
-import { format } from 'date-fns';
-import { nb } from 'date-fns/locale';
+import { ClientSafeTimestamp } from '@/lib/date-utils';
 
 interface PatternListProps {
   patterns: Pattern[];
@@ -36,7 +37,7 @@ export const PatternList: React.FC<PatternListProps> = ({ patterns }) => {
           </div>
           
           <div className="text-xs text-gray-500">
-            Sist brukt: {format(new Date(pattern.lastUsed), 'dd.MM.yyyy HH:mm', { locale: nb })}
+            Sist brukt: <ClientSafeTimestamp date={pattern.lastUsed} format="datetime" />
           </div>
         </div>
       ))}

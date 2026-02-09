@@ -1,58 +1,144 @@
-# FastAPI & Web Framework
-fastapi[all]==0.109.0
+# ============================================
+# AI-AGENT ERP - PRODUCTION REQUIREMENTS
+# ============================================
+# Last updated: 2026-02-08
+# Python version: 3.12+
+#
+# CRITICAL: These versions are locked after
+# resolving anthropic + httpx compatibility
+# issue (anthropic 0.79.0 broke with httpx 0.28.1)
+# ============================================
+
+# === Web Framework ===
+fastapi==0.109.0
 uvicorn[standard]==0.27.0
+starlette==0.35.1
 python-multipart==0.0.6
+httptools==0.7.1
+websockets==16.0
+uvloop==0.22.1
+watchfiles==1.1.1
 
-# GraphQL
-strawberry-graphql[fastapi]==0.219.0
+# === HTTP Clients ===
+# CRITICAL: httpx pinned to 0.27.0 for anthropic compatibility
+httpx==0.27.0
+httpcore==1.0.9
+h11==0.16.0
+requests==2.31.0
+urllib3==2.0.7
+certifi==2023.11.17
 
-# Database
-sqlalchemy[asyncio]==2.0.25
+# === AI / LLM ===
+# CRITICAL: anthropic pinned to 0.39.0 (tested stable with httpx 0.27.0)
+anthropic==0.39.0
+
+# === GraphQL ===
+strawberry-graphql==0.219.0
+graphql-core==3.2.7
+
+# === Database ===
+sqlalchemy==2.0.25
+alembic==1.13.10
 asyncpg==0.29.0
-alembic==1.13.1
 psycopg2-binary==2.9.9
+greenlet==3.3.1
 
-# Redis & Caching
-redis>=4.5.2,<5.0.0
+# === Redis & Caching ===
+redis==4.6.0
 hiredis==2.3.2
 
-# Task Queue
-celery[redis]==5.3.4
+# === Task Queue ===
+celery==5.3.4
+kombu==5.6.2
+billiard==4.2.4
+vine==5.1.0
+amqp==5.3.1
 
-# AWS Services
+# === AWS Services ===
 boto3==1.34.34
 botocore==1.34.34
+s3transfer==0.10.1
+jmespath==1.0.1
 
-# AI & Claude
-anthropic==0.18.1
+# === Authentication & Security ===
+python-jose==3.3.0
+passlib==1.7.4
+bcrypt==3.2.2
+cryptography==41.0.7
+PyJWT==2.7.0
+pyasn1==0.4.8
+pyasn1-modules==0.2.8
+ecdsa==0.19.1
 
-# Authentication & Security
-python-jose[cryptography]==3.3.0
-passlib[bcrypt]==1.7.4
-python-dateutil==2.8.2
-
-# Environment & Config
+# === Validation & Settings ===
 pydantic==2.5.3
+pydantic-core==2.14.6
 pydantic-settings==2.1.0
+pydantic-extra-types==2.11.0
+annotated-types==0.7.0
+email-validator==2.3.0
 python-dotenv==1.0.0
 
-# Utilities
+# === File Processing ===
 aiofiles==23.2.1
+python-multipart==0.0.6
+openpyxl==3.1.5
+xlsxwriter==3.2.9
+et_xmlfile==2.0.0
+
+# === PDF Processing ===
+PyPDF2==3.0.1
+pdf2image==1.17.0
+pillow==12.1.0
+pytesseract==0.3.13
+reportlab==4.4.9
+
+# === XML/EHF Processing ===
+lxml==6.0.2
+
+# === Data & Date Processing ===
+python-dateutil==2.8.2
+pytz==2024.1
+tzdata==2025.3
+
+# === Logging ===
+structlog==25.5.0
 python-json-logger==2.0.7
-pandas>=2.0.0
-openpyxl>=3.1.0
 
-# Testing
-pytest==7.4.4
-pytest-asyncio==0.23.3
-pytest-cov==4.1.0
+# === Utilities ===
+click==8.1.6
+typer-slim==0.21.1
+shellingham==1.5.4
+rich==13.7.1
+python-magic==0.4.27
+charset-normalizer==3.4.4
+idna==3.6
+anyio==4.12.1
+sniffio==1.3.1
+typing_extensions==4.10.0
 
-# Development
-black==23.12.1
-ruff==0.1.11
-mypy==1.8.0
+# === Template Engine ===
+jinja2==3.1.2
+markupsafe==2.1.5
 
-# EHF Module Dependencies
-lxml>=5.1.0           # XML parsing and generation
-httpx>=0.27.0         # Async HTTP client for API calls
-structlog>=24.1.0     # Structured logging
+# === JSON ===
+orjson==3.11.7
+ujson==5.11.0
+jiter==0.13.0
+
+# === CLI Tools ===
+click-didyoumean==0.3.1
+click-plugins==1.1.1.2
+click-repl==0.3.0
+prompt_toolkit==3.0.52
+wcwidth==0.5.3
+colorama==0.4.6
+
+# === Markdown ===
+markdown-it-py==3.0.0
+mdurl==0.1.2
+pygments==2.17.2
+
+# === Serialization ===
+packaging==24.0
+attrs==23.2.0

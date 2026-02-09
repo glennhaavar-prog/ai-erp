@@ -8,6 +8,7 @@ from app.models.vendor import Vendor
 from app.models.vendor_invoice import VendorInvoice
 from app.models.customer_invoice import CustomerInvoice
 from app.models.bank_transaction import BankTransaction
+from app.models.bank_reconciliation import BankReconciliation
 from app.models.general_ledger import GeneralLedger, GeneralLedgerLine
 from app.models.chart_of_accounts import Account
 from app.models.account_balance import AccountBalance
@@ -25,6 +26,7 @@ from app.models.accounting_period import AccountingPeriod
 from app.models.accrual import Accrual
 from app.models.accrual_posting import AccrualPosting
 from app.models.tax_code import TaxCode
+from app.models.auto_booking_stats import AutoBookingStats
 
 __all__ = [
     "Tenant",
@@ -34,6 +36,7 @@ __all__ = [
     "VendorInvoice",
     "CustomerInvoice",
     "BankTransaction",
+    "BankReconciliation",
     "GeneralLedger",
     "GeneralLedgerLine",
     "Account",
@@ -52,4 +55,5 @@ __all__ = [
     "Accrual",
     "AccrualPosting",
     "TaxCode",
+    "AutoBookingStats",
 ]

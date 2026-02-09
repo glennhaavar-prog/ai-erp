@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { useTenant } from '@/contexts/TenantContext';
+import { ClientSafeTimestamp } from '@/lib/date-utils';
 
 interface Task {
   id: string;
@@ -42,27 +44,43 @@ type CategoryFilter = 'all' | 'invoicing' | 'bank' | 'reporting';
 export function MultiClientDashboard() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<CategoryFilter>('all');
   const [searchQuery, setSearchQuery] = useState('');
-
-  // Mock tenant ID for now - in real app this comes from auth context
-  const mockTenantId = '00000000-0000-0000-0000-000000000001';
+  
+  // Get tenant from context
+  const { tenantId, isLoading: tenantLoading, error: tenantError } = useTenant();
 
   useEffect(() => {
-    fetchTasks();
-  }, [selectedCategory]);
+    console.log('MultiClientDashboard: tenantId changed:', tenantId, 'tenantLoading:', tenantLoading);
+    if (tenantId) {
+      fetchTasks();
+    } else if (!tenantLoading && !tenantId) {
+      setLoading(false);
+      setError('Could not load tenant information');
+    }
+  }, [tenantId, selectedCategory, tenantLoading]);
 
   const fetchTasks = async () => {
+    if (!tenantId) return;
+    
     setLoading(true);
+    setError(null);
+    console.log('MultiClientDashboard: Fetching tasks for tenant:', tenantId);
     try {
-      const url = `http://localhost:8000/api/dashboard/multi-client/tasks?tenant_id=${mockTenantId}${selectedCategory !== 'all' ? `&category=${selectedCategory}` : ''}`;
+      const url = `http://localhost:8000/api/dashboard/multi-client/tasks?tenant_id=${tenantId}${selectedCategory !== 'all' ? `&category=${selectedCategory}` : ''}`;
       const response = await fetch(url);
+      console.log('MultiClientDashboard: API response status:', response.status);
       if (response.ok) {
         const result = await response.json();
+        console.log('MultiClientDashboard: Received data:', result);
         setData(result);
+      } else {
+        throw new Error(`API returned ${response.status}: ${response.statusText}`);
       }
-    } catch (error) {
-      console.error('Failed to fetch tasks:', error);
+    } catch (err) {
+      console.error('Failed to fetch tasks:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load tasks');
     } finally {
       setLoading(false);
     }
@@ -90,6 +108,50 @@ export function MultiClientDashboard() {
       default: return '📋';
     }
   };
+
+  // Show tenant loading state
+  if (tenantLoading) {
+    return (
+      <div className="text-center py-12">
+        <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <p className="mt-2 text-gray-600">Loading tenant info...</p>
+      </div>
+    );
+  }
+
+  // Show tenant error
+  if (tenantError) {
+    return (
+      <div className="text-center py-12">
+        <div className="text-4xl mb-4">⚠️</div>
+        <p className="text-lg font-semibold text-gray-900 mb-2">Could not load tenant</p>
+        <p className="text-sm text-gray-600 mb-4">{tenantError}</p>
+        <button
+          onClick={() => window.location.reload()}
+          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+        >
+          Try again
+        </button>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error && !loading) {
+    return (
+      <div className="text-center py-12">
+        <div className="text-4xl mb-4">❌</div>
+        <p className="text-lg font-semibold text-gray-900 mb-2">Failed to load tasks</p>
+        <p className="text-sm text-gray-600 mb-4">{error}</p>
+        <button
+          onClick={() => fetchTasks()}
+          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+        >
+          Try again
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
@@ -206,7 +268,7 @@ export function MultiClientDashboard() {
                     {task.priority.toUpperCase()}
                   </span>
                   <p className="text-xs text-gray-500 mt-2">
-                    {new Date(task.created_at).toLocaleString('nb-NO')}
+                    <ClientSafeTimestamp date={task.created_at} format="datetime" />
                   </p>
                   <div className="mt-2">
                     <span className="text-xs text-gray-600">AI Confidence:</span>

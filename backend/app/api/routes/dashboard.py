@@ -17,7 +17,69 @@ from app.models.bank_transaction import BankTransaction, TransactionStatus
 from app.models.client import Client
 from app.models.tenant import Tenant
 
-router = APIRouter(prefix="/api/dashboard", tags=["Dashboard"])
+router = APIRouter(prefix="/api/v1/dashboard", tags=["Dashboard"])
+
+
+@router.get("/")
+async def get_dashboard_summary(
+    db: AsyncSession = Depends(get_db)
+) -> Dict[str, Any]:
+    """
+    Get cross-client dashboard summary (API v1 spec compliant)
+    
+    Returns summary for the logged-in accountant across all clients.
+    For demo purposes, returns all demo clients.
+    
+    TODO: Fix enum comparison issues with database
+    For now, returning simplified counts
+    """
+    # Get all demo clients
+    clients_query = select(Client).where(Client.is_demo == True).order_by(Client.name)
+    clients_result = await db.execute(clients_query)
+    clients = clients_result.scalars().all()
+    
+    # TODO: Fix enum comparison - for now use simpler counts
+    # Count total review queue items
+    all_items_query = select(func.count()).select_from(ReviewQueue)
+    all_items_result = await db.execute(all_items_query)
+    total_pending_items = all_items_result.scalar() or 0
+    
+    # Count vendor invoices in review queue
+    vendor_items_query = select(func.count()).select_from(ReviewQueue).where(
+        ReviewQueue.source_type == 'vendor_invoice'
+    )
+    vendor_items_result = await db.execute(vendor_items_query)
+    vouchers_pending = vendor_items_result.scalar() or 0
+    
+    # Count bank transactions
+    bank_count_query = select(func.count()).select_from(BankTransaction)
+    bank_count_result = await db.execute(bank_count_query)
+    bank_items_open = bank_count_result.scalar() or 0
+    
+    # Build client list with status
+    client_list = []
+    for client in clients:
+        # For now, return basic client info without complex queries
+        client_list.append({
+            "id": str(client.id),
+            "name": client.name,
+            "vouchers_pending": 0,  # TODO: calculate per client
+            "bank_items_open": 0,  # TODO: calculate per client
+            "reconciliation_status": "not_started",
+            "vat_status": "not_started"
+        })
+    
+    return {
+        "total_clients": len(clients),
+        "total_pending_items": total_pending_items,
+        "summary_by_category": {
+            "vouchers_pending": vouchers_pending,
+            "bank_items_open": bank_items_open,
+            "reconciliation_pending": 0,  # TODO: implement
+            "vat_pending": 0  # TODO: implement
+        },
+        "clients": client_list
+    }
 
 
 @router.get("/multi-client/tasks")

@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { usePathname } from "next/navigation";
+import { ClientSafeTimestamp } from "@/lib/date-utils";
 
 interface Message {
   role: "user" | "assistant";
@@ -188,10 +189,7 @@ export default function Copilot() {
                       msg.role === "user" ? "text-blue-100" : "text-gray-500"
                     }`}
                   >
-                    {msg.timestamp.toLocaleTimeString("nb-NO", {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
+                    <ClientSafeTimestamp date={msg.timestamp} format="time" />
                   </p>
                 </div>
               </div>

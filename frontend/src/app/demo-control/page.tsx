@@ -19,6 +19,7 @@ import {
   BookOpen,
   Users,
 } from 'lucide-react';
+import { toast } from '@/lib/toast';
 
 interface DemoStatus {
   demo_environment_exists: boolean;
@@ -127,7 +128,7 @@ export default function DemoControlPage() {
       setTaskStatus(data);
     } catch (error) {
       console.error('Error running test:', error);
-      alert('Failed to start test data generation');
+      toast.error('Failed to start test data generation');
     }
   };
 
@@ -146,13 +147,13 @@ export default function DemoControlPage() {
       }
 
       const data = await response.json();
-      alert(`✅ Demo environment reset successfully!\n\nDeleted:\n- ${data.deleted_counts.vendor_invoices} vendor invoices\n- ${data.deleted_counts.customer_invoices} customer invoices\n- ${data.deleted_counts.bank_transactions} bank transactions\n- ${data.deleted_counts.general_ledger_entries} GL entries`);
+      toast.success(`✅ Demo environment reset successfully!\n\nDeleted:\n- ${data.deleted_counts.vendor_invoices} vendor invoices\n- ${data.deleted_counts.customer_invoices} customer invoices\n- ${data.deleted_counts.bank_transactions} bank transactions\n- ${data.deleted_counts.general_ledger_entries} GL entries`);
       
       await fetchStatus();
       setTaskStatus(null);
     } catch (error) {
       console.error('Error resetting:', error);
-      alert('Failed to reset demo environment');
+      toast.error('Failed to reset demo environment');
     }
   };
 

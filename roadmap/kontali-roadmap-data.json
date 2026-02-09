@@ -3,7 +3,7 @@
     "name": "Kontali ERP",
     "description": "AI-drevet regnskapssystem for Norge",
     "startDate": "2026-02-01",
-    "version": "0.1.0-alpha"
+    "version": "0.2.0-alpha"
   },
   "modules": [
     {
@@ -1388,6 +1388,334 @@
       ]
     },
     {
+      "id": "onboardingsagent",
+      "name": "Onboardingsagent",
+      "description": "AI-drevet migrering fra andre regnskapssystemer",
+      "status": "ideas",
+      "progress": 0,
+      "priority": "high",
+      "features": [
+        {
+          "id": "system-detection",
+          "name": "System-identifisering",
+          "description": "Identifiser hvilket system regnskapsfører kommer fra (PowerOffice, Tripletex, Visma, 24SevenOffice)",
+          "status": "ideas",
+          "priority": "high",
+          "tasks": [
+            {
+              "name": "PowerOffice detection",
+              "status": "ideas"
+            },
+            {
+              "name": "Tripletex detection",
+              "status": "ideas"
+            },
+            {
+              "name": "Visma detection",
+              "status": "ideas"
+            },
+            {
+              "name": "24SevenOffice detection",
+              "status": "ideas"
+            }
+          ]
+        },
+        {
+          "id": "export-guidance",
+          "name": "Eksport-veiledning",
+          "description": "Gi presise instruksjoner for eksport av data (CSV/Excel) med screenshots/video",
+          "status": "ideas",
+          "priority": "high",
+          "tasks": [
+            {
+              "name": "PowerOffice export guide (interactive)",
+              "status": "ideas"
+            },
+            {
+              "name": "Tripletex export guide (interactive)",
+              "status": "ideas"
+            },
+            {
+              "name": "Video tutorials embedded",
+              "status": "ideas"
+            },
+            {
+              "name": "Screenshot-based step-by-step",
+              "status": "ideas"
+            }
+          ]
+        },
+        {
+          "id": "file-parsing",
+          "name": "Fil-parsing og mapping",
+          "description": "Motta og parse filer (klientlister, kontoplaner, åpne poster, historikk)",
+          "status": "ideas",
+          "priority": "high",
+          "tasks": [
+            {
+              "name": "CSV/Excel parser (multiple formats)",
+              "status": "ideas"
+            },
+            {
+              "name": "Client list import",
+              "status": "ideas"
+            },
+            {
+              "name": "Chart of accounts mapping (NS 4102)",
+              "status": "ideas"
+            },
+            {
+              "name": "Open items import",
+              "status": "ideas"
+            },
+            {
+              "name": "Transaction history import",
+              "status": "ideas"
+            }
+          ]
+        },
+        {
+          "id": "auto-setup",
+          "name": "Automatisk oppsett",
+          "description": "Sett opp bankintegrasjoner, EHF-mottak, fakturaflyt automatisk",
+          "status": "ideas",
+          "priority": "high",
+          "tasks": [
+            {
+              "name": "Bank connection setup (PSD2/Open Banking)",
+              "status": "ideas"
+            },
+            {
+              "name": "EHF receiver registration",
+              "status": "ideas"
+            },
+            {
+              "name": "Invoice flow configuration",
+              "status": "ideas"
+            },
+            {
+              "name": "Altinn integration setup",
+              "status": "ideas"
+            }
+          ]
+        },
+        {
+          "id": "validation-reporting",
+          "name": "Validering og rapportering",
+          "description": "Kjør valideringssjekk og rapporter avvik til regnskapsfører",
+          "status": "ideas",
+          "priority": "high",
+          "tasks": [
+            {
+              "name": "Data integrity validation",
+              "status": "ideas"
+            },
+            {
+              "name": "Balance verification",
+              "status": "ideas"
+            },
+            {
+              "name": "Discrepancy reporting (with explanations)",
+              "status": "ideas"
+            },
+            {
+              "name": "Pre-migration confirmation UI",
+              "status": "ideas"
+            }
+          ]
+        },
+        {
+          "id": "conversational-ui",
+          "name": "Samtale-basert UI",
+          "description": "Natural language dialog med regnskapsfører gjennom hele prosessen",
+          "status": "ideas",
+          "priority": "high",
+          "tasks": [
+            {
+              "name": "Chat-based onboarding flow",
+              "status": "ideas"
+            },
+            {
+              "name": "Context-aware guidance",
+              "status": "ideas"
+            },
+            {
+              "name": "Progress tracking and milestones",
+              "status": "ideas"
+            },
+            {
+              "name": "Psychological reassurance (trust-building)",
+              "status": "ideas"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "skyggemodus",
+      "name": "Skyggemodus",
+      "description": "Prøv før du kjøper - Kontali kjører parallelt med eksisterende system",
+      "status": "ideas",
+      "progress": 0,
+      "priority": "critical",
+      "features": [
+        {
+          "id": "parallel-processing",
+          "name": "Parallell prosessering",
+          "description": "Kontali mottar og bokfører samme bilag som eksisterende system, uten å påvirke ekte regnskap",
+          "status": "ideas",
+          "priority": "critical",
+          "tasks": [
+            {
+              "name": "EHF parallel receiver (PEPPOL duplicate)",
+              "status": "ideas"
+            },
+            {
+              "name": "Bank feed parallel stream",
+              "status": "ideas"
+            },
+            {
+              "name": "Email receipt forwarding",
+              "status": "ideas"
+            },
+            {
+              "name": "Isolated shadow ledger",
+              "status": "ideas"
+            }
+          ]
+        },
+        {
+          "id": "comparison-engine",
+          "name": "Sammenligningsmotor",
+          "description": "Sammenlign Kontali sine bokføringer med regnskapsførerens bokføringer i eksisterende system",
+          "status": "ideas",
+          "priority": "critical",
+          "tasks": [
+            {
+              "name": "PowerOffice export parser (hovedbok)",
+              "status": "ideas"
+            },
+            {
+              "name": "Tripletex export parser (hovedbok)",
+              "status": "ideas"
+            },
+            {
+              "name": "Transaction matching algorithm",
+              "status": "ideas"
+            },
+            {
+              "name": "Difference categorization (identical/different-but-correct/flagged)",
+              "status": "ideas"
+            }
+          ]
+        },
+        {
+          "id": "shadow-report",
+          "name": "Skygge-rapport",
+          "description": "Generer rapport som viser Kontali vs. eksisterende system etter 2-4 uker",
+          "status": "ideas",
+          "priority": "critical",
+          "tasks": [
+            {
+              "name": "Visual comparison dashboard",
+              "status": "ideas"
+            },
+            {
+              "name": "Statistics: identical/different/flagged",
+              "status": "ideas"
+            },
+            {
+              "name": "Time savings calculation (340h → 40h)",
+              "status": "ideas"
+            },
+            {
+              "name": "Confidence metrics per transaction type",
+              "status": "ideas"
+            },
+            {
+              "name": "Export report as PDF/presentation",
+              "status": "ideas"
+            }
+          ]
+        },
+        {
+          "id": "zero-risk-setup",
+          "name": "Null-risiko oppsett",
+          "description": "Gjør det så enkelt som mulig å starte skyggemodus (5-10 klienter, gratis, null endring)",
+          "status": "ideas",
+          "priority": "critical",
+          "tasks": [
+            {
+              "name": "Client selection wizard",
+              "status": "ideas"
+            },
+            {
+              "name": "One-click parallel feed activation",
+              "status": "ideas"
+            },
+            {
+              "name": "Free trial license (2-4 weeks)",
+              "status": "ideas"
+            },
+            {
+              "name": "No changes to existing workflow guarantee",
+              "status": "ideas"
+            }
+          ]
+        },
+        {
+          "id": "learning-capture",
+          "name": "Læringsdatafangst",
+          "description": "Hver forskjell mellom Kontali og regnskapsfører = læringsmulighet for AI",
+          "status": "ideas",
+          "priority": "high",
+          "tasks": [
+            {
+              "name": "Difference analysis (why did accountant do differently?)",
+              "status": "ideas"
+            },
+            {
+              "name": "Pattern extraction from corrections",
+              "status": "ideas"
+            },
+            {
+              "name": "Model fine-tuning based on shadow data",
+              "status": "ideas"
+            },
+            {
+              "name": "Flywheel effect tracking (improvement over time)",
+              "status": "ideas"
+            }
+          ]
+        },
+        {
+          "id": "sales-funnel",
+          "name": "Salgstrakt-integrasjon",
+          "description": "Skyggemodus → Utvidet pilot → Full migrering (via Onboardingsagent)",
+          "status": "ideas",
+          "priority": "high",
+          "tasks": [
+            {
+              "name": "Stage 1: Free shadow (5-10 clients)",
+              "status": "ideas"
+            },
+            {
+              "name": "Stage 2: Report delivery + demo call",
+              "status": "ideas"
+            },
+            {
+              "name": "Stage 3: Extended pilot (50 clients, Review Queue)",
+              "status": "ideas"
+            },
+            {
+              "name": "Stage 4: Full migration handoff to Onboardingsagent",
+              "status": "ideas"
+            }
+          ]
+        }
+      ]
+    },
+    {
       "id": "svindeldeteksjon",
       "name": "Svindeldeteksjon",
       "description": "AI-basert deteksjon av falske fakturaer",
@@ -1427,401 +1755,314 @@
       ]
     },
     {
-      "id": "trust-dashboard",
-      "name": "Trust & Control Dashboard",
-      "description": "Gi regnskapsfører full kontroll og trygghetsfølelse",
+      "id": "saft-lovpalagt",
+      "name": "SAF-T og Lovpålagte Krav",
+      "description": "SAF-T Financial v1.30 eksport + bokføringsloven §5 spesifikasjoner",
       "status": "planned",
-      "progress": 0,
+      "progress": 5,
       "priority": "critical",
+      "phase": "1b",
       "features": [
         {
-          "id": "receipt-verification",
-          "name": "Kvitteringsverifisering",
-          "description": "Bevis på at alle bilag er behandlet - ingen ligger og flyter rundt",
+          "id": "reskontro",
+          "name": "Kunde/Leverandørreskontro",
+          "description": "Sideordnet bokføring per kunde/leverandør med automatisk avstemming",
           "status": "planned",
           "priority": "critical",
+          "dependencies": [
+            "Bokførings-API"
+          ],
           "tasks": [
             {
-              "name": "EHF receipt counter (X mottatt, Y behandlet, Z pending)",
+              "name": "customer_ledger_entries tabell",
               "status": "planned"
             },
             {
-              "name": "Bank transaction tracker (alle banktransaksjoner håndtert?)",
+              "name": "supplier_ledger_entries tabell",
               "status": "planned"
             },
             {
-              "name": "PDF upload monitor (alle analysert?)",
+              "name": "Reskontro-hooks i bokførings-API (konto 1500/2400)",
               "status": "planned"
             },
             {
-              "name": "Zero unprocessed items verification",
+              "name": "Avstemmingsjobb (SUM reskontro = hovedbok saldo)",
               "status": "planned"
             },
             {
-              "name": "Real-time status updates",
+              "name": "Automated tests (Test 6 fra spec)",
               "status": "planned"
             }
           ]
         },
         {
-          "id": "traffic-light-status",
-          "name": "Grønne trafikklys",
-          "description": "Visuell indikator på at alt er OK eller krever oppmerksomhet",
-          "status": "planned",
-          "priority": "high",
-          "tasks": [
-            {
-              "name": "Green light: All systems operational",
-              "status": "planned"
-            },
-            {
-              "name": "Yellow light: Some items need attention",
-              "status": "planned"
-            },
-            {
-              "name": "Red light: Critical issues detected",
-              "status": "planned"
-            },
-            {
-              "name": "Per-module status indicators",
-              "status": "planned"
-            },
-            {
-              "name": "Real-time status dashboard",
-              "status": "planned"
-            }
-          ]
-        },
-        {
-          "id": "exception-reports",
-          "name": "Avviksrapporter",
-          "description": "Hva gikk galt? Hva ble ikke behandlet? Full transparency.",
+          "id": "kontoplankartlegging",
+          "name": "Kontoplankartlegging til Næringsoppgave",
+          "description": "Mapping NS 4102 → Næringsspesifikasjon (GroupingCategory/GroupingCode)",
           "status": "planned",
           "priority": "critical",
+          "dependencies": [
+            "Kontoplan"
+          ],
           "tasks": [
             {
-              "name": "Failed processing log",
+              "name": "chart_of_accounts_mapping tabell",
               "status": "planned"
             },
             {
-              "name": "Unmatched transactions report",
+              "name": "Seed script: NS 4102 → RF-1167 standard mapping",
               "status": "planned"
             },
             {
-              "name": "Low confidence items requiring review",
+              "name": "API: Hent/endre mapping per klient",
               "status": "planned"
             },
             {
-              "name": "Vendor mismatch alerts",
+              "name": "UI: Rediger mapping under Innstillinger",
               "status": "planned"
             },
             {
-              "name": "Export to Excel for analysis",
+              "name": "Validering: Advarsel om kontoer uten mapping",
               "status": "planned"
             }
           ]
         },
         {
-          "id": "event-log",
-          "name": "Hendelseslogg",
-          "description": "Full auditlog av alt systemet har gjort - full transparency",
+          "id": "periodelukking",
+          "name": "Periodelukking",
+          "description": "Lukke regnskapsperioder mot endring (Bokføringsforskriften §7-6)",
+          "status": "planned",
+          "priority": "critical",
+          "dependencies": [
+            "Audit log"
+          ],
+          "tasks": [
+            {
+              "name": "accounting_periods tabell (OPEN/CLOSED/LOCKED)",
+              "status": "planned"
+            },
+            {
+              "name": "validate_period_open() i alle bokføringsendepunkter",
+              "status": "planned"
+            },
+            {
+              "name": "API: /api/accounting-periods (close/reopen/lock)",
+              "status": "planned"
+            },
+            {
+              "name": "UI: Periodestyring under Innstillinger",
+              "status": "planned"
+            },
+            {
+              "name": "Automated tests (Test 7 fra spec)",
+              "status": "planned"
+            }
+          ]
+        },
+        {
+          "id": "mva-koderegister",
+          "name": "MVA-Koderegister",
+          "description": "Standard norske MVA-koder med SAF-T mapping",
           "status": "planned",
           "priority": "high",
+          "dependencies": [],
           "tasks": [
             {
-              "name": "All AI decisions logged with reasoning",
+              "name": "Utvid tax_codes med saft_standard_code kolonne",
               "status": "planned"
             },
             {
-              "name": "User actions tracked (who approved/rejected what)",
+              "name": "Seed script: 8 standard norske MVA-koder",
               "status": "planned"
             },
             {
-              "name": "System events (EHF received, OCR completed, etc.)",
+              "name": "Mapping: MV25→3, MI25→5, MV15→31, etc.",
               "status": "planned"
             },
             {
-              "name": "Search and filter event log",
-              "status": "planned"
-            },
-            {
-              "name": "Export audit trail for compliance",
+              "name": "Automated tests (Test 9 fra spec)",
               "status": "planned"
             }
           ]
         },
         {
-          "id": "message-center",
-          "name": "Message Center",
-          "description": "Viktige meldinger fra systemet til regnskapsfører",
+          "id": "company-owners",
+          "name": "Eierinformasjon",
+          "description": "Company owners tabell for SAF-T MasterFiles",
           "status": "planned",
           "priority": "medium",
+          "dependencies": [],
           "tasks": [
             {
-              "name": "System notifications (new EHF received, error detected)",
+              "name": "company_owners tabell",
               "status": "planned"
             },
             {
-              "name": "Priority-based inbox (urgent/normal/info)",
+              "name": "API: CRUD for owners",
               "status": "planned"
             },
             {
-              "name": "Email/SMS alerts for critical issues",
-              "status": "planned"
-            },
-            {
-              "name": "Read/unread tracking",
-              "status": "planned"
-            },
-            {
-              "name": "Actionable messages (approve from notification)",
+              "name": "UI: Eieroppsett under Innstillinger → Klient",
               "status": "planned"
             }
           ]
-        }
-      ]
-    },
-    {
-      "id": "chart-of-accounts",
-      "name": "Kontoplan Management",
-      "description": "Fleksibel kontoplan med chat-basert redigering",
-      "status": "planned",
-      "progress": 0,
-      "priority": "high",
-      "features": [
+        },
         {
-          "id": "default-chart",
-          "name": "Standard kontoplan (NS 4102)",
-          "description": "Norwegian standard chart of accounts as default",
+          "id": "saft-eksport",
+          "name": "SAF-T Financial v1.30 Eksport",
+          "description": "XML-eksport i henhold til Skatteetatens SAF-T spesifikasjon",
+          "status": "planned",
+          "priority": "critical",
+          "dependencies": [
+            "Reskontro",
+            "Kontoplankartlegging",
+            "MVA-koder",
+            "Company owners"
+          ],
+          "tasks": [
+            {
+              "name": "SAFTExporter-klasse (Header builder)",
+              "status": "planned"
+            },
+            {
+              "name": "MasterFiles builder (Accounts, Customers, Suppliers, TaxTable, Owners)",
+              "status": "planned"
+            },
+            {
+              "name": "GeneralLedgerEntries builder",
+              "status": "planned"
+            },
+            {
+              "name": "XSD-validering mot Skatteetatens skjema",
+              "status": "planned"
+            },
+            {
+              "name": "Regnskapsmessig validering (debet=kredit, nummerserie)",
+              "status": "planned"
+            },
+            {
+              "name": "Streaming XML-generering (chunks)",
+              "status": "planned"
+            },
+            {
+              "name": "Bakgrunnsjobb-infrastruktur",
+              "status": "planned"
+            },
+            {
+              "name": "API: POST /api/saft/export",
+              "status": "planned"
+            },
+            {
+              "name": "API: GET /api/saft/export/{id}/status",
+              "status": "planned"
+            },
+            {
+              "name": "API: GET /api/saft/export/{id}/download",
+              "status": "planned"
+            },
+            {
+              "name": "UI: SAF-T eksport-knapp og fremdriftsindikator",
+              "status": "planned"
+            },
+            {
+              "name": "Automated tests (Test 8 fra spec)",
+              "status": "planned"
+            }
+          ]
+        },
+        {
+          "id": "lovpalagte-spesifikasjoner",
+          "name": "Lovpålagte Spesifikasjoner (§5)",
+          "description": "9 lovpålagte spesifikasjoner med PDF/CSV-eksport",
           "status": "planned",
           "priority": "high",
+          "phase": "1a (delvis), 1b (komplett)",
+          "dependencies": [
+            "Reskontro",
+            "MVA-koder"
+          ],
           "tasks": [
             {
-              "name": "Load NS 4102 as default",
+              "name": "Bokføringsspesifikasjon (rapport)",
+              "status": "done",
+              "note": "Hovedbok fungerer som bokføringsspesifikasjon"
+            },
+            {
+              "name": "Kontospesifikasjon (rapport)",
+              "status": "done",
+              "note": "Hovedbok per konto"
+            },
+            {
+              "name": "Kundespesifikasjon (rapport - krever reskontro)",
               "status": "planned"
             },
             {
-              "name": "Per-client chart customization",
+              "name": "Leverandørspesifikasjon (rapport - krever reskontro)",
               "status": "planned"
             },
             {
-              "name": "Chart settings page",
+              "name": "MVA-spesifikasjon (per sats, per transaksjon)",
               "status": "planned"
             },
             {
-              "name": "Account validation rules",
+              "name": "Kontantsalgsspesifikasjon (>40k)",
+              "status": "ideas"
+            },
+            {
+              "name": "Uttaksspesifikasjon",
+              "status": "ideas"
+            },
+            {
+              "name": "Nærstående-partsspesifikasjon",
+              "status": "ideas"
+            },
+            {
+              "name": "Lønnsoppgavepliktige ytelser",
+              "status": "ideas"
+            },
+            {
+              "name": "PDF-eksport for alle spesifikasjoner",
+              "status": "planned"
+            },
+            {
+              "name": "CSV-eksport for alle spesifikasjoner",
               "status": "planned"
             }
           ]
         },
         {
-          "id": "chat-create-accounts",
-          "name": "Opprett kontoer via chat",
-          "description": "Lag nye kontoer ved å si 'Opprett konto 6999 - Annet kontorforbruk'",
-          "status": "planned",
+          "id": "backup-immutability",
+          "name": "Backup og Immutability",
+          "description": "Backup-strategi og immutable bilagsdokumenter (§7-2)",
+          "status": "ideas",
           "priority": "high",
+          "dependencies": [
+            "Infrastruktur (AWS)"
+          ],
           "tasks": [
             {
-              "name": "Chat command: create account",
-              "status": "planned"
+              "name": "Backup-policy dokumentasjon",
+              "status": "ideas"
             },
             {
-              "name": "AI validates account number follows rules",
-              "status": "planned"
+              "name": "PostgreSQL RDS automated backups (daglig)",
+              "status": "ideas"
             },
             {
-              "name": "Auto-assign account to correct category",
-              "status": "planned"
+              "name": "S3 cross-region replication",
+              "status": "ideas"
             },
             {
-              "name": "Confirmation before creation",
-              "status": "planned"
+              "name": "S3 Object Lock for bilagsdokumenter",
+              "status": "ideas"
             },
             {
-              "name": "Undo recently created accounts",
-              "status": "planned"
-            }
-          ]
-        },
-        {
-          "id": "account-management",
-          "name": "Account Management UI",
-          "description": "Administrer kontoplan via settings eller chat",
-          "status": "planned",
-          "priority": "medium",
-          "tasks": [
-            {
-              "name": "List all accounts",
-              "status": "planned"
+              "name": "Recovery testing prosedyre",
+              "status": "ideas"
             },
             {
-              "name": "Search/filter accounts",
-              "status": "planned"
-            },
-            {
-              "name": "Edit account name/description",
-              "status": "planned"
-            },
-            {
-              "name": "Deactivate/archive unused accounts",
-              "status": "planned"
-            },
-            {
-              "name": "Import custom chart from Excel",
-              "status": "planned"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "id": "vat-configuration",
-      "name": "MVA-konfigurasjon",
-      "description": "Norske MVA-koder med kobling til kontoer",
-      "status": "planned",
-      "progress": 0,
-      "priority": "high",
-      "features": [
-        {
-          "id": "norwegian-vat-codes",
-          "name": "Standard norske MVA-koder",
-          "description": "5=25%, 3=15%, 0=exempt, etc.",
-          "status": "planned",
-          "priority": "high",
-          "tasks": [
-            {
-              "name": "Load standard Norwegian VAT codes",
-              "status": "planned"
-            },
-            {
-              "name": "VAT rate lookup table",
-              "status": "planned"
-            },
-            {
-              "name": "Validation of VAT codes",
-              "status": "planned"
-            },
-            {
-              "name": "Custom VAT codes for special cases",
-              "status": "planned"
-            }
-          ]
-        },
-        {
-          "id": "vat-account-mapping",
-          "name": "MVA-kode til konto mapping",
-          "description": "Knytt MVA-koder til kontoer (f.eks. kode 5 → konto 2740)",
-          "status": "planned",
-          "priority": "high",
-          "tasks": [
-            {
-              "name": "Default mappings (2740=Input VAT 25%, etc.)",
-              "status": "planned"
-            },
-            {
-              "name": "Per-client custom mappings",
-              "status": "planned"
-            },
-            {
-              "name": "AI learns which MVA codes apply to which accounts",
-              "status": "planned"
-            },
-            {
-              "name": "Validation rules (can't use wrong VAT code on account)",
-              "status": "planned"
-            },
-            {
-              "name": "MVA settings page",
-              "status": "planned"
-            }
-          ]
-        },
-        {
-          "id": "vat-reporting",
-          "name": "MVA-rapportering",
-          "description": "Generere MVA-meldinger for Altinn",
-          "status": "planned",
-          "priority": "medium",
-          "tasks": [
-            {
-              "name": "Calculate VAT amounts per code",
-              "status": "planned"
-            },
-            {
-              "name": "Generate MVA report (SAF-T format)",
-              "status": "planned"
-            },
-            {
-              "name": "Validate report before submission",
-              "status": "planned"
-            },
-            {
-              "name": "Altinn integration for submission",
-              "status": "planned"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "id": "account-mapping",
-      "name": "Account Mapping",
-      "description": "Kobling mellom kontoer og regnskapslinjer",
-      "status": "planned",
-      "progress": 0,
-      "priority": "medium",
-      "features": [
-        {
-          "id": "ledger-line-types",
-          "name": "General Ledger Line Types",
-          "description": "Definere hvilke typer regnskapslinjer finnes",
-          "status": "planned",
-          "priority": "medium",
-          "tasks": [
-            {
-              "name": "Debit/Credit line types",
-              "status": "planned"
-            },
-            {
-              "name": "Balance sheet accounts",
-              "status": "planned"
-            },
-            {
-              "name": "Income statement accounts",
-              "status": "planned"
-            },
-            {
-              "name": "Special accounts (VAT, payables, etc.)",
-              "status": "planned"
-            }
-          ]
-        },
-        {
-          "id": "account-rules",
-          "name": "Account Mapping Rules",
-          "description": "Regler for hvilke kontoer som kan brukes til hva",
-          "status": "planned",
-          "priority": "medium",
-          "tasks": [
-            {
-              "name": "Expense accounts (6000-6999)",
-              "status": "planned"
-            },
-            {
-              "name": "Revenue accounts (3000-3999)",
-              "status": "planned"
-            },
-            {
-              "name": "Asset accounts (1000-1999)",
-              "status": "planned"
-            },
-            {
-              "name": "Liability accounts (2000-2999)",
-              "status": "planned"
-            },
-            {
-              "name": "AI learns from accountant's mappings",
-              "status": "planned"
+              "name": "5-års backup retention policy",
+              "status": "ideas"
             }
           ]
         }
@@ -1829,16 +2070,16 @@
     }
   ],
   "stats": {
-    "totalModules": 22,
+    "totalModules": 21,
     "completedModules": 0,
     "inProgressModules": 2,
-    "plannedModules": 15,
-    "ideasModules": 5,
-    "totalFeatures": 72,
+    "plannedModules": 12,
+    "ideasModules": 7,
+    "totalFeatures": 80,
     "completedFeatures": 3,
     "inProgressFeatures": 2,
-    "plannedFeatures": 53,
-    "ideasFeatures": 14,
-    "overallProgress": 7
+    "plannedFeatures": 48,
+    "ideasFeatures": 27,
+    "overallProgress": 6
   }
 }

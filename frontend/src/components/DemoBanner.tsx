@@ -14,7 +14,7 @@ export default function DemoBanner() {
     // Check if we're in demo environment
     const checkDemoEnvironment = async () => {
       try {
-        const response = await fetch('http://localhost:8000/api/demo/status');
+        const response = await fetch('http://localhost:8000/demo/status');
         const data = await response.json();
         
         if (data.demo_environment_exists) {

@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from app.models.client import Client
 from app.models.vendor import Vendor
-from app.models.vendor_invoice import VendorInvoice, InvoiceStatus
+from app.models.vendor_invoice import VendorInvoice
 from app.models.customer_invoice import CustomerInvoice
 from app.models.bank_transaction import BankTransaction
 from app.models.chart_of_accounts import Account
@@ -161,31 +161,52 @@ class TestDataGeneratorService:
             await self.db.rollback()
     
     async def _create_vendors_for_client(self, client: Client) -> list[Vendor]:
-        """Create realistic vendors for a client"""
+        """Create realistic Norwegian vendors for a client"""
         
         vendor_names = [
             "Microsoft Norge AS",
-            "Amazon Web Services",
+            "Amazon Web Services EMEA",
             "Telenor Norge AS",
-            "Statoil ASA",
-            "Rema 1000",
+            "Equinor ASA",
+            "Rema 1000 AS",
             "Coop Norge SA",
             "DNB Bank ASA",
             "Posten Norge AS",
             "Schibsted ASA",
             "Elkjøp Nordic AS",
+            "Circle K Norge AS",
+            "Norgesgruppen ASA",
+            "Sopra Steria AS",
+            "Accenture Norge AS",
+            "KPMG AS",
+            "PwC AS",
+            "Deloitte AS",
+            "EY Norge AS",
+            "Visma AS",
+            "Atea ASA",
         ]
         
         vendors = []
         
-        for i, name in enumerate(vendor_names[:5]):  # Create 5 vendors per client
+        # Randomly select 5-8 vendors per client for variety
+        num_vendors = random.randint(5, 8)
+        selected_vendors = random.sample(vendor_names, min(num_vendors, len(vendor_names)))
+        
+        for i, name in enumerate(selected_vendors):
+            # Generate realistic Norwegian org numbers (9 digits)
+            org_number = f"9{random.randint(10000000, 99999999)}"
+            
+            # Create realistic email based on company name
+            email_domain = name.lower().replace(' ', '').replace('.', '').replace('as', '').replace('asa', '').replace('sa', '')
+            email_domain = ''.join(c for c in email_domain if c.isalnum())[:15]  # Limit length
+            
             vendor = Vendor(
                 id=uuid.uuid4(),
                 client_id=client.id,
                 name=name,
-                org_number=f"99{9200000 + i:07d}",
-                email=f"faktura@{name.lower().replace(' ', '').replace('.', '')}no",
-                payment_terms_days=30,
+                org_number=org_number,
+                email=f"faktura@{email_domain}.no",
+                payment_terms_days=random.choice([14, 30, 45, 60]),  # Varied payment terms
                 is_active=True,
             )
             self.db.add(vendor)
@@ -223,23 +244,36 @@ class TestDataGeneratorService:
             if random.random() < high_confidence_ratio:
                 # High confidence (85-98%)
                 confidence = random.uniform(85, 98)
-                status = InvoiceStatus.AUTO_BOOKED
+                review_status = "auto_approved"
+                booked = True
                 description = random.choice([
-                    "Software license renewal",
-                    "Cloud hosting services",
-                    "Office supplies",
-                    "Marketing services",
-                    "Consulting services",
+                    "Programvarelisens fornyelse",  # Software license renewal
+                    "Sky-tjenester og hosting",  # Cloud hosting services
+                    "Kontorrekvisita og forbruksmateriell",  # Office supplies
+                    "Markedsføringstjenester",  # Marketing services
+                    "Konsulenttjenester",  # Consulting services
+                    "IT-support og vedlikehold",  # IT support and maintenance
+                    "Kontorleie og felleskostnader",  # Office rent and common costs
+                    "Telefoni og internett",  # Telephony and internet
+                    "Strøm og oppvarming",  # Electricity and heating
+                    "Forsikringer",  # Insurance
+                    "Revisjon og regnskapstjenester",  # Audit and accounting services
+                    "Juridiske tjenester",  # Legal services
                 ])
             else:
                 # Low confidence (35-75%)
                 confidence = random.uniform(35, 75)
-                status = InvoiceStatus.NEEDS_REVIEW
+                review_status = "needs_review"
+                booked = False
                 description = random.choice([
-                    "Miscellaneous expenses",
-                    "Unknown service",
-                    "Invoice without description",
-                    "Consulting - unclear category",
+                    "Diverse kostnader",  # Miscellaneous expenses
+                    "Ukjent tjeneste",  # Unknown service
+                    "Faktura uten beskrivelse",  # Invoice without description
+                    "Konsulent - uklar kategori",  # Consulting - unclear category
+                    "Representasjon",  # Representation (unclear)
+                    "Forskjellige utgifter",  # Various expenses
+                    "Annet",  # Other
+                    "Kostnader uten spesifikasjon",  # Costs without specification
                 ])
             
             amount_excl_vat = Decimal(random.randint(500, 50000))
@@ -267,12 +301,12 @@ class TestDataGeneratorService:
                 vat_amount=vat_amount,
                 total_amount=total_amount,
                 currency="NOK",
-                description=description,
-                status=status,
+                review_status=review_status,
                 ai_processed=True,
-                ai_confidence_score=Decimal(str(confidence)),
+                ai_confidence_score=int(confidence),
                 ai_booking_suggestion=ai_booking_suggestion,
-                booking_date=invoice_date if status == InvoiceStatus.AUTO_BOOKED else None,
+                ai_detected_category=description,
+                booked_at=invoice_date if booked else None,
             )
             
             self.db.add(invoice)
@@ -293,11 +327,11 @@ class TestDataGeneratorService:
                     vat_amount=original.vat_amount,
                     total_amount=original.total_amount,
                     currency=original.currency,
-                    description=f"{original.description} [DUPLICATE]",
-                    status=InvoiceStatus.NEEDS_REVIEW,
+                    review_status="needs_review",
                     ai_processed=True,
-                    ai_confidence_score=Decimal("25.0"),  # Low confidence for duplicate
-                    ai_detected_issues={"duplicate": True, "duplicate_of": str(original.id)},
+                    ai_confidence_score=25,  # Low confidence for duplicate
+                    ai_detected_category=f"{original.ai_detected_category} [DUPLIKAT]",
+                    ai_detected_issues=["duplicate"],
                 )
                 self.db.add(duplicate)
                 invoices.append(duplicate)
@@ -312,11 +346,21 @@ class TestDataGeneratorService:
         base_date = datetime.utcnow() - timedelta(days=60)
         
         customer_names = [
-            "Kunde A AS",
-            "Kunde B Norge",
-            "Kunde C International",
-            "Kunde D Services",
-            "Kunde E Trading",
+            "Bergen Seafood AS",
+            "Oslo Consulting Group AS",
+            "Trondheim Technology AS",
+            "Stavanger Marine Services AS",
+            "Kristiansand Handel AS",
+            "Drammen Distribution AS",
+            "Fredrikstad Logistics AS",
+            "Tromsø Arctic Solutions AS",
+            "Ålesund Maritime AS",
+            "Bodø Export AS",
+            "Molde Industri AS",
+            "Haugesund Shipping AS",
+            "Sandefjord Services AS",
+            "Lillehammer Trading AS",
+            "Moss Construction AS",
         ]
         
         for i in range(count):
@@ -397,11 +441,18 @@ class TestDataGeneratorService:
                 transaction_date=transaction_date,
                 amount=float(Decimal(random.randint(100, 20000))),
                 description=random.choice([
-                    "ATM Withdrawal",
-                    "Card payment",
-                    "Transfer",
-                    "Bank fee",
-                    "Interest payment",
+                    "Minibank uttak",  # ATM Withdrawal
+                    "Kortbetaling",  # Card payment
+                    "Overføring",  # Transfer
+                    "Bankgebyr",  # Bank fee
+                    "Renteinntekt",  # Interest income
+                    "Lønn utbetalt",  # Salary paid
+                    "Skattetrekk",  # Tax deduction
+                    "Strømavgift",  # Electricity bill
+                    "Forsikringspremie",  # Insurance premium
+                    "Avtalegiro",  # AvtaleGiro (automatic payment)
+                    "Vipps betaling",  # Vipps payment
+                    "BankAxept betaling",  # BankAxept payment
                 ]),
                 is_matched=False,
             )

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import { PlusIcon, MagnifyingGlassIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 
 interface Account {
@@ -132,7 +133,7 @@ export const AccountsManagement: React.FC = () => {
       fetchAccounts();
     } catch (err) {
       console.error('Error creating account:', err);
-      alert(err instanceof Error ? err.message : 'Kunne ikke opprette konto');
+      toast.error(err instanceof Error ? err.message : 'Kunne ikke opprette konto');
     }
   };
 
@@ -153,7 +154,7 @@ export const AccountsManagement: React.FC = () => {
       fetchAccounts();
     } catch (err) {
       console.error('Error deleting account:', err);
-      alert('Kunne ikke slette konto');
+      toast.error('Kunne ikke slette konto');
     }
   };
 

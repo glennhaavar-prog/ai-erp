@@ -1,86 +1,300 @@
 "use client";
 
-import { Layout } from '@/components/Layout';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
+import { motion } from 'framer-motion';
+import { ArrowLeft, Filter } from 'lucide-react';
+import { useTenant } from '@/contexts/TenantContext';
 
-export default function ClientPage() {
+interface Task {
+  id: string;
+  type: string;
+  category: string;
+  client_id: string;
+  description: string;
+  confidence: number;
+  created_at: string;
+  priority: 'high' | 'medium' | 'low';
+  data: {
+    invoice_id?: string;
+    vendor_name?: string;
+    amount?: number;
+    invoice_number?: string;
+  };
+}
+
+interface ClientData {
+  client_id: string;
+  client_name: string;
+  tasks: Task[];
+  summary: {
+    total: number;
+    by_category: {
+      invoicing: number;
+      bank: number;
+      reporting: number;
+    };
+    by_priority: {
+      high: number;
+      medium: number;
+      low: number;
+    };
+  };
+}
+
+type CategoryFilter = 'all' | 'invoicing' | 'bank' | 'reporting';
+
+export default function ClientDrilldownPage() {
   const params = useParams();
+  const router = useRouter();
   const clientId = params?.id as string;
+  
+  const [data, setData] = useState<ClientData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>('all');
+  
+  // Get tenant from context
+  const { tenantId, isLoading: tenantLoading } = useTenant();
 
-  return (
-    <Layout>
-      <div className="p-6 max-w-7xl mx-auto">
-        {/* Back to Multi-Client */}
-        <div className="mb-6">
-          <Link
-            href="/"
-            className="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium"
-          >
-            ← Back to Multi-Client Dashboard
-          </Link>
-        </div>
+  useEffect(() => {
+    if (tenantId) {
+      fetchClientTasks();
+    }
+  }, [clientId, tenantId]);
 
-        {/* Client Header */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Client View
-          </h1>
-          <p className="text-gray-600">Client ID: {clientId}</p>
-        </div>
+  const fetchClientTasks = async () => {
+    if (!tenantId) return;
+    
+    setLoading(true);
+    try {
+      const response = await fetch(`http://localhost:8000/api/dashboard/multi-client/tasks?tenant_id=${tenantId}`);
+      if (response.ok) {
+        const allData = await response.json();
+        
+        // Filter tasks for this specific client
+        const clientTasks = allData.tasks.filter((task: Task) => task.client_id === clientId);
+        const client = allData.clients.find((c: any) => c.id === clientId);
+        
+        const summary = {
+          total: clientTasks.length,
+          by_category: {
+            invoicing: clientTasks.filter((t: Task) => t.category === 'invoicing').length,
+            bank: clientTasks.filter((t: Task) => t.category === 'bank').length,
+            reporting: clientTasks.filter((t: Task) => t.category === 'reporting').length,
+          },
+          by_priority: {
+            high: clientTasks.filter((t: Task) => t.priority === 'high').length,
+            medium: clientTasks.filter((t: Task) => t.priority === 'medium').length,
+            low: clientTasks.filter((t: Task) => t.priority === 'low').length,
+          },
+        };
+        
+        setData({
+          client_id: clientId,
+          client_name: client?.name || 'Unknown Client',
+          tasks: clientTasks,
+          summary,
+        });
+      }
+    } catch (error) {
+      console.error('Failed to fetch client tasks:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-        {/* Client-Specific Sections */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Customer Reports */}
-          <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-blue-500">
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">📊 Customer Reports</h2>
-            <p className="text-gray-600 mb-4">View and generate customer-specific reports</p>
-            <button className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-              View Reports
-            </button>
-          </div>
+  const filteredTasks = data?.tasks.filter(task => 
+    categoryFilter === 'all' || task.category === categoryFilter
+  ) || [];
 
-          {/* Member Reports */}
-          <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-green-500">
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">👥 Member Reports</h2>
-            <p className="text-gray-600 mb-4">Access member-specific data and analytics</p>
-            <button className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
-              View Members
-            </button>
-          </div>
+  const getCategoryIcon = (category: string) => {
+    switch (category) {
+      case 'invoicing': return '📄';
+      case 'bank': return '🏦';
+      case 'reporting': return '📊';
+      default: return '📋';
+    }
+  };
 
-          {/* Reporting */}
-          <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-purple-500">
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">📈 Reporting</h2>
-            <p className="text-gray-600 mb-4">Generate compliance and financial reports</p>
-            <button className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700">
-              Generate Reports
-            </button>
-          </div>
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'high': return 'bg-red-50 border-red-200 text-red-900';
+      case 'medium': return 'bg-yellow-50 border-yellow-200 text-yellow-900';
+      case 'low': return 'bg-green-50 border-green-200 text-green-900';
+      default: return 'bg-gray-50 border-gray-200 text-gray-900';
+    }
+  };
 
-          {/* Other Client Functions */}
-          <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-orange-500">
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">⚙️ Client Settings</h2>
-            <p className="text-gray-600 mb-4">Manage client configuration and preferences</p>
-            <button className="px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700">
-              Settings
-            </button>
-          </div>
-        </div>
-
-        {/* Paradigm Explanation */}
-        <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-blue-900 mb-2">
-            💡 Kontali's Multi-Client Paradigm
-          </h3>
-          <p className="text-blue-800">
-            <strong>Traditional systems (PowerOffice/Tripletex):</strong> You work one client at a time, switching context entirely.
-          </p>
-          <p className="text-blue-800 mt-2">
-            <strong>Kontali approach:</strong> Start with multi-client view (all unsure cases), then drill down to client-specific work when needed.
-          </p>
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <p className="mt-2 text-muted-foreground">Laster klientdata...</p>
         </div>
       </div>
-    </Layout>
+    );
+  }
+
+  if (!data) {
+    return (
+      <div className="p-6">
+        <div className="text-center py-12">
+          <p className="text-muted-foreground">Klient ikke funnet</p>
+          <Link href="/" className="text-primary hover:underline mt-4 inline-block">
+            ← Tilbake til oversikten
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="h-full overflow-y-auto p-6">
+      {/* Header */}
+      <div className="mb-6">
+        <Link
+          href="/"
+          className="inline-flex items-center gap-2 text-primary hover:underline font-medium mb-4"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Tilbake til oversikten
+        </Link>
+        
+        <h1 className="text-3xl font-bold text-foreground mb-2">{data.client_name}</h1>
+        <p className="text-muted-foreground">
+          {data.summary.total} oppgaver totalt
+          {data.summary.by_priority.high > 0 && (
+            <span className="text-red-600 font-medium ml-2">
+              • {data.summary.by_priority.high} haster
+            </span>
+          )}
+        </p>
+      </div>
+
+      {/* Summary Cards */}
+      <div className="grid grid-cols-3 gap-4 mb-6">
+        <div className="bg-card border border-border rounded-lg p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-2xl">📄</span>
+            <span className="font-semibold text-foreground">Bilag</span>
+          </div>
+          <div className="text-2xl font-bold text-primary">{data.summary.by_category.invoicing}</div>
+          <div className="text-sm text-muted-foreground">trenger gjennomgang</div>
+        </div>
+        
+        <div className="bg-card border border-border rounded-lg p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-2xl">🏦</span>
+            <span className="font-semibold text-foreground">Bank</span>
+          </div>
+          <div className="text-2xl font-bold text-primary">{data.summary.by_category.bank}</div>
+          <div className="text-sm text-muted-foreground">ventende transaksjoner</div>
+        </div>
+        
+        <div className="bg-card border border-border rounded-lg p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-2xl">📊</span>
+            <span className="font-semibold text-foreground">Avstemming</span>
+          </div>
+          <div className="text-2xl font-bold text-primary">{data.summary.by_category.reporting}</div>
+          <div className="text-sm text-muted-foreground">må avstemmes</div>
+        </div>
+      </div>
+
+      {/* Category Filter */}
+      <div className="mb-6 flex items-center gap-2 border-b border-border pb-2">
+        <Filter className="w-4 h-4 text-muted-foreground" />
+        <span className="text-sm font-medium text-muted-foreground">Filter:</span>
+        {(['all', 'invoicing', 'bank', 'reporting'] as CategoryFilter[]).map((cat) => (
+          <button
+            key={cat}
+            onClick={() => setCategoryFilter(cat)}
+            className={`px-3 py-1 text-sm rounded transition-colors ${
+              categoryFilter === cat
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-muted text-muted-foreground hover:bg-muted/80'
+            }`}
+          >
+            {cat === 'all' ? 'Alle' : cat === 'invoicing' ? 'Bilag' : cat === 'bank' ? 'Bank' : 'Avstemming'}
+          </button>
+        ))}
+      </div>
+
+      {/* Tasks List */}
+      {filteredTasks.length === 0 ? (
+        <div className="text-center py-12 bg-green-50 rounded-lg border border-green-200">
+          <div className="text-4xl mb-2">✅</div>
+          <h3 className="text-lg font-semibold text-green-900 mb-1">Alt i orden!</h3>
+          <p className="text-green-700">Ingen oppgaver trenger oppmerksomhet akkurat nå.</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {filteredTasks.map((task) => (
+            <motion.div
+              key={task.id}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className={`border rounded-lg p-4 ${getPriorityColor(task.priority)}`}
+            >
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-2">
+                    <span className="text-2xl">{getCategoryIcon(task.category)}</span>
+                    <div>
+                      <h3 className="font-semibold">{task.description}</h3>
+                      {task.data.vendor_name && (
+                        <p className="text-sm opacity-80 mt-1">
+                          <strong>Leverandør:</strong> {task.data.vendor_name}
+                        </p>
+                      )}
+                      {task.data.invoice_number && (
+                        <p className="text-sm opacity-80">
+                          <strong>Faktura #:</strong> {task.data.invoice_number}
+                        </p>
+                      )}
+                      {task.data.amount && (
+                        <p className="text-sm opacity-80">
+                          <strong>Beløp:</strong> {task.data.amount.toFixed(2)} NOK
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="text-right">
+                  <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${getPriorityColor(task.priority)}`}>
+                    {task.priority === 'high' ? 'HASTER' : task.priority === 'medium' ? 'MEDIUM' : 'LAV'}
+                  </span>
+                  <p className="text-xs opacity-70 mt-2">
+                    {new Date(task.created_at).toLocaleDateString('nb-NO')}
+                  </p>
+                  <div className="mt-2">
+                    <span className="text-xs opacity-70">AI sikkerhet:</span>
+                    <div className="w-20 h-1.5 bg-white/50 rounded-full mt-1">
+                      <div
+                        className="h-full bg-primary rounded-full"
+                        style={{ width: `${task.confidence}%` }}
+                      />
+                    </div>
+                    <span className="text-xs opacity-70">{task.confidence}%</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="mt-3 flex gap-2">
+                <button
+                  onClick={() => router.push(`/review-queue/${task.id}`)}
+                  className="px-4 py-2 bg-primary text-primary-foreground rounded hover:bg-primary/90 text-sm font-medium"
+                >
+                  Gjennomgå nå
+                </button>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }

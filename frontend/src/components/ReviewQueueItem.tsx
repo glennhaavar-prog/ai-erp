@@ -1,9 +1,10 @@
+'use client';
+
 import React from 'react';
 import { ReviewItem } from '@/types/review-queue';
 import { ConfidenceScore } from './ConfidenceScore';
-import { format } from 'date-fns';
-import { nb } from 'date-fns/locale';
 import clsx from 'clsx';
+import { ClientSafeTimestamp } from '@/lib/date-utils';
 
 interface ReviewQueueItemProps {
   item: ReviewItem;
@@ -63,7 +64,7 @@ export const ReviewQueueItem: React.FC<ReviewQueueItemProps> = ({ item, onClick,
           <div className="flex items-center gap-4 text-xs text-gray-500">
             <span className="flex items-center gap-1">
               <span>📅</span>
-              {format(new Date(item.date), 'dd.MM.yyyy', { locale: nb })}
+              <ClientSafeTimestamp date={item.date} format="date" />
             </span>
             {item.invoiceNumber && (
               <span className="font-mono">{item.invoiceNumber}</span>

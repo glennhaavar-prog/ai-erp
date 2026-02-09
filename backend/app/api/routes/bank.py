@@ -7,135 +7,30 @@ from sqlalchemy import select, func
 from datetime import datetime
 from typing import Dict, Any, List
 from uuid import UUID, uuid4
-import csv
-import io
-import pandas as pd
+from decimal import Decimal
 
 from app.database import get_db
 from app.models.bank_transaction import BankTransaction, TransactionStatus, TransactionType
+from app.models.bank_reconciliation import BankReconciliation
 from app.models.client import Client
 from app.models.vendor_invoice import VendorInvoice
-from app.agents.bank_matching_agent import BankMatchingAgent
+from app.services.bank_import import BankImportService
+from app.services.bank_reconciliation import BankReconciliationService
 
 router = APIRouter(prefix="/api/bank", tags=["Bank"])
 
 
-async def parse_norwegian_bank_csv(file_content: bytes) -> List[Dict[str, Any]]:
-    """
-    Parse Norwegian bank CSV formats (DNB, Sparebank1, Nordea, etc.)
-    
-    Common Norwegian bank CSV columns:
-    - Dato / Bokføringsdato
-    - Forklaring / Tekst
-    - Beløp inn / Beløp ut / Beløp
-    - Saldo
-    - KID
-    - Motpart / Mottaker
-    """
-    try:
-        # Try pandas first (handles most formats)
-        df = pd.read_csv(io.BytesIO(file_content), encoding='utf-8', sep=';')
-        
-        # Normalize column names (Norwegian banks use different names)
-        df.columns = df.columns.str.strip().str.lower()
-        
-        transactions = []
-        
-        for _, row in df.iterrows():
-            # Extract date (try multiple column names)
-            date_str = None
-            for date_col in ['dato', 'bokføringsdato', 'transaksjonsdato', 'date']:
-                if date_col in df.columns and pd.notna(row[date_col]):
-                    date_str = str(row[date_col])
-                    break
-            
-            if not date_str:
-                continue
-            
-            # Parse date (Norwegian format: DD.MM.YYYY or YYYY-MM-DD)
-            try:
-                if '.' in date_str:
-                    transaction_date = datetime.strptime(date_str, '%d.%m.%Y')
-                else:
-                    transaction_date = datetime.fromisoformat(date_str)
-            except:
-                continue
-            
-            # Extract amount
-            amount = 0.0
-            transaction_type = TransactionType.DEBIT
-            
-            # Check for separate "inn" and "ut" columns
-            if 'beløp inn' in df.columns and pd.notna(row['beløp inn']):
-                amount = float(str(row['beløp inn']).replace(',', '.').replace(' ', ''))
-                transaction_type = TransactionType.CREDIT
-            elif 'beløp ut' in df.columns and pd.notna(row['beløp ut']):
-                amount = abs(float(str(row['beløp ut']).replace(',', '.').replace(' ', '')))
-                transaction_type = TransactionType.DEBIT
-            elif 'beløp' in df.columns and pd.notna(row['beløp']):
-                amount_val = float(str(row['beløp']).replace(',', '.').replace(' ', ''))
-                transaction_type = TransactionType.CREDIT if amount_val > 0 else TransactionType.DEBIT
-                amount = abs(amount_val)
-            
-            if amount == 0:
-                continue
-            
-            # Extract description
-            description = ''
-            for desc_col in ['forklaring', 'tekst', 'beskrivelse', 'description', 'text']:
-                if desc_col in df.columns and pd.notna(row[desc_col]):
-                    description = str(row[desc_col])
-                    break
-            
-            # Extract KID (Norwegian payment reference)
-            kid = None
-            for kid_col in ['kid', 'kidnummer', 'referanse', 'reference']:
-                if kid_col in df.columns and pd.notna(row[kid_col]):
-                    kid = str(row[kid_col])
-                    break
-            
-            # Extract counterparty
-            counterparty = None
-            for party_col in ['motpart', 'mottaker', 'avsender', 'counterparty']:
-                if party_col in df.columns and pd.notna(row[party_col]):
-                    counterparty = str(row[party_col])
-                    break
-            
-            # Extract balance
-            balance = None
-            if 'saldo' in df.columns and pd.notna(row['saldo']):
-                try:
-                    balance = float(str(row['saldo']).replace(',', '.').replace(' ', ''))
-                except:
-                    pass
-            
-            transactions.append({
-                'transaction_date': transaction_date,
-                'amount': amount,
-                'transaction_type': transaction_type,
-                'description': description,
-                'kid_number': kid,
-                'counterparty_name': counterparty,
-                'balance_after': balance
-            })
-        
-        return transactions
-        
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Failed to parse CSV: {str(e)}")
-
-
-@router.post("/upload")
-async def upload_bank_transactions(
+@router.post("/import")
+async def import_bank_transactions(
     client_id: UUID = Query(..., description="Client ID"),
-    bank_account: str = Query(..., description="Bank account number"),
     file: UploadFile = File(...),
     db: AsyncSession = Depends(get_db)
 ) -> Dict[str, Any]:
     """
-    Upload bank transactions from CSV/Excel
+    Import bank transactions from CSV
     
     Supports Norwegian bank formats (DNB, Sparebank1, Nordea, etc.)
+    Automatically runs matching after import.
     """
     
     # Validate client exists
@@ -148,45 +43,59 @@ async def upload_bank_transactions(
     
     # Read file
     file_content = await file.read()
-    
-    # Parse transactions
-    transactions = await parse_norwegian_bank_csv(file_content)
-    
-    if not transactions:
-        raise HTTPException(status_code=400, detail="No valid transactions found in file")
+    file_text = file_content.decode('utf-8')
     
     # Create batch ID
     batch_id = uuid4()
     
-    # Insert transactions
-    inserted_count = 0
-    for txn_data in transactions:
-        transaction = BankTransaction(
-            client_id=client_id,
-            bank_account=bank_account,
-            upload_batch_id=batch_id,
-            original_filename=file.filename,
-            **txn_data
-        )
-        db.add(transaction)
-        inserted_count += 1
+    # Parse transactions using BankImportService
+    transactions = BankImportService.parse_norwegian_csv(
+        file_text,
+        client_id,
+        batch_id,
+        file.filename
+    )
     
-    await db.commit()
+    if not transactions:
+        raise HTTPException(status_code=400, detail="No valid transactions found in file")
+    
+    # Import transactions
+    inserted_count = await BankImportService.import_transactions(db, transactions)
+    
+    # Run auto-matching on imported transactions
+    matched_count = 0
+    for trans_data in transactions:
+        # Get the transaction we just created (match by batch_id and amount/date)
+        stmt = select(BankTransaction).where(
+            BankTransaction.upload_batch_id == batch_id,
+            BankTransaction.amount == trans_data['amount'],
+            BankTransaction.transaction_date == trans_data['transaction_date']
+        )
+        result = await db.execute(stmt)
+        transaction = result.scalar_one_or_none()
+        
+        if transaction:
+            match_result = await BankReconciliationService.auto_match_transaction(
+                db, transaction.id, client_id
+            )
+            if match_result:
+                matched_count += 1
     
     return {
         "success": True,
         "batch_id": str(batch_id),
         "transactions_imported": inserted_count,
+        "auto_matched": matched_count,
+        "match_rate": round((matched_count / inserted_count * 100) if inserted_count > 0 else 0, 1),
         "filename": file.filename,
         "client_id": str(client_id),
-        "bank_account": bank_account
     }
 
 
 @router.get("/transactions")
 async def get_bank_transactions(
     client_id: UUID = Query(..., description="Client ID"),
-    status: str = Query(None, description="Filter by status"),
+    status: str = Query(None, description="Filter by status (unmatched, matched, reviewed, ignored)"),
     limit: int = Query(100, le=500),
     db: AsyncSession = Depends(get_db)
 ) -> Dict[str, Any]:
@@ -212,60 +121,123 @@ async def get_bank_transactions(
     }
 
 
-@router.get("/stats")
-async def get_bank_stats(
+@router.get("/transactions/{transaction_id}")
+async def get_transaction_details(
+    transaction_id: UUID,
+    client_id: UUID = Query(..., description="Client ID"),
+    db: AsyncSession = Depends(get_db)
+) -> Dict[str, Any]:
+    """
+    Get details for a single bank transaction
+    """
+    stmt = select(BankTransaction).where(
+        BankTransaction.id == transaction_id,
+        BankTransaction.client_id == client_id
+    )
+    result = await db.execute(stmt)
+    transaction = result.scalar_one_or_none()
+    
+    if not transaction:
+        raise HTTPException(status_code=404, detail="Transaction not found")
+    
+    return transaction.to_dict()
+
+
+@router.get("/transactions/{transaction_id}/suggestions")
+async def get_match_suggestions(
+    transaction_id: UUID,
+    client_id: UUID = Query(..., description="Client ID"),
+    db: AsyncSession = Depends(get_db)
+) -> Dict[str, Any]:
+    """
+    Get matching suggestions for a bank transaction
+    
+    Returns potential invoice matches with confidence scores.
+    """
+    # Find matches
+    matches = await BankReconciliationService.find_matches(
+        db, transaction_id, client_id
+    )
+    
+    # Get the transaction
+    stmt = select(BankTransaction).where(BankTransaction.id == transaction_id)
+    result = await db.execute(stmt)
+    transaction = result.scalar_one_or_none()
+    
+    if not transaction:
+        raise HTTPException(status_code=404, detail="Transaction not found")
+    
+    return {
+        "transaction": transaction.to_dict(),
+        "suggestions": matches,
+        "count": len(matches)
+    }
+
+
+@router.post("/transactions/{transaction_id}/match")
+async def manual_match_transaction(
+    transaction_id: UUID,
+    client_id: UUID = Query(..., description="Client ID"),
+    invoice_id: UUID = Query(..., description="Invoice ID to match"),
+    invoice_type: str = Query(..., description="Invoice type: vendor or customer"),
+    user_id: UUID = Query(..., description="User ID performing the match"),
+    db: AsyncSession = Depends(get_db)
+) -> Dict[str, Any]:
+    """
+    Manually match a bank transaction to an invoice
+    """
+    # Validate invoice type
+    if invoice_type not in ['vendor', 'customer']:
+        raise HTTPException(status_code=400, detail="invoice_type must be 'vendor' or 'customer'")
+    
+    # Create manual match
+    reconciliation = await BankReconciliationService.create_manual_match(
+        db, transaction_id, invoice_id, invoice_type, client_id, user_id
+    )
+    
+    return {
+        "success": True,
+        "reconciliation": reconciliation,
+        "message": "Transaction successfully matched"
+    }
+
+
+@router.get("/reconciliation/stats")
+async def get_reconciliation_statistics(
     client_id: UUID = Query(..., description="Client ID"),
     db: AsyncSession = Depends(get_db)
 ) -> Dict[str, Any]:
     """
     Get bank reconciliation statistics for a client
+    
+    Returns:
+    - Total transactions
+    - Matched count
+    - Unmatched count
+    - Auto-match rate
+    - Manual match count
     """
-    
-    # Total transactions
-    total_query = select(func.count(BankTransaction.id)).where(
-        BankTransaction.client_id == client_id
-    )
-    total_result = await db.execute(total_query)
-    total = total_result.scalar() or 0
-    
-    # Unmatched
-    unmatched_query = select(func.count(BankTransaction.id)).where(
-        BankTransaction.client_id == client_id,
-        BankTransaction.status == TransactionStatus.UNMATCHED
-    )
-    unmatched_result = await db.execute(unmatched_query)
-    unmatched = unmatched_result.scalar() or 0
-    
-    # Matched
-    matched_query = select(func.count(BankTransaction.id)).where(
-        BankTransaction.client_id == client_id,
-        BankTransaction.status == TransactionStatus.MATCHED
-    )
-    matched_result = await db.execute(matched_query)
-    matched = matched_result.scalar() or 0
-    
-    return {
-        "total": total,
-        "unmatched": unmatched,
-        "matched": matched,
-        "reviewed": 0,  # TODO: Add when review workflow is implemented
-        "match_rate": round((matched / total * 100) if total > 0 else 0, 1)
-    }
+    stats = await BankReconciliationService.get_reconciliation_stats(db, client_id)
+    return stats
 
 
-@router.post("/match")
-async def run_ai_matching(
+@router.post("/auto-match")
+async def run_auto_matching(
     client_id: UUID = Query(..., description="Client ID"),
     batch_id: UUID = Query(None, description="Process specific upload batch"),
     db: AsyncSession = Depends(get_db)
 ) -> Dict[str, Any]:
     """
-    Run AI matching on unmatched bank transactions
+    Run automatic matching on unmatched bank transactions
     
-    Matches transactions to unpaid invoices using:
-    1. KID number (99% confidence)
-    2. Amount + date + vendor (80-95% confidence)
-    3. AI description analysis (50-80% confidence)
+    Uses AI matching algorithm with:
+    1. Exact amount match (40 points)
+    2. Date proximity (30 points)
+    3. KID number match (20 points)
+    4. Vendor/customer name match (20 points)
+    5. Invoice number in description (10 points)
+    
+    Auto-approves matches with confidence >= 85%
     """
     
     # Get unmatched transactions
@@ -291,38 +263,27 @@ async def run_ai_matching(
             }
         }
     
-    # Get unpaid invoices for this client
-    invoices_query = select(VendorInvoice).where(
-        VendorInvoice.client_id == client_id,
-        VendorInvoice.payment_status.in_(['unpaid', 'partial'])
-    )
-    invoices_result = await db.execute(invoices_query)
-    invoices = invoices_result.scalars().all()
+    # Run auto-matching
+    matched_count = 0
+    low_confidence_count = 0
     
-    # Run AI matching
-    agent = BankMatchingAgent()
-    match_results = await agent.batch_match_transactions(transactions, invoices)
-    
-    # Update database with matches
-    for match in match_results["matched"]:
-        txn_id = UUID(match["transaction_id"])
-        inv_id = UUID(match["invoice_id"])
+    for transaction in transactions:
+        match_result = await BankReconciliationService.auto_match_transaction(
+            db, transaction.id, client_id
+        )
         
-        # Update transaction
-        update_query = select(BankTransaction).where(BankTransaction.id == txn_id)
-        update_result = await db.execute(update_query)
-        txn = update_result.scalar_one()
-        
-        txn.ai_matched_invoice_id = inv_id
-        txn.ai_match_confidence = Decimal(str(match["confidence"]))
-        txn.ai_match_reason = match["reason"]
-        txn.status = TransactionStatus.MATCHED
-    
-    await db.commit()
+        if match_result:
+            matched_count += 1
+        else:
+            low_confidence_count += 1
     
     return {
         "success": True,
-        "message": f"Matched {match_results['summary']['matched']} transactions",
-        "summary": match_results["summary"],
-        "matched": match_results["matched"]
+        "message": f"Auto-matched {matched_count} of {len(transactions)} transactions",
+        "summary": {
+            "total": len(transactions),
+            "matched": matched_count,
+            "low_confidence": low_confidence_count,
+            "match_rate": round((matched_count / len(transactions) * 100) if len(transactions) > 0 else 0, 1)
+        }
     }

@@ -2,6 +2,23 @@
 
 FastAPI + GraphQL backend for AI-agent-first ERP system.
 
+---
+
+## 📚 **NEW: Complete Setup Guide Available!**
+
+**🔗 [See SETUP.md for comprehensive setup instructions](./SETUP.md)**
+
+Includes:
+- Step-by-step environment setup
+- Dependency management with locked versions
+- Troubleshooting guide
+- Production deployment instructions
+
+**Critical:** Dependencies are now locked to exact versions (see `requirements.txt`).  
+Read [DEPENDENCY_LOCK_SUMMARY.md](./DEPENDENCY_LOCK_SUMMARY.md) for details.
+
+---
+
 ## 🚀 Quick Start
 
 ### 1. Install Dependencies

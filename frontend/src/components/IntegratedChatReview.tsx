@@ -2,10 +2,10 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { ReviewItem, ReviewStatus, Priority } from '@/types/review-queue';
-import { format } from 'date-fns';
 import clsx from 'clsx';
 import { mockReviewItems } from '@/utils/mock-data';
 import { chatApi } from '@/api/chat';
+import { ClientSafeTimestamp } from '@/lib/date-utils';
 
 interface ChatMessage {
   role: 'user' | 'assistant' | 'system';
@@ -338,7 +338,7 @@ export const IntegratedChatReview: React.FC = () => {
                     'text-xs mt-2',
                     msg.role === 'user' ? 'text-blue-200' : 'text-gray-500'
                   )}>
-                    {format(new Date(msg.timestamp), 'HH:mm:ss')}
+                    <ClientSafeTimestamp date={msg.timestamp} format="time" />
                   </div>
                 </div>
               </div>
@@ -458,7 +458,7 @@ export const IntegratedChatReview: React.FC = () => {
 
                       {/* Date */}
                       <div className="text-[10px] text-gray-600 mt-2">
-                        {format(new Date(item.createdAt), 'dd.MM.yyyy HH:mm')}
+                        <ClientSafeTimestamp date={item.createdAt} format="datetime" />
                       </div>
                     </>
                   )}
