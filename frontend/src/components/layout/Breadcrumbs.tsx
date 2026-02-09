@@ -1,10 +1,11 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ChevronRight, Home } from 'lucide-react';
 import { findMenuItemByRoute } from '@/config/menuConfig';
+import { useTenant } from '@/contexts/TenantContext';
 
 interface BreadcrumbItem {
   label: string;
@@ -13,6 +14,38 @@ interface BreadcrumbItem {
 
 export default function Breadcrumbs() {
   const pathname = usePathname();
+  const { tenantId } = useTenant();
+  const [clientName, setClientName] = useState<string | null>(null);
+
+  // Fetch client name when on client detail page
+  useEffect(() => {
+    const fetchClientName = async () => {
+      if (!pathname || !tenantId) return;
+      
+      // Check if we're on a client detail page: /clients/[id]
+      const clientMatch = pathname.match(/^\/clients\/([a-f0-9-]+)$/);
+      if (clientMatch) {
+        const clientId = clientMatch[1];
+        try {
+          // Fetch all clients and find this one
+          const response = await fetch(`http://localhost:8000/api/dashboard/multi-client/tasks?tenant_id=${tenantId}`);
+          if (response.ok) {
+            const data = await response.json();
+            const client = data.clients.find((c: any) => c.id === clientId);
+            if (client) {
+              setClientName(client.name);
+            }
+          }
+        } catch (error) {
+          console.error('Failed to fetch client name for breadcrumb:', error);
+        }
+      } else {
+        setClientName(null);
+      }
+    };
+    
+    fetchClientName();
+  }, [pathname, tenantId]);
 
   // Build breadcrumb trail from pathname
   const buildBreadcrumbs = (): BreadcrumbItem[] => {
@@ -30,16 +63,26 @@ export default function Breadcrumbs() {
       // TODO: Build full parent hierarchy
       crumbs.push({ label: menuItem.label, href: menuItem.route });
     } else if (pathname) {
-      // Fallback: build from pathname segments
-      const segments = pathname.split('/').filter(Boolean);
-      segments.forEach((segment, index) => {
-        const href = '/' + segments.slice(0, index + 1).join('/');
-        const label = segment
-          .split('-')
-          .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-          .join(' ');
-        crumbs.push({ label, href });
-      });
+      // Special handling for /clients/[id] - Glenn's feedback 2026-02-09
+      const clientMatch = pathname.match(/^\/clients\/([a-f0-9-]+)$/);
+      if (clientMatch) {
+        crumbs.push({ label: 'Clients', href: '/' });
+        crumbs.push({ 
+          label: clientName || 'Loading...',
+          href: pathname 
+        });
+      } else {
+        // Fallback: build from pathname segments
+        const segments = pathname.split('/').filter(Boolean);
+        segments.forEach((segment, index) => {
+          const href = '/' + segments.slice(0, index + 1).join('/');
+          const label = segment
+            .split('-')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(' ');
+          crumbs.push({ label, href });
+        });
+      }
     }
 
     return crumbs;

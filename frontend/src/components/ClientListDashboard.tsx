@@ -221,27 +221,24 @@ export function ClientListDashboard({ onClientSelect }: ClientListDashboardProps
 
   return (
     <div className="h-full flex flex-col">
-      {/* Header */}
-      <div className="mb-6">
-        <h2 className="text-2xl font-bold text-foreground mb-2">Klientoversikt</h2>
-        <p className="text-muted-foreground">
-          {clients.length} klienter • {clients.filter(c => c.status === 'red').length} trenger oppmerksomhet
-        </p>
+      {/* Header - Simplified for Unified Dashboard */}
+      <div className="mb-3">
+        <h2 className="text-xl font-bold text-foreground">Klienter</h2>
       </div>
 
-      {/* Search */}
-      <div className="mb-4">
+      {/* Search - Enhanced visibility per Glenn's feedback 2026-02-09 */}
+      <div className="mb-3">
         <input
           type="text"
           placeholder="Søk etter klient..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full px-4 py-2 rounded-lg border border-border bg-background focus:ring-2 focus:ring-primary focus:border-transparent"
+          className="w-full px-4 py-2 rounded-lg border-2 border-muted-foreground/30 bg-card text-foreground placeholder:text-muted-foreground/70 focus:ring-2 focus:ring-primary focus:border-primary transition-all"
         />
       </div>
 
       {/* Client List */}
-      <div className="flex-1 overflow-y-auto space-y-2">
+      <div className="flex-1 overflow-y-auto space-y-1.5">
         {filteredClients.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
             Ingen klienter funnet
@@ -254,54 +251,54 @@ export function ClientListDashboard({ onClientSelect }: ClientListDashboardProps
               animate={{ opacity: 1, y: 0 }}
               onClick={() => handleClientClick(client.client_id)}
               className={`
-                border rounded-lg p-4 cursor-pointer transition-all
+                border rounded-lg p-2.5 cursor-pointer transition-all
                 ${getStatusBgColor(client.status)}
               `}
             >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3 flex-1">
-                  <span className="text-3xl">{getTrafficLightEmoji(client.status)}</span>
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-foreground">{client.client_name}</h3>
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                  <span className="text-2xl flex-shrink-0">{getTrafficLightEmoji(client.status)}</span>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-medium text-sm text-foreground truncate">{client.client_name}</h3>
                     {client.status === 'red' && client.urgent_items > 0 && (
-                      <p className="text-xs text-red-700 mt-0.5">
+                      <p className="text-[10px] text-red-700 leading-tight">
                         {client.urgent_items} haster
                       </p>
                     )}
                     {client.status === 'yellow' && client.review_items > 0 && (
-                      <p className="text-xs text-yellow-700 mt-0.5">
+                      <p className="text-[10px] text-yellow-700 leading-tight">
                         {client.review_items} til gjennomgang
                       </p>
                     )}
                     {client.status === 'green' && (
-                      <p className="text-xs text-green-700 mt-0.5">
+                      <p className="text-[10px] text-green-700 leading-tight">
                         Alt OK
                       </p>
                     )}
                   </div>
                 </div>
                 
-                <div className="flex items-center gap-4 text-sm">
+                <div className="flex items-center gap-3 text-xs flex-shrink-0">
                   {client.counts.bilag > 0 && (
                     <div className="text-center">
-                      <div className="font-semibold text-foreground">{client.counts.bilag}</div>
-                      <div className="text-xs text-muted-foreground">Bilag</div>
+                      <div className="font-semibold text-foreground leading-tight">{client.counts.bilag}</div>
+                      <div className="text-[10px] text-muted-foreground leading-tight">Bilag</div>
                     </div>
                   )}
                   {client.counts.bank > 0 && (
                     <div className="text-center">
-                      <div className="font-semibold text-foreground">{client.counts.bank}</div>
-                      <div className="text-xs text-muted-foreground">Bank</div>
+                      <div className="font-semibold text-foreground leading-tight">{client.counts.bank}</div>
+                      <div className="text-[10px] text-muted-foreground leading-tight">Bank</div>
                     </div>
                   )}
                   {client.counts.avstemming > 0 && (
                     <div className="text-center">
-                      <div className="font-semibold text-foreground">{client.counts.avstemming}</div>
-                      <div className="text-xs text-muted-foreground">Avstemming</div>
+                      <div className="font-semibold text-foreground leading-tight">{client.counts.avstemming}</div>
+                      <div className="text-[10px] text-muted-foreground leading-tight">Avstemming</div>
                     </div>
                   )}
                   {client.counts.bilag === 0 && client.counts.bank === 0 && client.counts.avstemming === 0 && (
-                    <div className="text-xs text-muted-foreground italic">
+                    <div className="text-[10px] text-muted-foreground italic">
                       Ingen oppgaver
                     </div>
                   )}

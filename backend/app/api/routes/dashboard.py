@@ -211,42 +211,47 @@ async def get_cross_client_tasks(
         })
     
     # REPORTING TASKS - Customer invoices overdue
+    # DISABLED 2026-02-09: Glenn's feedback from video review
+    # Overdue customer invoices skal IKKE være i review queue.
+    # De skal følges opp i egen "Kundereskontro" - ikke sammen med bokføringsoppgaver.
+    # TODO: Lag egen side for kundereskontro/customer receivables management
     reporting_tasks = []
     
-    from datetime import date
-    today = date.today()
-    
-    overdue_query = select(CustomerInvoice, Client).join(
-        Client, CustomerInvoice.client_id == Client.id
-    ).where(
-        CustomerInvoice.client_id.in_(client_ids),
-        CustomerInvoice.payment_status == 'unpaid',
-        CustomerInvoice.due_date < today
-    ).order_by(CustomerInvoice.due_date.asc()).limit(50)
-    
-    overdue_result = await db.execute(overdue_query)
-    overdue_invoices = overdue_result.all()
-    
-    for invoice, client in overdue_invoices:
-        days_overdue = (today - invoice.due_date).days
-        reporting_tasks.append({
-            "id": str(invoice.id),
-            "type": "customer_invoice_overdue",
-            "category": "reporting",
-            "client_id": str(client.id),
-            "client_name": client.name,
-            "description": f"Customer invoice {invoice.invoice_number} overdue by {days_overdue} days",
-            "confidence": 100,  # Fact, not AI suggestion
-            "created_at": invoice.created_at.isoformat(),
-            "priority": "high" if days_overdue > 30 else "medium",
-            "data": {
-                "invoice_id": str(invoice.id),
-                "customer_name": invoice.customer_name,
-                "amount": float(invoice.total_amount),
-                "due_date": invoice.due_date.isoformat(),
-                "days_overdue": days_overdue
-            }
-        })
+    # COMMENTED OUT - Overdue invoices removed from review queue per Glenn's instruction
+    # from datetime import date
+    # today = date.today()
+    # 
+    # overdue_query = select(CustomerInvoice, Client).join(
+    #     Client, CustomerInvoice.client_id == Client.id
+    # ).where(
+    #     CustomerInvoice.client_id.in_(client_ids),
+    #     CustomerInvoice.payment_status == 'unpaid',
+    #     CustomerInvoice.due_date < today
+    # ).order_by(CustomerInvoice.due_date.asc()).limit(50)
+    # 
+    # overdue_result = await db.execute(overdue_query)
+    # overdue_invoices = overdue_result.all()
+    # 
+    # for invoice, client in overdue_invoices:
+    #     days_overdue = (today - invoice.due_date).days
+    #     reporting_tasks.append({
+    #         "id": str(invoice.id),
+    #         "type": "customer_invoice_overdue",
+    #         "category": "reporting",
+    #         "client_id": str(client.id),
+    #         "client_name": client.name,
+    #         "description": f"Customer invoice {invoice.invoice_number} overdue by {days_overdue} days",
+    #         "confidence": 100,  # Fact, not AI suggestion
+    #         "created_at": invoice.created_at.isoformat(),
+    #         "priority": "high" if days_overdue > 30 else "medium",
+    #         "data": {
+    #             "invoice_id": str(invoice.id),
+    #             "customer_name": invoice.customer_name,
+    #             "amount": float(invoice.total_amount),
+    #             "due_date": invoice.due_date.isoformat(),
+    #             "days_overdue": days_overdue
+    #         }
+    #     })
     
     # Combine all tasks
     all_tasks = invoicing_tasks + bank_tasks + reporting_tasks
