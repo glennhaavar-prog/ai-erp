@@ -30,9 +30,9 @@ export default function Topbar() {
               <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-medium text-sm">
                 {selectedClient.name.substring(0, 2).toUpperCase()}
               </div>
-              <div className="text-left">
+              <div className="text-left flex items-center gap-2">
                 <div className="text-sm font-medium text-foreground">{selectedClient.name}</div>
-                <div className="text-xs text-muted-foreground">Aktiv klient</div>
+                <div className="w-2 h-2 rounded-full bg-success animate-pulse" title="Aktiv klient"></div>
               </div>
               <ChevronDown className="w-4 h-4 text-muted-foreground" />
             </button>
@@ -99,15 +99,15 @@ export default function Topbar() {
         </div>
       </div>
 
-      {/* Center: Global search (disabled for now) */}
+      {/* Center: Global search (Task 7: Improved visibility) */}
       <div className="flex-1 max-w-md mx-8">
-        <div className="relative opacity-35 cursor-not-allowed" title="Kommer snart">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+        <div className="relative" title="Global søk (kommer snart)">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-primary/60" />
           <input
             type="text"
-            placeholder="Søk i Kontali..."
+            placeholder="Søk etter bilag, faktura, klient..."
             disabled
-            className="w-full pl-10 pr-4 py-2 rounded-lg border border-border bg-background text-sm"
+            className="w-full pl-11 pr-4 py-2.5 rounded-lg border-2 border-border/50 bg-background/80 text-foreground placeholder:text-muted-foreground/70 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all disabled:cursor-not-allowed disabled:opacity-60"
           />
         </div>
       </div>

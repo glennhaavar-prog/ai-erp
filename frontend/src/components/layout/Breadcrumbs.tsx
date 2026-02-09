@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { ChevronRight, Home } from 'lucide-react';
 import { findMenuItemByRoute } from '@/config/menuConfig';
 import { useTenant } from '@/contexts/TenantContext';
+import { useClient } from '@/contexts/ClientContext';
 
 interface BreadcrumbItem {
   label: string;
@@ -15,6 +16,7 @@ interface BreadcrumbItem {
 export default function Breadcrumbs() {
   const pathname = usePathname();
   const { tenantId } = useTenant();
+  const { selectedClient } = useClient(); // Task 8: Always include client name
   const [clientName, setClientName] = useState<string | null>(null);
 
   // Fetch client name when on client detail page
@@ -49,38 +51,52 @@ export default function Breadcrumbs() {
 
   // Build breadcrumb trail from pathname
   const buildBreadcrumbs = (): BreadcrumbItem[] => {
-    if (!pathname || pathname === '/' || pathname === '/dashboard') {
+    if (!pathname || pathname === '/') {
       return [{ label: 'Dashboard' }];
     }
 
     const crumbs: BreadcrumbItem[] = [];
+    
+    // Task 8: ALWAYS include client name when in client context (Glenn's feedback 2026-02-09)
+    // Format: 🏠 > Bergen Byggeservice AS > Resultatregnskap
+    if (selectedClient && pathname !== '/' && pathname !== '/dashboard') {
+      crumbs.push({ 
+        label: selectedClient.name, 
+        href: `/clients/${selectedClient.id}` 
+      });
+    }
     
     // Try to find menu item for current route (with null check)
     const menuItem = pathname ? findMenuItemByRoute(pathname) : null;
     
     if (menuItem) {
       // Simple breadcrumb based on menu structure
-      // TODO: Build full parent hierarchy
       crumbs.push({ label: menuItem.label, href: menuItem.route });
     } else if (pathname) {
-      // Special handling for /clients/[id] - Glenn's feedback 2026-02-09
+      // Special handling for /clients/[id]
       const clientMatch = pathname.match(/^\/clients\/([a-f0-9-]+)$/);
       if (clientMatch) {
-        crumbs.push({ label: 'Clients', href: '/' });
+        // Already added client name above, so just show "Overview" or similar
         crumbs.push({ 
-          label: clientName || 'Loading...',
+          label: 'Oversikt',
           href: pathname 
         });
       } else {
-        // Fallback: build from pathname segments
+        // Fallback: build from pathname segments (skip if client already added)
         const segments = pathname.split('/').filter(Boolean);
-        segments.forEach((segment, index) => {
-          const href = '/' + segments.slice(0, index + 1).join('/');
+        const startIndex = selectedClient ? 0 : 0; // Start from beginning if client added
+        
+        segments.slice(startIndex).forEach((segment, index) => {
+          const href = '/' + segments.slice(0, startIndex + index + 1).join('/');
           const label = segment
             .split('-')
             .map(word => word.charAt(0).toUpperCase() + word.slice(1))
             .join(' ');
-          crumbs.push({ label, href });
+          
+          // Skip adding duplicate client name
+          if (label.toLowerCase() !== 'clients' && label !== selectedClient?.name) {
+            crumbs.push({ label, href });
+          }
         });
       }
     }
@@ -100,7 +116,7 @@ export default function Breadcrumbs() {
       <div className="flex items-center gap-2 text-sm">
         {/* Home link */}
         <Link 
-          href="/dashboard" 
+          href="/" 
           className="text-muted-foreground hover:text-foreground transition-colors"
         >
           <Home className="w-4 h-4" />

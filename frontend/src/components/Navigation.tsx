@@ -17,7 +17,7 @@ export const Navigation = () => {
   const pathname = usePathname();
 
   const navItems = [
-    { href: '/', label: 'Hjem', icon: HomeIcon, isHome: true },
+    { href: '/', label: 'Dashboard', icon: HomeIcon, isHome: true },
     { href: '/upload', label: 'Last opp faktura', icon: CloudArrowUpIcon },
     { href: '/review-queue', label: 'Review Queue', icon: ClipboardDocumentListIcon },
     { href: '/saldobalanse', label: 'Saldobalanse', icon: ScaleIcon },
@@ -27,7 +27,6 @@ export const Navigation = () => {
     { href: '/accounts', label: 'Kontoplan', icon: DocumentTextIcon },
     { href: '/vat', label: 'MVA-koder', icon: CalculatorIcon },
     { href: '/audit', label: 'Revisjonslogg', icon: ClipboardDocumentListIcon },
-    { href: '/dashboard', label: 'Trust Dashboard', icon: ChartBarIcon },
   ];
 
   return (

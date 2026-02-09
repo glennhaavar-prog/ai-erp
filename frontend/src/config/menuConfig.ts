@@ -101,20 +101,6 @@ export const menuConfig: MenuCategory[] = [
         tooltip: 'Kommer snart',
       },
       {
-        id: 'fremdrift',
-        label: 'Fremdrift',
-        icon: 'dashboard',
-        route: '/fremdrift',
-        visibility: 'multi',
-      },
-      {
-        id: 'dashboard-klient',
-        label: 'Dashboard klient',
-        icon: 'trendingUp',
-        route: '/dashboard',
-        visibility: 'client',
-      },
-      {
         id: 'avstemming',
         label: 'Avstemming',
         icon: 'checkCircle2',
