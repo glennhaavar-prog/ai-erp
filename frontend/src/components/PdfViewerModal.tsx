@@ -84,10 +84,10 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md">
       <div className="relative w-full h-full max-w-6xl max-h-screen p-4">
         {/* Modal Header */}
-        <div className="flex items-center justify-between bg-dark-card border-b border-dark-border p-4 rounded-t-lg">
+        <div className="flex items-center justify-between bg-card/95 backdrop-blur-xl border-b border-border/50 p-4 rounded-t-lg">
           <div>
             <h2 className="text-xl font-bold text-gray-100">
               PDF Bilag
@@ -118,7 +118,7 @@ export const PdfViewerModal: React.FC<PdfViewerModalProps> = ({
         </div>
 
         {/* Modal Content */}
-        <div className="bg-dark-card h-[calc(100%-4rem)] rounded-b-lg overflow-hidden">
+        <div className="bg-card/95 backdrop-blur-xl h-[calc(100%-4rem)] rounded-b-lg overflow-hidden shadow-2xl shadow-black/20">
           {loading && (
             <div className="flex items-center justify-center h-full">
               <div className="text-center">

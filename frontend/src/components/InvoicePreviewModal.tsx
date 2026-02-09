@@ -54,7 +54,7 @@ export default function InvoicePreviewModal({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md"
           onClick={onClose}
         >
           <motion.div
@@ -62,7 +62,7 @@ export default function InvoicePreviewModal({
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.95, opacity: 0 }}
             transition={{ type: 'spring', damping: 20, stiffness: 300 }}
-            className="relative w-full max-w-7xl h-[90vh] bg-card border border-border rounded-2xl shadow-2xl flex overflow-hidden"
+            className="relative w-full max-w-7xl h-[90vh] bg-card/95 backdrop-blur-xl border border-border/50 rounded-2xl shadow-2xl shadow-black/20 flex overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Close button */}
