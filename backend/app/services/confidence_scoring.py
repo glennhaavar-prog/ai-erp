@@ -257,11 +257,14 @@ class ConfidenceScorer:
             return 0
         
         # Find learned patterns that apply to this client
+        # Use PostgreSQL array operator @> (contains) instead of .contains()
+        from sqlalchemy.dialects.postgresql import ARRAY as PG_ARRAY
+        
         query = select(AgentLearnedPattern).where(
             and_(
                 or_(
                     AgentLearnedPattern.global_pattern == True,
-                    AgentLearnedPattern.applies_to_clients.contains([invoice.client_id])
+                    AgentLearnedPattern.applies_to_clients.op('@>')(func.cast([invoice.client_id], PG_ARRAY(UUID)))
                 ),
                 AgentLearnedPattern.is_active == True
             )
