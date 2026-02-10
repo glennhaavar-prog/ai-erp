@@ -23,17 +23,12 @@ import {
 } from '@mui/material';
 import { useDropzone } from 'react-dropzone';
 import { useRouter } from 'next/navigation';
+import { useClient } from '@/contexts/ClientContext';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ErrorIcon from '@mui/icons-material/Error';
 import DeleteIcon from '@mui/icons-material/Delete';
 import DescriptionIcon from '@mui/icons-material/Description';
-
-interface Client {
-  id: string;
-  name: string;
-  org_number: string;
-}
 
 interface UploadFile {
   file: File;
@@ -47,30 +42,10 @@ interface UploadFile {
 
 export default function UploadPage() {
   const router = useRouter();
-  const [clients, setClients] = useState<Client[]>([]);
-  const [selectedClient, setSelectedClient] = useState<string>('');
+  const { selectedClient, clients, isLoading: clientsLoading } = useClient();
   const [files, setFiles] = useState<UploadFile[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-
-  useEffect(() => {
-    fetchClients();
-  }, []);
-
-  const fetchClients = async () => {
-    try {
-      const response = await fetch('http://localhost:8000/api/clients/');
-      if (!response.ok) throw new Error('Failed to fetch clients');
-      const clientsData = await response.json();
-      setClients(clientsData);
-      if (clientsData.length > 0) {
-        setSelectedClient(clientsData[0].id);
-      }
-    } catch (err) {
-      console.error('Error fetching clients:', err);
-      setError('Kunne ikke laste klienter');
-    }
-  };
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const newFiles: UploadFile[] = acceptedFiles.map((file) => ({
@@ -93,7 +68,7 @@ export default function UploadPage() {
   });
 
   const uploadFile = async (uploadFile: UploadFile) => {
-    if (!selectedClient) {
+    if (!selectedClient || !selectedClient.id) {
       setError('Vennligst velg en klient');
       return;
     }
@@ -108,7 +83,7 @@ export default function UploadPage() {
     try {
       const formData = new FormData();
       formData.append('file', uploadFile.file);
-      formData.append('client_id', selectedClient);
+      formData.append('client_id', selectedClient.id);
 
       const response = await fetch('http://localhost:8000/api/invoices/upload/', {
         method: 'POST',
@@ -223,26 +198,18 @@ export default function UploadPage() {
         Last opp leverandørfakturaer
       </Typography>
 
-      <Card sx={{ mb: 3 }}>
-        <CardContent>
-          <Typography variant="h6" gutterBottom>
-            Velg klient
-          </Typography>
+      {!selectedClient && (
+        <Alert severity="info" sx={{ mb: 3 }}>
+          Velg en klient fra menyen øverst for å laste opp fakturaer
+        </Alert>
+      )}
 
-          <TextField
-            select
-            label="Klient"
-            value={selectedClient}
-            onChange={(e) => setSelectedClient(e.target.value)}
-            fullWidth
-            sx={{ mb: 2 }}
-          >
-            {clients.map((client) => (
-              <MenuItem key={client.id} value={client.id}>
-                {client.name} ({client.org_number})
-              </MenuItem>
-            ))}
-          </TextField>
+      {selectedClient && (
+        <Card sx={{ mb: 3 }}>
+          <CardContent>
+            <Typography variant="h6" gutterBottom>
+              Laster opp for: {selectedClient.name}
+            </Typography>
 
           <Paper
             {...getRootProps()}
@@ -352,6 +319,7 @@ export default function UploadPage() {
           )}
         </CardContent>
       </Card>
+      )}
 
       {error && (
         <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError(null)}>
