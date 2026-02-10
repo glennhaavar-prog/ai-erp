@@ -20,7 +20,8 @@ interface ViewModeContextType {
 const ViewModeContext = createContext<ViewModeContextType | undefined>(undefined);
 
 export function ViewModeProvider({ children }: { children: ReactNode }) {
-  const [viewMode, setViewMode] = useState<ViewMode>('multi-client');
+  // Default to 'client' mode since most pages require a selected client
+  const [viewMode, setViewMode] = useState<ViewMode>('client');
   const [taskFilter, setTaskFilter] = useState<TaskFilter>('all');
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
   const [selectedItem, setSelectedItem] = useState<any | null>(null);
