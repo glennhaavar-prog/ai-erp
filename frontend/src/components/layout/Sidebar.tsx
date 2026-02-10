@@ -19,7 +19,7 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
   const pathname = usePathname();
   const { viewMode } = useViewMode();
   const { selectedClient } = useClient();
-  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set(['innboks', 'regnskap']));
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set(['oversikt', 'innboks', 'regnskap']));
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
 
   // Get filtered menu based on view mode and replace CURRENT_CLIENT with actual client_id

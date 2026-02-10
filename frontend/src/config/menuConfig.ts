@@ -29,6 +29,26 @@ export interface MenuCategory {
 
 export const menuConfig: MenuCategory[] = [
   {
+    id: 'oversikt',
+    label: 'OVERSIKT',
+    items: [
+      {
+        id: 'hovedoversikt',
+        label: 'Hovedoversikt',
+        icon: 'dashboard',
+        route: '/',
+        visibility: 'both',
+      },
+      {
+        id: 'behandlingsko',
+        label: 'Behandlingskø',
+        icon: 'checkCircle2',
+        route: '/review-queue',
+        visibility: 'both',
+      },
+    ],
+  },
+  {
     id: 'innboks',
     label: 'INNBOKS',
     items: [
