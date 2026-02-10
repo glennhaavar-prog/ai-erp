@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { useViewMode } from './ViewModeContext';
 
 interface Client {
   id: string;
@@ -22,14 +23,17 @@ export const ClientProvider = ({ children }: { children: ReactNode }) => {
   const [selectedClient, setSelectedClientState] = useState<Client | null>(null);
   const [clients, setClients] = useState<Client[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { setViewMode } = useViewMode();
 
-  // Wrapper to save to localStorage
+  // Wrapper to save to localStorage and sync viewMode
   const setSelectedClient = (client: Client | null) => {
     setSelectedClientState(client);
     if (client) {
       localStorage.setItem('selected_client_id', client.id);
+      setViewMode('client'); // Switch to client mode when client is selected
     } else {
       localStorage.removeItem('selected_client_id');
+      setViewMode('multi-client'); // Switch to multi-client mode when no client selected
     }
   };
 
@@ -48,14 +52,13 @@ export const ClientProvider = ({ children }: { children: ReactNode }) => {
           if (savedClientId) {
             const savedClient = data.items.find((c: Client) => c.id === savedClientId);
             if (savedClient) {
-              setSelectedClient(savedClient);
+              setSelectedClient(savedClient); // This will also set viewMode to 'client'
               return;
             }
           }
           
           // Auto-select first client if no saved selection
-          setSelectedClient(data.items[0]);
-          localStorage.setItem('selected_client_id', data.items[0].id);
+          setSelectedClient(data.items[0]); // This will also set viewMode to 'client'
         }
       } catch (error) {
         console.error('Failed to load clients:', error);
@@ -65,6 +68,7 @@ export const ClientProvider = ({ children }: { children: ReactNode }) => {
     };
 
     loadClients();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
