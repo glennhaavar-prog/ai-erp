@@ -19,9 +19,19 @@ interface ClientContextType {
 const ClientContext = createContext<ClientContextType | undefined>(undefined);
 
 export const ClientProvider = ({ children }: { children: ReactNode }) => {
-  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const [selectedClient, setSelectedClientState] = useState<Client | null>(null);
   const [clients, setClients] = useState<Client[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Wrapper to save to localStorage
+  const setSelectedClient = (client: Client | null) => {
+    setSelectedClientState(client);
+    if (client) {
+      localStorage.setItem('selected_client_id', client.id);
+    } else {
+      localStorage.removeItem('selected_client_id');
+    }
+  };
 
   useEffect(() => {
     // Load clients from API
@@ -30,10 +40,22 @@ export const ClientProvider = ({ children }: { children: ReactNode }) => {
         const response = await fetch('http://localhost:8000/api/clients/');
         const data = await response.json();
         
-        if (data && data.length > 0) {
-          setClients(data);
-          // Auto-select first client
-          setSelectedClient(data[0]);
+        if (data && data.items && data.items.length > 0) {
+          setClients(data.items);
+          
+          // Try to restore selected client from localStorage
+          const savedClientId = localStorage.getItem('selected_client_id');
+          if (savedClientId) {
+            const savedClient = data.items.find((c: Client) => c.id === savedClientId);
+            if (savedClient) {
+              setSelectedClient(savedClient);
+              return;
+            }
+          }
+          
+          // Auto-select first client if no saved selection
+          setSelectedClient(data.items[0]);
+          localStorage.setItem('selected_client_id', data.items[0].id);
         }
       } catch (error) {
         console.error('Failed to load clients:', error);

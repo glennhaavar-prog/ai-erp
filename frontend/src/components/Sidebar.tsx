@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useClient } from '@/contexts/ClientContext';
 
 // Interfaces
 interface NavItem {
@@ -23,10 +24,11 @@ interface NavSection {
 
 export const Sidebar = () => {
   const pathname = usePathname();
+  const { selectedClient } = useClient();
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['innboks']));
 
   // Complete menu structure - SIMPLIFIED (One unified dashboard)
-  const navSections: NavSection[] = [
+  const navSections: NavSection[] = useMemo(() => [
     {
       label: 'Oversikt',
       items: [
@@ -173,8 +175,8 @@ export const Sidebar = () => {
           id: 'oppgaver',
           label: 'Oppgaver',
           icon: '✅',
-          path: '/clients/CURRENT_CLIENT/oppgaver',
-          enabled: true,
+          path: selectedClient ? `/clients/${selectedClient.id}/oppgaver` : undefined,
+          enabled: !!selectedClient,
         },
         {
           id: 'periodisering',
@@ -237,7 +239,7 @@ export const Sidebar = () => {
         },
       ],
     },
-  ];
+  ], [selectedClient]);
 
   const footerItems: NavItem[] = [
     {

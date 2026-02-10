@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useClient } from "@/contexts/ClientContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -37,23 +38,18 @@ interface AgingData {
 }
 
 export default function CustomerLedgerPage() {
+  const { selectedClient, isLoading: clientLoading } = useClient();
   const [entries, setEntries] = useState<CustomerLedgerEntry[]>([]);
   const [aging, setAging] = useState<AgingData | null>(null);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState("open");
-  const [clientId, setClientId] = useState<string>("");
 
   useEffect(() => {
-    // Get client_id from URL or localStorage
-    const urlParams = new URLSearchParams(window.location.search);
-    const cid = urlParams.get("client_id") || localStorage.getItem("demo_client_id") || "";
-    setClientId(cid);
-    
-    if (cid) {
-      fetchData(cid);
-      fetchAging(cid);
+    if (selectedClient && selectedClient.id) {
+      fetchData(selectedClient.id);
+      fetchAging(selectedClient.id);
     }
-  }, [statusFilter]);
+  }, [selectedClient, statusFilter]);
 
   const fetchData = async (cid: string) => {
     try {
@@ -109,10 +105,22 @@ export default function CustomerLedgerPage() {
     return <Badge variant="outline">{statusLabel}</Badge>;
   };
 
-  if (loading) {
+  if (clientLoading || loading) {
     return (
       <div className="container mx-auto p-6">
-        <div className="text-center">Laster...</div>
+        <div className="text-center">
+          {clientLoading ? "Laster klientinformasjon..." : "Laster kundereskontro..."}
+        </div>
+      </div>
+    );
+  }
+
+  if (!selectedClient) {
+    return (
+      <div className="container mx-auto p-6">
+        <div className="text-center text-muted-foreground">
+          Velg en klient fra menyen øverst for å se kundereskontro
+        </div>
       </div>
     );
   }
