@@ -24,7 +24,7 @@ interface TaskSummary {
 
 const OppgaverPage = () => {
   const params = useParams();
-  const clientId = params.id as string;
+  const clientId = params?.id as string;
 
   const [client, setClient] = useState<Client | null>(null);
   const [periodYear, setPeriodYear] = useState<number>(new Date().getFullYear());

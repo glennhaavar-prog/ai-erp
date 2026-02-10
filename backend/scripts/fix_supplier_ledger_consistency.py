@@ -101,6 +101,70 @@ async def find_missing_gl_lines(session: AsyncSession, client_id) -> list:
     return missing
 
 
+async def find_vendor_invoices_without_supplier_ledger(session: AsyncSession, client_id) -> list:
+    """
+    Find vendor_invoices that have GL postings but no supplier_ledger entries.
+    These need supplier_ledger entries created.
+    Returns list of (vendor_invoice, general_ledger) tuples.
+    """
+    from sqlalchemy import text
+    from app.models import VendorInvoice
+    
+    # Find vendor_invoices with GL entries but no supplier_ledger
+    result = await session.execute(
+        text("""
+            SELECT vi.id
+            FROM vendor_invoices vi
+            JOIN general_ledger gl ON vi.general_ledger_id = gl.id
+            LEFT JOIN supplier_ledger sl ON sl.voucher_id = gl.id
+            WHERE vi.client_id = :client_id
+              AND sl.id IS NULL
+        """),
+        {"client_id": str(client_id)}
+    )
+    vendor_invoice_ids = [row[0] for row in result.fetchall()]
+    
+    if not vendor_invoice_ids:
+        return []
+    
+    # Get full VendorInvoice and GeneralLedger objects
+    result = await session.execute(
+        select(VendorInvoice, GeneralLedger)
+        .join(GeneralLedger, VendorInvoice.general_ledger_id == GeneralLedger.id)
+        .where(VendorInvoice.id.in_(vendor_invoice_ids))
+    )
+    
+    return result.all()
+
+
+async def create_supplier_ledger_from_vendor_invoice(
+    session: AsyncSession,
+    vendor_invoice,
+    gl_entry: GeneralLedger
+):
+    """
+    Create a SupplierLedger entry from a VendorInvoice.
+    Assumes the invoice is fully unpaid.
+    """
+    from uuid import uuid4
+    
+    supplier_ledger = SupplierLedger(
+        id=uuid4(),
+        client_id=vendor_invoice.client_id,
+        supplier_id=vendor_invoice.vendor_id,
+        voucher_id=gl_entry.id,
+        invoice_number=vendor_invoice.invoice_number,
+        invoice_date=vendor_invoice.invoice_date,
+        due_date=vendor_invoice.due_date,
+        amount=vendor_invoice.total_amount,
+        remaining_amount=vendor_invoice.total_amount,  # Assume unpaid
+        currency=vendor_invoice.currency,
+        status='open'
+    )
+    session.add(supplier_ledger)
+    return supplier_ledger
+
+
 async def create_gl_lines_for_supplier_entry(
     session: AsyncSession,
     supplier_entry: SupplierLedger,
@@ -243,9 +307,50 @@ async def main():
         
         print(f"\n⚠️  INCONSISTENCY DETECTED: {abs(before_recon['difference']):,.2f} NOK")
         
-        # STEP 2: Find entries without GL lines
+        # STEP 2: Clean up orphaned GL entries
         print("\n" + "-"*70)
-        print("STEP 2: Find supplier entries without GL postings")
+        print("STEP 2: Clean up orphaned GL entries (no supplier_ledger)")
+        print("-"*70)
+        
+        orphaned_ids = await find_orphaned_gl_entries(session, client.id)
+        
+        if len(orphaned_ids) > 0:
+            print(f"\n⚠️  Found {len(orphaned_ids)} orphaned GL entries with account 2400")
+            print("   These have GL postings but no supplier_ledger entries")
+            print("   Deleting them...")
+            
+            from sqlalchemy import delete, text
+            
+            # Delete GL lines first (cascade should handle it, but be explicit)
+            result = await session.execute(
+                text("""
+                    DELETE FROM general_ledger_lines
+                    WHERE general_ledger_id = ANY(:gl_ids)
+                """),
+                {"gl_ids": orphaned_ids}
+            )
+            lines_deleted = result.rowcount
+            
+            # Delete GL entries
+            result = await session.execute(
+                text("""
+                    DELETE FROM general_ledger
+                    WHERE id = ANY(:gl_ids)
+                """),
+                {"gl_ids": orphaned_ids}
+            )
+            entries_deleted = result.rowcount
+            
+            await session.commit()
+            
+            print(f"   ✅ Deleted {entries_deleted} orphaned GL entries")
+            print(f"   ✅ Deleted {lines_deleted} orphaned GL lines")
+        else:
+            print("\n✅ No orphaned GL entries found")
+        
+        # STEP 3: Find supplier ledger entries without GL lines
+        print("\n" + "-"*70)
+        print("STEP 3: Find supplier entries without GL postings")
         print("-"*70)
         
         missing = await find_missing_gl_lines(session, client.id)
@@ -253,13 +358,21 @@ async def main():
         print(f"\n🔍 Found {len(missing)} supplier entries without GL lines")
         
         if len(missing) == 0:
-            print("\n❌ ERROR: No missing GL lines found, but inconsistency exists!")
-            print("   This might indicate a different type of data issue.")
-            return
+            print("\n✅ All supplier ledger entries have GL postings!")
+            # Still check reconciliation
+            after_recon = await check_reconciliation(session, client.id)
+            
+            if abs(after_recon['difference']) < 1:
+                print("\n✅ Reconciliation already correct!")
+                return
+            else:
+                print(f"\n⚠️  But reconciliation still off by {abs(after_recon['difference']):,.2f} NOK")
+                print("   Further investigation needed.")
+                return
         
-        # STEP 3: Create missing GL lines
+        # STEP 4: Create missing GL lines
         print("\n" + "-"*70)
-        print("STEP 3: Create missing GL lines")
+        print("STEP 4: Create missing GL lines for supplier entries")
         print("-"*70)
         
         lines_created = 0
@@ -300,9 +413,9 @@ async def main():
         print(f"   Total payment amount (reduced 2400): {total_payment_amount:,.2f} NOK")
         print(f"   Net effect on 2400 balance:          {total_amount_fixed:,.2f} NOK")
         
-        # STEP 4: Verify reconciliation AFTER fix
+        # STEP 5: Verify reconciliation AFTER fix
         print("\n" + "-"*70)
-        print("STEP 4: Verify reconciliation AFTER fix")
+        print("STEP 5: Verify reconciliation AFTER fix")
         print("-"*70)
         
         after_recon = await check_reconciliation(session, client.id)
