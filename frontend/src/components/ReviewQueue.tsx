@@ -12,8 +12,10 @@ import { ChatInterface } from './ChatInterface';
 import { PatternList } from './PatternList';
 import { reviewQueueApi } from '@/api/review-queue';
 import { toast } from '@/lib/toast';
+import { useClient } from '@/contexts/ClientContext';
 
 export const ReviewQueue: React.FC = () => {
+  const { selectedClient, isLoading: clientLoading } = useClient();
   const [items, setItems] = useState<ReviewItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -24,12 +26,18 @@ export const ReviewQueue: React.FC = () => {
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [activeTab, setActiveTab] = useState<'details' | 'chat' | 'patterns'>('details');
 
-  // Fetch items from API
+  // Fetch items from API when client is selected
   useEffect(() => {
+    if (!selectedClient?.id) {
+      setItems([]);
+      setLoading(false);
+      return;
+    }
+
     const fetchItems = async () => {
       try {
         setLoading(true);
-        const data = await reviewQueueApi.getReviewItems();
+        const data = await reviewQueueApi.getReviewItems({ client_id: selectedClient.id });
         setItems(data);
         if (data.length > 0 && !selectedItem) {
           setSelectedItem(data[0]);
@@ -44,7 +52,7 @@ export const ReviewQueue: React.FC = () => {
     };
 
     fetchItems();
-  }, []);
+  }, [selectedClient]);
 
   // Auto-select first item on load
   useEffect(() => {
@@ -79,9 +87,11 @@ export const ReviewQueue: React.FC = () => {
 
   // Polling for real-time updates
   useEffect(() => {
+    if (!selectedClient?.id) return;
+
     const interval = setInterval(async () => {
       try {
-        const data = await reviewQueueApi.getReviewItems();
+        const data = await reviewQueueApi.getReviewItems({ client_id: selectedClient.id });
         setItems(data);
       } catch (err) {
         console.error('Error polling review items:', err);
@@ -89,7 +99,7 @@ export const ReviewQueue: React.FC = () => {
     }, 30000); // Poll every 30 seconds
 
     return () => clearInterval(interval);
-  }, []);
+  }, [selectedClient]);
 
   const handleApprove = async (id: string) => {
     try {
@@ -157,6 +167,31 @@ export const ReviewQueue: React.FC = () => {
 
     setChatMessages(prev => [...prev, aiMessage]);
   };
+
+  // Show loading when client is loading
+  if (clientLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <p className="mt-2 text-muted-foreground">Laster klient...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show message when no client is selected
+  if (!selectedClient) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <p className="text-lg text-muted-foreground">
+            Velg en klient fra menyen øverst for å se behandlingskø
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

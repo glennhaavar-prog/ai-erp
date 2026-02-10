@@ -44,4 +44,5 @@ export interface ReviewQueueFilters {
   status?: ReviewStatus;
   priority?: Priority;
   search?: string;
+  client_id?: string;
 }
