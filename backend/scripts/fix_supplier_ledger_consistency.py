@@ -27,7 +27,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, and_
 from app.database import AsyncSessionLocal
 from app.models import (
-    Client, SupplierLedger, GeneralLedger, GeneralLedgerLine
+    Client, SupplierLedger, GeneralLedger, GeneralLedgerLine, VendorInvoice
 )
 
 
@@ -307,46 +307,27 @@ async def main():
         
         print(f"\n⚠️  INCONSISTENCY DETECTED: {abs(before_recon['difference']):,.2f} NOK")
         
-        # STEP 2: Clean up orphaned GL entries
+        # STEP 2: Create supplier_ledger entries for vendor_invoices without them
         print("\n" + "-"*70)
-        print("STEP 2: Clean up orphaned GL entries (no supplier_ledger)")
+        print("STEP 2: Create supplier_ledger for vendor_invoices")
         print("-"*70)
         
-        orphaned_ids = await find_orphaned_gl_entries(session, client.id)
+        missing_supplier_ledger = await find_vendor_invoices_without_supplier_ledger(session, client.id)
         
-        if len(orphaned_ids) > 0:
-            print(f"\n⚠️  Found {len(orphaned_ids)} orphaned GL entries with account 2400")
-            print("   These have GL postings but no supplier_ledger entries")
-            print("   Deleting them...")
+        if len(missing_supplier_ledger) > 0:
+            print(f"\n⚠️  Found {len(missing_supplier_ledger)} vendor_invoices without supplier_ledger")
+            print("   Creating supplier_ledger entries...")
             
-            from sqlalchemy import delete, text
-            
-            # Delete GL lines first (cascade should handle it, but be explicit)
-            result = await session.execute(
-                text("""
-                    DELETE FROM general_ledger_lines
-                    WHERE general_ledger_id = ANY(:gl_ids)
-                """),
-                {"gl_ids": orphaned_ids}
-            )
-            lines_deleted = result.rowcount
-            
-            # Delete GL entries
-            result = await session.execute(
-                text("""
-                    DELETE FROM general_ledger
-                    WHERE id = ANY(:gl_ids)
-                """),
-                {"gl_ids": orphaned_ids}
-            )
-            entries_deleted = result.rowcount
+            for vendor_invoice, gl_entry in missing_supplier_ledger:
+                supplier_ledger = await create_supplier_ledger_from_vendor_invoice(
+                    session, vendor_invoice, gl_entry
+                )
+                print(f"   ✅ Created supplier_ledger for invoice {vendor_invoice.invoice_number}")
             
             await session.commit()
-            
-            print(f"   ✅ Deleted {entries_deleted} orphaned GL entries")
-            print(f"   ✅ Deleted {lines_deleted} orphaned GL lines")
+            print(f"\n✅ Created {len(missing_supplier_ledger)} supplier_ledger entries")
         else:
-            print("\n✅ No orphaned GL entries found")
+            print("\n✅ All vendor_invoices have supplier_ledger entries")
         
         # STEP 3: Find supplier ledger entries without GL lines
         print("\n" + "-"*70)
