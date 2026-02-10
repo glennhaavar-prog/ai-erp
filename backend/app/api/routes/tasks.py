@@ -2,8 +2,8 @@
 Tasks API - Oppgaveadministrasjon endpoints
 """
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.orm import Session
-from sqlalchemy import and_, func
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, func
 from typing import List, Optional
 from uuid import UUID
 from datetime import datetime
@@ -23,19 +23,19 @@ router = APIRouter(prefix="/api/tasks", tags=["tasks"])
 
 
 @router.get("", response_model=TaskListResponse)
-def get_tasks(
+async def get_tasks(
     client_id: UUID = Query(..., description="Client ID"),
     period_year: int = Query(..., description="Period year"),
     period_month: Optional[int] = Query(None, description="Period month"),
     category: Optional[str] = Query(None, description="Filter by category"),
     status: Optional[str] = Query(None, description="Filter by status"),
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ):
     """
     Get tasks for a client and period
     """
     # Build query
-    query = db.query(Task).filter(
+    query = select(Task).filter(
         Task.client_id == client_id,
         Task.period_year == period_year
     )
@@ -50,13 +50,15 @@ def get_tasks(
         query = query.filter(Task.status == status)
     
     # Get tasks (parent tasks only - subtasks loaded via relationship)
-    tasks = query.filter(Task.parent_task_id == None).order_by(
+    query = query.filter(Task.parent_task_id.is_(None)).order_by(
         Task.sort_order.asc().nullslast(),
         Task.created_at.asc()
-    ).all()
+    )
+    result = await db.execute(query)
+    tasks = result.scalars().all()
     
     # Calculate stats
-    all_tasks_query = db.query(Task).filter(
+    all_tasks_query = select(Task).filter(
         Task.client_id == client_id,
         Task.period_year == period_year
     )
@@ -64,11 +66,41 @@ def get_tasks(
     if period_month is not None:
         all_tasks_query = all_tasks_query.filter(Task.period_month == period_month)
     
-    total = all_tasks_query.count()
-    completed = all_tasks_query.filter(Task.status == TaskStatus.COMPLETED).count()
-    in_progress = all_tasks_query.filter(Task.status == TaskStatus.IN_PROGRESS).count()
-    not_started = all_tasks_query.filter(Task.status == TaskStatus.NOT_STARTED).count()
-    deviations = all_tasks_query.filter(Task.status == TaskStatus.DEVIATION).count()
+    # Total count
+    total_result = await db.execute(select(func.count()).select_from(all_tasks_query.subquery()))
+    total = total_result.scalar() or 0
+    
+    # Completed count
+    completed_result = await db.execute(
+        select(func.count()).select_from(
+            all_tasks_query.filter(Task.status == TaskStatus.COMPLETED).subquery()
+        )
+    )
+    completed = completed_result.scalar() or 0
+    
+    # In progress count
+    in_progress_result = await db.execute(
+        select(func.count()).select_from(
+            all_tasks_query.filter(Task.status == TaskStatus.IN_PROGRESS).subquery()
+        )
+    )
+    in_progress = in_progress_result.scalar() or 0
+    
+    # Not started count
+    not_started_result = await db.execute(
+        select(func.count()).select_from(
+            all_tasks_query.filter(Task.status == TaskStatus.NOT_STARTED).subquery()
+        )
+    )
+    not_started = not_started_result.scalar() or 0
+    
+    # Deviations count
+    deviations_result = await db.execute(
+        select(func.count()).select_from(
+            all_tasks_query.filter(Task.status == TaskStatus.DEVIATION).subquery()
+        )
+    )
+    deviations = deviations_result.scalar() or 0
     
     return TaskListResponse(
         tasks=[TaskResponse.from_orm(t) for t in tasks],
@@ -81,16 +113,16 @@ def get_tasks(
 
 
 @router.post("", response_model=TaskResponse)
-def create_task(
+async def create_task(
     task: TaskCreate,
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ):
     """
     Create a new task
     """
     db_task = Task(**task.dict())
     db.add(db_task)
-    db.flush()
+    await db.flush()
     
     # Create audit log
     audit_log = TaskAuditLog(
@@ -101,21 +133,22 @@ def create_task(
     )
     db.add(audit_log)
     
-    db.commit()
-    db.refresh(db_task)
+    await db.commit()
+    await db.refresh(db_task)
     
     return TaskResponse.from_orm(db_task)
 
 
 @router.get("/{task_id}", response_model=TaskWithSubtasks)
-def get_task(
+async def get_task(
     task_id: UUID,
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ):
     """
     Get a single task with subtasks
     """
-    task = db.query(Task).filter(Task.id == task_id).first()
+    result = await db.execute(select(Task).filter(Task.id == task_id))
+    task = result.scalar_one_or_none()
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
     
@@ -123,15 +156,16 @@ def get_task(
 
 
 @router.patch("/{task_id}", response_model=TaskResponse)
-def update_task(
+async def update_task(
     task_id: UUID,
     task_update: TaskUpdate,
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ):
     """
     Update a task
     """
-    db_task = db.query(Task).filter(Task.id == task_id).first()
+    result = await db.execute(select(Task).filter(Task.id == task_id))
+    db_task = result.scalar_one_or_none()
     if not db_task:
         raise HTTPException(status_code=404, detail="Task not found")
     
@@ -142,22 +176,23 @@ def update_task(
     
     db_task.updated_at = datetime.utcnow()
     
-    db.commit()
-    db.refresh(db_task)
+    await db.commit()
+    await db.refresh(db_task)
     
     return TaskResponse.from_orm(db_task)
 
 
 @router.post("/{task_id}/complete", response_model=TaskResponse)
-def complete_task(
+async def complete_task(
     task_id: UUID,
     completion: TaskComplete,
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ):
     """
     Manually mark task as complete (checkbox)
     """
-    db_task = db.query(Task).filter(Task.id == task_id).first()
+    result = await db.execute(select(Task).filter(Task.id == task_id))
+    db_task = result.scalar_one_or_none()
     if not db_task:
         raise HTTPException(status_code=404, detail="Task not found")
     
@@ -181,22 +216,23 @@ def complete_task(
     )
     db.add(audit_log)
     
-    db.commit()
-    db.refresh(db_task)
+    await db.commit()
+    await db.refresh(db_task)
     
     return TaskResponse.from_orm(db_task)
 
 
 @router.post("/{task_id}/auto-complete", response_model=TaskResponse)
-def auto_complete_task(
+async def auto_complete_task(
     task_id: UUID,
     auto_completion: TaskAutoComplete,
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ):
     """
     AI auto-mark task as complete
     """
-    db_task = db.query(Task).filter(Task.id == task_id).first()
+    result = await db.execute(select(Task).filter(Task.id == task_id))
+    db_task = result.scalar_one_or_none()
     if not db_task:
         raise HTTPException(status_code=404, detail="Task not found")
     
@@ -225,75 +261,80 @@ def auto_complete_task(
     )
     db.add(audit_log)
     
-    db.commit()
-    db.refresh(db_task)
+    await db.commit()
+    await db.refresh(db_task)
     
     return TaskResponse.from_orm(db_task)
 
 
 @router.get("/{task_id}/audit-log", response_model=List[TaskAuditLogResponse])
-def get_task_audit_log(
+async def get_task_audit_log(
     task_id: UUID,
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ):
     """
     Get audit trail for a task
     """
     # Verify task exists
-    task = db.query(Task).filter(Task.id == task_id).first()
+    result = await db.execute(select(Task).filter(Task.id == task_id))
+    task = result.scalar_one_or_none()
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
     
     # Get audit logs
-    logs = db.query(TaskAuditLog).filter(
-        TaskAuditLog.task_id == task_id
-    ).order_by(TaskAuditLog.performed_at.desc()).all()
+    logs_result = await db.execute(
+        select(TaskAuditLog)
+        .filter(TaskAuditLog.task_id == task_id)
+        .order_by(TaskAuditLog.performed_at.desc())
+    )
+    logs = logs_result.scalars().all()
     
     return [TaskAuditLogResponse.from_orm(log) for log in logs]
 
 
 @router.delete("/{task_id}")
-def delete_task(
+async def delete_task(
     task_id: UUID,
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ):
     """
     Delete a task
     """
-    db_task = db.query(Task).filter(Task.id == task_id).first()
+    result = await db.execute(select(Task).filter(Task.id == task_id))
+    db_task = result.scalar_one_or_none()
     if not db_task:
         raise HTTPException(status_code=404, detail="Task not found")
     
-    db.delete(db_task)
-    db.commit()
+    await db.delete(db_task)
+    await db.commit()
     
     return {"message": "Task deleted successfully"}
 
 
 @router.get("/templates", response_model=List[TaskCreate])
-def get_task_templates(
+async def get_task_templates(
     client_id: UUID = Query(..., description="Client ID"),
     period_type: str = Query("monthly", description="Period type (monthly/quarterly/yearly)"),
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ):
     """
     Get AI-suggested task templates for a client
     """
     service = TaskTemplateService(db)
-    templates = service.generate_templates(client_id, period_type)
+    templates = await service.generate_templates(client_id, period_type)
     return templates
 
 
 @router.post("/templates/apply")
-def apply_task_template(
+async def apply_task_template(
     template_apply: TaskTemplateApply,
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ):
     """
     Apply task template to create tasks for a period
     """
     service = TaskTemplateService(db)
-    tasks = service.apply_template(
+    tasks = await service.apply_template(
         template_apply.client_id,
         template_apply.period_year,
         template_apply.period_month
