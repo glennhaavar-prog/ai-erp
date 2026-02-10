@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, ChevronRight, Menu, X } from 'lucide-react';
 import { getMenuForView, chatMenuItem, type MenuItem, type MenuCategory } from '@/config/menuConfig';
 import { useViewMode } from '@/contexts/ViewModeContext';
+import { useClient } from '@/contexts/ClientContext';
 import { getIcon } from '@/lib/iconMap';
 
 interface SidebarProps {
@@ -17,11 +18,27 @@ interface SidebarProps {
 export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
   const pathname = usePathname();
   const { viewMode } = useViewMode();
-  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set(['regnskap']));
+  const { selectedClient } = useClient();
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set(['innboks', 'regnskap']));
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
 
-  // Get filtered menu based on view mode
-  const filteredMenuConfig = getMenuForView(viewMode === 'client' ? 'client' : 'multi');
+  // Get filtered menu based on view mode and replace CURRENT_CLIENT with actual client_id
+  const filteredMenuConfig = useMemo(() => {
+    const menu = getMenuForView(viewMode === 'client' ? 'client' : 'multi');
+    
+    // Replace CURRENT_CLIENT placeholder with actual client ID
+    return menu.map(category => ({
+      ...category,
+      items: category.items.map(item => ({
+        ...item,
+        route: item.route?.replace('CURRENT_CLIENT', selectedClient?.id || ''),
+        children: item.children?.map(child => ({
+          ...child,
+          route: child.route?.replace('CURRENT_CLIENT', selectedClient?.id || ''),
+        })),
+      })),
+    }));
+  }, [viewMode, selectedClient]);
 
   const toggleCategory = (categoryId: string) => {
     const newExpanded = new Set(expandedCategories);

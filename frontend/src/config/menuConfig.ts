@@ -29,6 +29,33 @@ export interface MenuCategory {
 
 export const menuConfig: MenuCategory[] = [
   {
+    id: 'innboks',
+    label: 'INNBOKS',
+    items: [
+      {
+        id: 'leverandorfakturaer',
+        label: 'Leverandørfakturaer',
+        icon: 'fileText',
+        route: '/upload',
+        visibility: 'both',
+      },
+      {
+        id: 'banktransaksjoner',
+        label: 'Banktransaksjoner',
+        icon: 'building2',
+        route: '/bank',
+        visibility: 'both',
+      },
+      {
+        id: 'kundefakturaer',
+        label: 'Kundefakturaer',
+        icon: 'fileText',
+        route: '/customer-invoices',
+        visibility: 'both',
+      },
+    ],
+  },
+  {
     id: 'rapporter',
     label: 'RAPPORTER',
     items: [

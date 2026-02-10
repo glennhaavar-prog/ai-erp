@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useClient } from "@/contexts/ClientContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -49,10 +50,10 @@ const VOUCHER_TYPES: Record<string, string> = {
 };
 
 export default function VoucherJournalPage() {
+  const { selectedClient, isLoading: clientLoading } = useClient();
   const [entries, setEntries] = useState<VoucherEntry[]>([]);
   const [stats, setStats] = useState<VoucherStats | null>(null);
   const [loading, setLoading] = useState(true);
-  const [clientId, setClientId] = useState<string>("");
   
   // Filters
   const [voucherType, setVoucherType] = useState<string>("all");
@@ -61,16 +62,11 @@ export default function VoucherJournalPage() {
   const [dateTo, setDateTo] = useState("");
 
   useEffect(() => {
-    // Get client_id from URL or localStorage
-    const urlParams = new URLSearchParams(window.location.search);
-    const cid = urlParams.get("client_id") || localStorage.getItem("demo_client_id") || "";
-    setClientId(cid);
-    
-    if (cid) {
-      fetchData(cid);
-      fetchStats(cid);
+    if (selectedClient && selectedClient.id) {
+      fetchData(selectedClient.id);
+      fetchStats(selectedClient.id);
     }
-  }, [voucherType, searchTerm, dateFrom, dateTo]);
+  }, [selectedClient, voucherType, searchTerm, dateFrom, dateTo]);
 
   const fetchData = async (cid: string) => {
     try {
@@ -136,10 +132,22 @@ export default function VoucherJournalPage() {
     return <Badge variant="outline">{postedBy}</Badge>;
   };
 
-  if (loading) {
+  if (clientLoading || loading) {
     return (
       <div className="container mx-auto p-6">
-        <div className="text-center">Laster...</div>
+        <div className="text-center">
+          {clientLoading ? "Laster klientinformasjon..." : "Laster bilagsjournal..."}
+        </div>
+      </div>
+    );
+  }
+
+  if (!selectedClient) {
+    return (
+      <div className="container mx-auto p-6">
+        <div className="text-center text-muted-foreground">
+          Velg en klient fra menyen øverst for å se bilagsjournal
+        </div>
       </div>
     );
   }
