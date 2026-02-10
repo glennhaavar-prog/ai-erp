@@ -320,8 +320,10 @@ async def main():
             print("\n🎉 Database consistency restored:")
             print(f"   • Fixed {len(missing)} supplier entries")
             print(f"   • Created {lines_created} GL lines")
-            print(f"   • Total amount reconciled: {total_amount_fixed:,.2f} NOK")
-            print(f"   • Final difference: {abs(after_recon['difference']):.2f} NOK (< 1 NOK)")
+            print(f"   • Posted invoices to account 2400: {total_invoice_amount:,.2f} NOK")
+            print(f"   • Posted payments (reduced 2400):  {total_payment_amount:,.2f} NOK")
+            print(f"   • Net remaining balance in 2400:   {total_amount_fixed:,.2f} NOK")
+            print(f"   • Final reconciliation difference:  {abs(after_recon['difference']):.2f} NOK")
         else:
             print("⚠️  WARNING! Inconsistency still exists!")
             print("="*70)

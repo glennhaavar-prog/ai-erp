@@ -4,7 +4,7 @@ Enhanced with confidence scoring and corrections learning
 """
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
-from typing import List, Optional, Dict, Any
+from typing import List, Optional
 from datetime import datetime
 from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -14,7 +14,6 @@ from sqlalchemy.orm import selectinload
 from app.database import get_db
 from app.models.review_queue import ReviewQueue, ReviewStatus, ReviewPriority, IssueCategory
 from app.models.vendor_invoice import VendorInvoice
-from app.models.vendor import Vendor
 from app.services.confidence_scoring import calculate_invoice_confidence
 from app.services.corrections_learning import record_invoice_correction
 

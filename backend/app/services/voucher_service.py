@@ -9,7 +9,7 @@ SkatteFUNN-kritisk: Dette er kjernen i automatisk bokføring!
 """
 import logging
 from uuid import UUID, uuid4
-from typing import Dict, Any, List, Optional
+from typing import Dict, List, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 from sqlalchemy.orm import selectinload
@@ -24,10 +24,8 @@ from app.models.audit_trail import AuditTrail
 from app.models.document import Document
 from app.schemas.voucher import (
     VoucherLineCreate,
-    VoucherCreate,
     VoucherDTO,
-    VoucherDocumentDTO,
-    VoucherCreateRequest
+    VoucherDocumentDTO
 )
 
 logger = logging.getLogger(__name__)
