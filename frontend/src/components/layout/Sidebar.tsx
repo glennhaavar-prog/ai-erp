@@ -29,14 +29,22 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
     // Replace CURRENT_CLIENT placeholder with actual client ID
     return menu.map(category => ({
       ...category,
-      items: category.items.map(item => ({
-        ...item,
-        route: item.route?.replace('CURRENT_CLIENT', selectedClient?.id || ''),
-        children: item.children?.map(child => ({
-          ...child,
-          route: child.route?.replace('CURRENT_CLIENT', selectedClient?.id || ''),
-        })),
-      })),
+      items: category.items.map(item => {
+        const hasClientPlaceholder = item.route?.includes('CURRENT_CLIENT');
+        return {
+          ...item,
+          route: item.route?.replace('CURRENT_CLIENT', selectedClient?.id || ''),
+          disabled: item.disabled || (hasClientPlaceholder && !selectedClient),
+          children: item.children?.map(child => {
+            const childHasPlaceholder = child.route?.includes('CURRENT_CLIENT');
+            return {
+              ...child,
+              route: child.route?.replace('CURRENT_CLIENT', selectedClient?.id || ''),
+              disabled: child.disabled || (childHasPlaceholder && !selectedClient),
+            };
+          }),
+        };
+      }),
     }));
   }, [viewMode, selectedClient]);
 
