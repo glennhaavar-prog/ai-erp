@@ -12,7 +12,7 @@ from app.database import init_db, close_db
 from app.graphql.schema import schema
 from app.api.webhooks import ehf
 from app.api import chat
-from app.api.routes import review_queue, dashboard, reports, documents, accounts, audit, bank, customer_invoices, invoices, demo, chat_booking, saldobalanse, clients, accruals, copilot, nlq, period_close, bank_reconciliation, trust, income_statement, balance_sheet, journal_entries, auto_booking, tenants
+from app.api.routes import review_queue, dashboard, reports, documents, accounts, audit, bank, customer_invoices, invoices, demo, chat_booking, saldobalanse, clients, accruals, copilot, nlq, period_close, bank_reconciliation, trust, income_statement, balance_sheet, journal_entries, auto_booking, tenants, tasks, supplier_ledger, customer_ledger, voucher_journal
 from app.middleware.demo import DemoEnvironmentMiddleware
 
 # Setup logging
@@ -152,6 +152,18 @@ app.include_router(balance_sheet.router)
 
 # Auto-Booking API (Automated invoice processing and booking)
 app.include_router(auto_booking.router)
+
+# Tasks API (Oppgaveadministrasjon - Task Administration)
+app.include_router(tasks.router)
+
+# Supplier Ledger API (Leverandørreskontro - Accounts Payable Subledger)
+app.include_router(supplier_ledger.router)
+
+# Customer Ledger API (Kundereskontro - Accounts Receivable Subledger)
+app.include_router(customer_ledger.router)
+
+# Voucher Journal API (Bilagsjournal - Chronological transaction list)
+app.include_router(voucher_journal.router)
 
 
 # Health check endpoint

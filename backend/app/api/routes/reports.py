@@ -160,8 +160,11 @@ async def get_resultatregnskap(
     accounts = {acc.account_number: acc for acc in accounts_result.scalars().all()}
     
     # Skill inntekter (3000-3999) fra kostnader (4000-8999)
+    # Kategoriser kostnader: 4000=Varekjøp, 5000=Lønn, 6000=Andre driftskostnader
     inntekter = []
-    kostnader = []
+    varekjop = []  # 4000-4999
+    lonnkostnader = []  # 5000-5999
+    andre_driftskostnader = []  # 6000-8999
     
     for row in rows:
         account_number = row.account_number
@@ -185,11 +188,19 @@ async def get_resultatregnskap(
         
         if account_number.startswith("3"):
             inntekter.append(item)
-        else:
-            kostnader.append(item)
+        elif account_number.startswith("4"):
+            varekjop.append(item)
+        elif account_number.startswith("5"):
+            lonnkostnader.append(item)
+        elif account_number.startswith("6") or account_number.startswith("7") or account_number.startswith("8"):
+            andre_driftskostnader.append(item)
     
+    # Beregn summer
     sum_inntekter = sum(i["amount"] for i in inntekter)
-    sum_kostnader = sum(k["amount"] for k in kostnader)
+    sum_varekjop = sum(v["amount"] for v in varekjop)
+    sum_lonnkostnader = sum(l["amount"] for l in lonnkostnader)
+    sum_andre_driftskostnader = sum(a["amount"] for a in andre_driftskostnader)
+    sum_kostnader = sum_varekjop + sum_lonnkostnader + sum_andre_driftskostnader
     resultat = sum_inntekter - sum_kostnader
     
     return {
@@ -198,7 +209,20 @@ async def get_resultatregnskap(
         "to_date": to_date.isoformat() if to_date else None,
         "inntekter": inntekter,
         "sum_inntekter": sum_inntekter,
-        "kostnader": kostnader,
+        "kostnader": {
+            "varekjop": {
+                "items": varekjop,
+                "sum": sum_varekjop
+            },
+            "lonnkostnader": {
+                "items": lonnkostnader,
+                "sum": sum_lonnkostnader
+            },
+            "andre_driftskostnader": {
+                "items": andre_driftskostnader,
+                "sum": sum_andre_driftskostnader
+            }
+        },
         "sum_kostnader": sum_kostnader,
         "resultat": resultat
     }
@@ -214,6 +238,8 @@ async def get_balanse(
     Balanserapport - viser eiendeler (1000-1999) og gjeld/egenkapital (2000-2999).
     
     Balanse = øyeblikksbilde per dato (ikke periode).
+    
+    VIKTIG: Inkluderer automatisk udisponert overskudd (årets resultat) under egenkapital.
     """
     
     # Balanse = kontoer 1000-2999, alle posteringer fram til to_date
@@ -270,11 +296,72 @@ async def get_balanse(
             gjeld_egenkapital.append(item)
     
     sum_eiendeler = sum(e["balance"] for e in eiendeler)
-    sum_gjeld_egenkapital = sum(g["balance"] for g in gjeld_egenkapital)
+    sum_gjeld_egenkapital_raw = sum(g["balance"] for g in gjeld_egenkapital)
+    
+    # KRITISK FIX: Beregn udisponert overskudd (årets resultat)
+    # Resultatregnskap = kontoer 3000-8999 (inntekter - kostnader)
+    # Periode: ALLE posteringer frem til to_date (ikke bare inneværende år)
+    
+    resultat_query = (
+        select(
+            GeneralLedgerLine.account_number,
+            func.sum(GeneralLedgerLine.debit_amount).label("total_debit"),
+            func.sum(GeneralLedgerLine.credit_amount).label("total_credit")
+        )
+        .join(GeneralLedger, GeneralLedgerLine.general_ledger_id == GeneralLedger.id)
+        .where(GeneralLedger.client_id == client_id)
+        .where(GeneralLedger.status == "posted")
+        .where(GeneralLedgerLine.account_number >= "3000")
+        .where(GeneralLedgerLine.account_number <= "8999")
+    )
+    
+    if to_date:
+        resultat_query = resultat_query.where(GeneralLedger.accounting_date <= to_date)
+    
+    resultat_query = resultat_query.group_by(GeneralLedgerLine.account_number)
+    
+    resultat_result = await db.execute(resultat_query)
+    resultat_rows = resultat_result.all()
+    
+    # Beregn årets resultat
+    sum_inntekter = 0.0
+    sum_kostnader = 0.0
+    
+    for row in resultat_rows:
+        account_number = row.account_number
+        total_debit = float(row.total_debit or 0)
+        total_credit = float(row.total_credit or 0)
+        
+        if account_number.startswith("3"):
+            # Inntekter: kredit - debit
+            sum_inntekter += (total_credit - total_debit)
+        else:
+            # Kostnader: debit - kredit
+            sum_kostnader += (total_debit - total_credit)
+    
+    udisponert_overskudd = sum_inntekter - sum_kostnader
+    
+    # Legg til udisponert overskudd under egenkapital
+    # (negativ verdi siden det er kredit-side av balansen)
+    gjeld_egenkapital.append({
+        "account_number": "2999",  # Dummy kontonummer for udisponert overskudd
+        "account_name": "Udisponert overskudd",
+        "balance": -udisponert_overskudd  # Negativ fordi egenkapital er kredit
+    })
+    
+    # Oppdater sum
+    sum_gjeld_egenkapital = sum_gjeld_egenkapital_raw - udisponert_overskudd
     
     # Balansen skal balansere: Eiendeler = Gjeld + Egenkapital
-    # (men med omvendt fortegn siden gjeld/egenkapital er kredit-kontoer)
+    # (med omvendt fortegn siden gjeld/egenkapital er kredit-kontoer)
     is_balanced = abs(sum_eiendeler + sum_gjeld_egenkapital) < 0.01
+    
+    # VALIDERING: Hvis balansen IKKE balanserer, kast feil (dette skal være umulig!)
+    if not is_balanced:
+        raise HTTPException(
+            status_code=500,
+            detail=f"KRITISK FEIL: Balansen balanserer ikke! Eiendeler={sum_eiendeler:.2f}, Gjeld+EK={-sum_gjeld_egenkapital:.2f}, Differanse={sum_eiendeler + sum_gjeld_egenkapital:.2f}"
+        )
     
     return {
         "client_id": str(client_id),
@@ -283,6 +370,7 @@ async def get_balanse(
         "sum_eiendeler": sum_eiendeler,
         "gjeld_egenkapital": gjeld_egenkapital,
         "sum_gjeld_egenkapital": abs(sum_gjeld_egenkapital),  # Vis som positivt
+        "udisponert_overskudd": udisponert_overskudd,
         "is_balanced": is_balanced
     }
 
@@ -290,7 +378,9 @@ async def get_balanse(
 @router.get("/hovedbok")
 async def get_hovedbok(
     client_id: UUID = Query(..., description="Client UUID"),
-    account_number: Optional[str] = Query(None, description="Filtrer på kontonummer"),
+    account_number: Optional[str] = Query(None, description="Filtrer på enkeltkonto (deprecated, bruk account_from/account_to)"),
+    account_from: Optional[str] = Query(None, description="Kontoområde fra"),
+    account_to: Optional[str] = Query(None, description="Kontoområde til"),
     from_date: Optional[date] = Query(None, description="Fra-dato (inklusiv)"),
     to_date: Optional[date] = Query(None, description="Til-dato (inklusiv)"),
     limit: int = Query(1000, description="Max antall posteringer"),
@@ -301,6 +391,8 @@ async def get_hovedbok(
     Hovedbok - viser alle posteringer kronologisk, med filter på konto og periode.
     
     Dette er bokføringsspesifikasjonen (lovpålagt).
+    
+    NYTT: Støtter nå kontorange (account_from/account_to), f.eks. 6000-6999.
     """
     
     # Bygg query
@@ -322,8 +414,16 @@ async def get_hovedbok(
         .where(GeneralLedger.status == "posted")
     )
     
+    # FIX: Støtte for kontorange (account_from/account_to)
     if account_number:
+        # Backward compatibility - single account
         query = query.where(GeneralLedgerLine.account_number == account_number)
+    else:
+        # New range support
+        if account_from:
+            query = query.where(GeneralLedgerLine.account_number >= account_from)
+        if account_to:
+            query = query.where(GeneralLedgerLine.account_number <= account_to)
     
     if from_date:
         query = query.where(GeneralLedger.accounting_date >= from_date)
@@ -395,6 +495,8 @@ async def get_hovedbok(
     return {
         "client_id": str(client_id),
         "account_number": account_number,
+        "account_from": account_from,
+        "account_to": account_to,
         "from_date": from_date.isoformat() if from_date else None,
         "to_date": to_date.isoformat() if to_date else None,
         "opening_balance": opening_balance,

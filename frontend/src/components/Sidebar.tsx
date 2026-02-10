@@ -149,6 +149,13 @@ export const Sidebar = () => {
           ],
         },
         {
+          id: 'oppgaver',
+          label: 'Oppgaver',
+          icon: '✅',
+          path: '/clients/CURRENT_CLIENT/oppgaver',
+          enabled: true,
+        },
+        {
           id: 'periodisering',
           label: 'Periodisering',
           icon: '📅',

@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import DateQuickPicker from "@/components/DateQuickPicker";
 
 interface HovedbokEntry {
   entry_id: string;
@@ -29,7 +30,7 @@ interface HovedbokResponse {
   offset: number;
 }
 
-export default function HovedbokPage() {
+function HovedbokPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [data, setData] = useState<HovedbokResponse | null>(null);
@@ -38,6 +39,8 @@ export default function HovedbokPage() {
 
   const [clientId] = useState("8f6d593d-cb4e-42eb-a51c-a7b1dab660dc");
   const [accountNumber, setAccountNumber] = useState<string>(searchParams?.get("account_number") || "");
+  const [accountFrom, setAccountFrom] = useState<string>("");
+  const [accountTo, setAccountTo] = useState<string>("");
   const [fromDate, setFromDate] = useState<string>("");
   const [toDate, setToDate] = useState<string>("");
 
@@ -47,7 +50,13 @@ export default function HovedbokPage() {
 
     try {
       const params = new URLSearchParams({ client_id: clientId });
-      if (accountNumber) params.append("account_number", accountNumber);
+      // Support both single account (backward compat) and range
+      if (accountNumber) {
+        params.append("account_number", accountNumber);
+      } else {
+        if (accountFrom) params.append("account_from", accountFrom);
+        if (accountTo) params.append("account_to", accountTo);
+      }
       if (fromDate) params.append("from_date", fromDate);
       if (toDate) params.append("to_date", toDate);
       params.append("limit", "100");
@@ -67,6 +76,31 @@ export default function HovedbokPage() {
   useEffect(() => {
     fetchHovedbok();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleQuickDateChange = (from: string, to: string) => {
+    setFromDate(from);
+    setToDate(to);
+    // Auto-fetch after setting dates
+    setTimeout(() => {
+      const params = new URLSearchParams({ client_id: clientId });
+      if (accountNumber) {
+        params.append("account_number", accountNumber);
+      } else {
+        if (accountFrom) params.append("account_from", accountFrom);
+        if (accountTo) params.append("account_to", accountTo);
+      }
+      if (from) params.append("from_date", from);
+      if (to) params.append("to_date", to);
+      params.append("limit", "100");
+      
+      setLoading(true);
+      fetch(`http://localhost:8000/api/reports/hovedbok?${params}`)
+        .then((response) => response.json())
+        .then((result) => setData(result))
+        .catch((err) => setError(err instanceof Error ? err.message : "Unknown error"))
+        .finally(() => setLoading(false));
+    }, 50);
+  };
 
   const formatAmount = (amount: number) => {
     return new Intl.NumberFormat("nb-NO", {
@@ -117,18 +151,36 @@ export default function HovedbokPage() {
         </p>
       </div>
 
-      {/* Filters */}
+      {/* Filters - FIX: Kontorange (fra/til) */}
       <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              Kontonummer
+              Fra kontonummer
             </label>
             <input
               type="text"
-              value={accountNumber}
-              onChange={(e) => setAccountNumber(e.target.value)}
-              placeholder="f.eks. 6420"
+              value={accountFrom}
+              onChange={(e) => {
+                setAccountFrom(e.target.value);
+                setAccountNumber(""); // Clear single account if using range
+              }}
+              placeholder="f.eks. 6000"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Til kontonummer
+            </label>
+            <input
+              type="text"
+              value={accountTo}
+              onChange={(e) => {
+                setAccountTo(e.target.value);
+                setAccountNumber(""); // Clear single account if using range
+              }}
+              placeholder="f.eks. 6999"
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
             />
           </div>
@@ -155,6 +207,15 @@ export default function HovedbokPage() {
             />
           </div>
         </div>
+
+        {/* Quick date picker */}
+        <div className="mt-4">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Hurtigvalg
+          </label>
+          <DateQuickPicker onDateChange={handleQuickDateChange} />
+        </div>
+
         <div className="mt-4 flex gap-2">
           <button
             onClick={fetchHovedbok}
@@ -166,6 +227,8 @@ export default function HovedbokPage() {
           <button
             onClick={() => {
               setAccountNumber("");
+              setAccountFrom("");
+              setAccountTo("");
               setFromDate("");
               setToDate("");
             }}
@@ -255,10 +318,11 @@ export default function HovedbokPage() {
                     <td className="px-4 py-3 text-sm text-gray-900 dark:text-white whitespace-nowrap">
                       {formatDate(entry.accounting_date)}
                     </td>
-                    <td className="px-4 py-3 text-sm font-mono text-blue-600 dark:text-blue-400 hover:underline cursor-pointer">
+                    <td className="px-4 py-3">
+                      {/* TASK 11 FIX: Større, tydeligere bilagsnummer (Glenn feedback 6:20-6:50) */}
                       <button
                         onClick={() => router.push(`/bilag/${entry.entry_id}`)}
-                        className="hover:underline"
+                        className="text-base font-mono font-semibold text-blue-700 dark:text-blue-300 hover:text-blue-900 dark:hover:text-blue-100 hover:underline cursor-pointer transition-colors"
                       >
                         {entry.voucher_number}
                       </button>
@@ -295,5 +359,20 @@ export default function HovedbokPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function HovedbokPage() {
+  return (
+    <Suspense fallback={
+      <div className="p-6">
+        <div className="animate-pulse space-y-4">
+          <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/4"></div>
+          <div className="h-64 bg-gray-200 dark:bg-gray-700 rounded"></div>
+        </div>
+      </div>
+    }>
+      <HovedbokPageContent />
+    </Suspense>
   );
 }

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import DateQuickPicker from "@/components/DateQuickPicker";
 
 interface Balance {
   account_number: string;
@@ -68,6 +69,26 @@ export default function SaldobalansePage() {
   useEffect(() => {
     fetchSaldobalanse();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleQuickDateChange = (from: string, to: string) => {
+    setFromDate(from);
+    setToDate(to);
+    // Auto-fetch after setting dates
+    setTimeout(() => {
+      const params = new URLSearchParams({ client_id: clientId });
+      if (from) params.append("from_date", from);
+      if (to) params.append("to_date", to);
+      if (accountFrom) params.append("account_from", accountFrom);
+      if (accountTo) params.append("account_to", accountTo);
+      
+      setLoading(true);
+      fetch(`http://localhost:8000/api/reports/saldobalanse?${params}`)
+        .then((response) => response.json())
+        .then((result) => setData(result))
+        .catch((err) => setError(err instanceof Error ? err.message : "Unknown error"))
+        .finally(() => setLoading(false));
+    }, 50);
+  };
 
   const formatAmount = (amount: number) => {
     return new Intl.NumberFormat("nb-NO", {
@@ -175,6 +196,15 @@ export default function SaldobalansePage() {
             />
           </div>
         </div>
+
+        {/* Quick date picker */}
+        <div className="mt-4">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Hurtigvalg
+          </label>
+          <DateQuickPicker onDateChange={handleQuickDateChange} />
+        </div>
+
         <div className="mt-4 flex gap-2">
           <button
             onClick={fetchSaldobalanse}
@@ -197,7 +227,7 @@ export default function SaldobalansePage() {
         </div>
       </div>
 
-      {/* Table */}
+      {/* Table - FIX: Kun saldo (ikke debet/kredit) + Tall klikkbart (ikke kontonavn) */}
       <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -210,12 +240,6 @@ export default function SaldobalansePage() {
                   Kontonavn
                 </th>
                 <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Debet
-                </th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Kredit
-                </th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   Saldo
                 </th>
               </tr>
@@ -226,31 +250,24 @@ export default function SaldobalansePage() {
                   key={balance.account_number}
                   className="hover:bg-gray-50 dark:hover:bg-gray-900/50"
                 >
-                  <td className="px-4 py-3 text-sm font-mono text-blue-600 dark:text-blue-400 hover:underline cursor-pointer">
-                    <button
-                      onClick={() => router.push(`/rapporter/hovedbok?account_number=${balance.account_number}`)}
-                      className="hover:underline"
-                    >
-                      {balance.account_number}
-                    </button>
+                  <td className="px-4 py-3 text-sm font-mono text-gray-600 dark:text-gray-400">
+                    {balance.account_number}
                   </td>
                   <td className="px-4 py-3 text-sm text-gray-900 dark:text-white">
                     {balance.account_name}
                   </td>
-                  <td className="px-4 py-3 text-sm text-right font-mono text-gray-900 dark:text-white">
-                    {formatAmount(balance.total_debit)}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-right font-mono text-gray-900 dark:text-white">
-                    {formatAmount(balance.total_credit)}
-                  </td>
-                  <td
-                    className={`px-4 py-3 text-sm text-right font-mono font-medium ${
-                      balance.balance >= 0
-                        ? "text-gray-900 dark:text-white"
-                        : "text-red-600 dark:text-red-400"
-                    }`}
-                  >
-                    {formatAmount(balance.balance)}
+                  <td className="px-4 py-3 text-sm text-right font-mono font-medium">
+                    {/* FIX: Saldo-tallet er klikkbart (ikke kontonavn) */}
+                    <button
+                      onClick={() => router.push(`/rapporter/hovedbok?account_number=${balance.account_number}`)}
+                      className={`hover:underline cursor-pointer ${
+                        balance.balance >= 0
+                          ? "text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
+                          : "text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300"
+                      }`}
+                    >
+                      {formatAmount(balance.balance)}
+                    </button>
                   </td>
                 </tr>
               ))}
@@ -258,12 +275,6 @@ export default function SaldobalansePage() {
               <tr className="bg-gray-50 dark:bg-gray-900 font-bold">
                 <td colSpan={2} className="px-4 py-3 text-sm text-gray-900 dark:text-white">
                   SUM
-                </td>
-                <td className="px-4 py-3 text-sm text-right font-mono text-gray-900 dark:text-white">
-                  {formatAmount(data.total_debit)}
-                </td>
-                <td className="px-4 py-3 text-sm text-right font-mono text-gray-900 dark:text-white">
-                  {formatAmount(data.total_credit)}
                 </td>
                 <td className="px-4 py-3 text-sm text-right font-mono text-gray-900 dark:text-white">
                   {formatAmount(data.total_debit - data.total_credit)}
@@ -278,8 +289,7 @@ export default function SaldobalansePage() {
       <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
         <p className="text-sm text-blue-800 dark:text-blue-200">
           <strong>Saldobalanse:</strong> Viser saldo per konto for valgt periode. 
-          Total debet skal alltid være lik total kredit. 
-          Klikk på en konto for å se hovedbok.
+          Klikk på et saldo-tall for å se hovedbok-detaljer for den kontoen.
         </p>
       </div>
     </div>

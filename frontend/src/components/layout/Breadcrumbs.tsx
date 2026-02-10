@@ -66,6 +66,22 @@ export default function Breadcrumbs() {
       });
     }
     
+    // TASK 11 FIX: Special handling for /bilag/[id] routes (Glenn's feedback 6:20-6:50)
+    // Format: Hovedbok > Bilag #12345
+    const bilagMatch = pathname.match(/^\/bilag\/([a-f0-9-]+)$/);
+    if (bilagMatch) {
+      crumbs.push({
+        label: 'Hovedbok',
+        href: '/rapporter/hovedbok'
+      });
+      // Voucher ID will be replaced with voucher_number in the component below
+      crumbs.push({
+        label: `Bilag #...`, // Placeholder, will be updated by fetching voucher data
+        href: pathname
+      });
+      return crumbs;
+    }
+    
     // Try to find menu item for current route (with null check)
     const menuItem = pathname ? findMenuItemByRoute(pathname) : null;
     

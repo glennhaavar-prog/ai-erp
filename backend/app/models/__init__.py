@@ -27,6 +27,10 @@ from app.models.accrual import Accrual
 from app.models.accrual_posting import AccrualPosting
 from app.models.tax_code import TaxCode
 from app.models.auto_booking_stats import AutoBookingStats
+from app.models.task import Task
+from app.models.task_audit_log import TaskAuditLog
+from app.models.supplier_ledger import SupplierLedger, SupplierLedgerTransaction
+from app.models.customer_ledger import CustomerLedger, CustomerLedgerTransaction
 
 __all__ = [
     "Tenant",
@@ -56,4 +60,10 @@ __all__ = [
     "AccrualPosting",
     "TaxCode",
     "AutoBookingStats",
+    "Task",
+    "TaskAuditLog",
+    "SupplierLedger",
+    "SupplierLedgerTransaction",
+    "CustomerLedger",
+    "CustomerLedgerTransaction",
 ]

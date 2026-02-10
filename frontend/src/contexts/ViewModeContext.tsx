@@ -8,6 +8,7 @@ export type TaskFilter = 'all' | 'bilag' | 'bank' | 'avstemming';
 interface ViewModeContextType {
   viewMode: ViewMode;
   setViewMode: (mode: ViewMode) => void;
+  toggleViewMode: () => void;
   taskFilter: TaskFilter;
   setTaskFilter: (filter: TaskFilter) => void;
   selectedClientId: string | null;
@@ -24,11 +25,16 @@ export function ViewModeProvider({ children }: { children: ReactNode }) {
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
   const [selectedItem, setSelectedItem] = useState<any | null>(null);
 
+  const toggleViewMode = () => {
+    setViewMode(prev => prev === 'multi-client' ? 'client' : 'multi-client');
+  };
+
   return (
     <ViewModeContext.Provider
       value={{
         viewMode,
         setViewMode,
+        toggleViewMode,
         taskFilter,
         setTaskFilter,
         selectedClientId,

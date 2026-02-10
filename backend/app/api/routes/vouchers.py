@@ -20,6 +20,7 @@ from app.database import get_db
 from app.models.general_ledger import GeneralLedger, GeneralLedgerLine
 from app.models.document import Document
 from app.models.chart_of_accounts import Account
+from app.models.audit_trail import AuditTrail
 from app.services.voucher_service import (
     VoucherGenerator,
     VoucherValidationError,
@@ -241,3 +242,87 @@ async def get_voucher_by_number(
     
     # Reuse get_voucher_by_id logic
     return await get_voucher_by_id(db, entry.id, client_id)
+
+
+@router.get("/{voucher_id}/audit-trail")
+async def get_voucher_audit_trail(
+    voucher_id: UUID,
+    client_id: UUID = Query(..., description="Client ID for security"),
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Get audit trail for a voucher
+    
+    Returns all changes made to this voucher:
+    - Who created it (AI or user)
+    - When it was created
+    - Any modifications (if editable vouchers are implemented)
+    
+    Example:
+    ```
+    GET /api/vouchers/550e8400-e29b-41d4-a716-446655440000/audit-trail?client_id=123e4567...
+    ```
+    
+    Returns:
+    ```
+    {
+      "voucher_id": "...",
+      "entries": [
+        {
+          "id": "...",
+          "action": "create",
+          "changed_by_type": "ai_agent",
+          "changed_by_name": "AI Bokfører",
+          "timestamp": "2026-02-09T20:15:00Z",
+          "reason": "Automatic booking from vendor invoice"
+        }
+      ]
+    }
+    ```
+    """
+    try:
+        # Verify voucher exists and belongs to client
+        voucher_query = select(GeneralLedger).where(
+            GeneralLedger.id == voucher_id,
+            GeneralLedger.client_id == client_id
+        )
+        result = await db.execute(voucher_query)
+        voucher = result.scalar_one_or_none()
+        
+        if not voucher:
+            raise HTTPException(status_code=404, detail="Voucher not found")
+        
+        # Get audit trail entries for this voucher
+        audit_query = (
+            select(AuditTrail)
+            .where(AuditTrail.table_name == "general_ledger")
+            .where(AuditTrail.record_id == voucher_id)
+            .order_by(AuditTrail.timestamp.desc())
+        )
+        
+        audit_result = await db.execute(audit_query)
+        entries = audit_result.scalars().all()
+        
+        return {
+            "voucher_id": str(voucher_id),
+            "voucher_number": voucher.voucher_number,
+            "entries": [
+                {
+                    "id": str(entry.id),
+                    "action": entry.action,
+                    "changed_by_type": entry.changed_by_type,
+                    "changed_by_name": entry.changed_by_name or entry.changed_by_type,
+                    "timestamp": entry.timestamp.isoformat(),
+                    "reason": entry.reason,
+                    "old_value": entry.old_value,
+                    "new_value": entry.new_value
+                }
+                for entry in entries
+            ]
+        }
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error fetching audit trail: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))

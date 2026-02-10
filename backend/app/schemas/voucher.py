@@ -84,6 +84,12 @@ class VoucherCreate(BaseModel):
         from_attributes = True
 
 
+class VoucherDocumentDTO(BaseModel):
+    """Document attached to voucher"""
+    url: str
+    type: Optional[str] = None
+
+
 class VoucherDTO(BaseModel):
     """Voucher response DTO"""
     id: str
@@ -101,6 +107,7 @@ class VoucherDTO(BaseModel):
     total_credit: Decimal
     is_balanced: bool
     lines: List[VoucherLineCreate]
+    document: Optional[VoucherDocumentDTO] = None
     created_at: datetime
     
     class Config:

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
+import PDFViewer from "@/components/PDFViewer";
 
 interface VoucherLine {
   line_number: number;
@@ -12,6 +13,15 @@ interface VoucherLine {
   credit_amount: number;
   vat_code: string | null;
   vat_amount: number | null;
+}
+
+interface AuditEntry {
+  id: string;
+  action: string;
+  changed_by_type: string;
+  changed_by_name: string;
+  timestamp: string;
+  reason: string | null;
 }
 
 interface Voucher {
@@ -41,20 +51,41 @@ export default function BilagPage() {
   const voucherId = params?.id as string;
 
   const [voucher, setVoucher] = useState<Voucher | null>(null);
+  const [auditTrail, setAuditTrail] = useState<AuditEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchVoucher = async () => {
+    const fetchData = async () => {
       try {
-        const response = await fetch(`http://localhost:8000/api/vouchers/${voucherId}`);
+        const clientId = "8f6d593d-cb4e-42eb-a51c-a7b1dab660dc"; // Demo client
         
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+        // Fetch voucher details
+        const voucherResponse = await fetch(
+          `http://localhost:8000/api/vouchers/${voucherId}?client_id=${clientId}`
+        );
+        
+        if (!voucherResponse.ok) {
+          throw new Error(`HTTP error! status: ${voucherResponse.status}`);
         }
 
-        const data = await response.json();
-        setVoucher(data);
+        const voucherData = await voucherResponse.json();
+        setVoucher(voucherData);
+        
+        // Fetch audit trail
+        try {
+          const auditResponse = await fetch(
+            `http://localhost:8000/api/vouchers/${voucherId}/audit-trail?client_id=${clientId}`
+          );
+          
+          if (auditResponse.ok) {
+            const auditData = await auditResponse.json();
+            setAuditTrail(auditData.entries || []);
+          }
+        } catch (auditErr) {
+          console.warn("Could not fetch audit trail:", auditErr);
+          // Non-critical, continue
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : "Unknown error");
       } finally {
@@ -63,7 +94,7 @@ export default function BilagPage() {
     };
 
     if (voucherId) {
-      fetchVoucher();
+      fetchData();
     }
   }, [voucherId]);
 
@@ -186,27 +217,11 @@ export default function BilagPage() {
             </div>
           </div>
 
-          {/* Document viewer placeholder */}
-          {voucher.document ? (
-            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                Dokumentvisning
-              </h2>
-              <div className="aspect-[3/4] bg-gray-100 dark:bg-gray-900 rounded flex items-center justify-center">
-                <div className="text-center text-gray-500 dark:text-gray-400">
-                  <svg className="w-16 h-16 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                  <p className="text-sm">PDF/Dokumentvisning</p>
-                  <p className="text-xs mt-1">{voucher.document.type}</p>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-8 text-center">
-              <p className="text-gray-500 dark:text-gray-400">Ingen dokument vedlagt</p>
-            </div>
-          )}
+          {/* Document viewer */}
+          <PDFViewer 
+            documentUrl={voucher.document?.url || null}
+            documentType={voucher.document?.type}
+          />
         </div>
 
         {/* Right side: Accounting lines */}
@@ -307,6 +322,56 @@ export default function BilagPage() {
               </div>
             </div>
           </div>
+
+          {/* Audit Trail */}
+          {auditTrail.length > 0 && (
+            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+              <div className="px-4 py-3 bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  📋 Revisjonslogg
+                </h2>
+              </div>
+              <div className="p-4 space-y-3">
+                {auditTrail.map((entry) => (
+                  <div
+                    key={entry.id}
+                    className="border-l-4 border-blue-500 bg-blue-50 dark:bg-blue-900/20 pl-4 py-2 rounded-r"
+                  >
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-semibold text-blue-800 dark:text-blue-300">
+                            {entry.action === "create" ? "Opprettet" : "Endret"}
+                          </span>
+                          <span className="text-sm text-gray-600 dark:text-gray-400">
+                            av {entry.changed_by_name}
+                          </span>
+                          {entry.changed_by_type === "ai_agent" && (
+                            <span className="text-xs px-2 py-0.5 bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300 rounded-full">
+                              AI
+                            </span>
+                          )}
+                        </div>
+                        {entry.reason && (
+                          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                            {entry.reason}
+                          </p>
+                        )}
+                      </div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400 text-right ml-4">
+                        {formatDate(entry.timestamp)}
+                        <br />
+                        {new Date(entry.timestamp).toLocaleTimeString("nb-NO", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

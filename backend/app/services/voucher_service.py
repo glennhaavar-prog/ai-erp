@@ -19,10 +19,13 @@ from app.models.general_ledger import GeneralLedger, GeneralLedgerLine
 from app.models.vendor_invoice import VendorInvoice
 from app.models.vendor import Vendor
 from app.models.chart_of_accounts import Account
+from app.models.audit_trail import AuditTrail
+from app.models.document import Document
 from app.schemas.voucher import (
     VoucherLineCreate,
     VoucherCreate,
     VoucherDTO,
+    VoucherDocumentDTO,
     VoucherCreateRequest
 )
 
@@ -188,6 +191,27 @@ class VoucherGenerator:
             invoice.general_ledger_id = voucher.id
             invoice.booked_at = datetime.utcnow()
             invoice.review_status = 'approved'
+            
+            # 11.5. Log audit trail (compliance!)
+            audit_entry = AuditTrail(
+                id=uuid4(),
+                client_id=tenant_id,
+                table_name="general_ledger",
+                record_id=voucher.id,
+                action="create",
+                changed_by_type="ai_agent" if not user_id else "user",
+                changed_by_id=self._parse_uuid(user_id) if user_id else None,
+                changed_by_name="AI Bokfører" if not user_id else user_id,
+                reason=f"Automatic booking from vendor invoice {invoice.invoice_number}",
+                new_value={
+                    "voucher_number": voucher_number,
+                    "invoice_number": invoice.invoice_number,
+                    "amount": float(invoice.total_amount),
+                    "vendor": vendor.name if vendor else "Unknown",
+                    "lines_count": len(lines)
+                }
+            )
+            self.db.add(audit_entry)
             
             # 12. Commit transaction (ACID compliance!)
             await self.db.commit()
@@ -515,6 +539,23 @@ async def get_voucher_by_id(db: AsyncSession, voucher_id: UUID, client_id: UUID)
     total_debit = sum(line.debit_amount for line in lines)
     total_credit = sum(line.credit_amount for line in lines)
     
+    # Fetch document if source is vendor_invoice
+    document_url = None
+    document_type = None
+    if voucher.source_type == "vendor_invoice" and voucher.source_id:
+        invoice_query = select(VendorInvoice).where(VendorInvoice.id == voucher.source_id)
+        invoice_result = await db.execute(invoice_query)
+        invoice = invoice_result.scalar_one_or_none()
+        
+        if invoice and invoice.document_id:
+            doc_query = select(Document).where(Document.id == invoice.document_id)
+            doc_result = await db.execute(doc_query)
+            document = doc_result.scalar_one_or_none()
+            
+            if document:
+                document_url = document.s3_url or document.file_path
+                document_type = document.mime_type
+    
     return VoucherDTO(
         id=str(voucher.id),
         client_id=str(voucher.client_id),
@@ -530,6 +571,7 @@ async def get_voucher_by_id(db: AsyncSession, voucher_id: UUID, client_id: UUID)
         total_debit=total_debit,
         total_credit=total_credit,
         is_balanced=abs(total_debit - total_credit) < Decimal("0.01"),
+        document=VoucherDocumentDTO(url=document_url, type=document_type) if document_url else None,
         lines=[
             VoucherLineCreate(
                 line_number=line.line_number,

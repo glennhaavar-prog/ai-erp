@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Search, ChevronDown, LayoutGrid, Building2 } from 'lucide-react';
 import { useViewMode } from '@/contexts/ViewModeContext';
 
@@ -12,6 +13,7 @@ const MOCK_CLIENTS = [
 ];
 
 export default function Topbar() {
+  const router = useRouter();
   const { viewMode, toggleViewMode } = useViewMode();
   const [selectedClient, setSelectedClient] = useState(MOCK_CLIENTS[0]);
   const [clientDropdownOpen, setClientDropdownOpen] = useState(false);
@@ -37,30 +39,40 @@ export default function Topbar() {
               <ChevronDown className="w-4 h-4 text-muted-foreground" />
             </button>
 
+            {/* Backdrop overlay */}
+            {clientDropdownOpen && (
+              <div 
+                className="fixed inset-0 bg-black/50 z-40"
+                onClick={() => setClientDropdownOpen(false)}
+              />
+            )}
+
             {/* Dropdown */}
             {clientDropdownOpen && (
-              <div className="absolute top-full left-0 mt-2 w-72 bg-card border border-border rounded-lg shadow-lg z-50">
-                <div className="p-2 border-b border-border">
-                  <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 py-1">
+              <div className="absolute top-full left-0 mt-2 w-80 bg-gray-900 border border-gray-700 rounded-lg shadow-2xl z-50">
+                <div className="p-3 border-b border-gray-700 bg-gray-800">
+                  <div className="text-sm font-semibold text-gray-300 uppercase tracking-wider px-2">
                     Bytt klient
                   </div>
                 </div>
-                <div className="max-h-64 overflow-y-auto p-2">
+                <div className="max-h-96 overflow-y-auto p-2">
                   {MOCK_CLIENTS.map(client => (
                     <button
                       key={client.id}
                       onClick={() => {
                         setSelectedClient(client);
                         setClientDropdownOpen(false);
+                        // KRITISK FIX: Navigate to client-specific dashboard
+                        router.push(`/clients/${client.id}`);
                       }}
                       className={`
-                        w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors cursor-pointer
+                        w-full flex items-center gap-3 px-4 py-3 rounded-lg text-base transition-colors cursor-pointer
                         ${selectedClient.id === client.id 
-                          ? 'bg-primary/10 text-primary' 
-                          : 'hover:bg-muted/50 text-foreground'}
+                          ? 'bg-primary text-white font-semibold' 
+                          : 'hover:bg-gray-800 text-white'}
                       `}
                     >
-                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-medium text-xs">
+                      <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-semibold text-sm border-2 border-primary/30">
                         {client.name.substring(0, 2).toUpperCase()}
                       </div>
                       <span className="flex-1 text-left">{client.name}</span>
