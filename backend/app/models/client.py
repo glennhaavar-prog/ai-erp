@@ -90,6 +90,7 @@ class Client(Base):
     vendor_invoices = relationship("VendorInvoice", back_populates="client")
     customer_invoices = relationship("CustomerInvoice", back_populates="client", cascade="all, delete-orphan")
     bank_transactions = relationship("BankTransaction", back_populates="client", cascade="all, delete-orphan")
+    bank_connections = relationship("BankConnection", back_populates="client", cascade="all, delete-orphan")
     general_ledger_entries = relationship("GeneralLedger", back_populates="client")
     voucher_series = relationship("VoucherSeries", back_populates="client", cascade="all, delete-orphan")
     fiscal_years = relationship("FiscalYear", back_populates="client", cascade="all, delete-orphan")

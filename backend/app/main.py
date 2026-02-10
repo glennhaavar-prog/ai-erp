@@ -165,6 +165,10 @@ app.include_router(customer_ledger.router)
 # Voucher Journal API (Bilagsjournal - Chronological transaction list)
 app.include_router(voucher_journal.router)
 
+# DNB Open Banking API (Automatic transaction import)
+from app.api.routes import dnb
+app.include_router(dnb.router)
+
 
 # Health check endpoint
 @app.get("/health")

@@ -66,6 +66,13 @@ class Settings(BaseSettings):
     # Logging
     LOG_LEVEL: str = "INFO"
     
+    # DNB Open Banking
+    DNB_CLIENT_ID: str = ""
+    DNB_CLIENT_SECRET: str = ""
+    DNB_API_KEY: str = ""
+    DNB_REDIRECT_URI: str = "http://localhost:8000/api/dnb/oauth/callback"
+    DNB_USE_SANDBOX: bool = True
+    
     class Config:
         env_file = ".env"
         case_sensitive = True
