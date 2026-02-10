@@ -12,7 +12,7 @@ from app.database import init_db, close_db
 from app.graphql.schema import schema
 from app.api.webhooks import ehf
 from app.api import chat
-from app.api.routes import review_queue, dashboard, reports, documents, accounts, audit, bank, customer_invoices, invoices, demo, chat_booking, saldobalanse, clients, accruals, copilot, nlq, period_close, bank_reconciliation, trust, income_statement, balance_sheet, journal_entries, auto_booking, tenants, tasks, supplier_ledger, customer_ledger, voucher_journal
+from app.api.routes import review_queue, dashboard, reports, documents, accounts, audit, bank, customer_invoices, invoices, demo, chat_booking, saldobalanse, clients, accruals, copilot, nlq, period_close, bank_reconciliation, trust, income_statement, balance_sheet, journal_entries, auto_booking, tenants, tasks, supplier_ledger, customer_ledger, voucher_journal, test_ehf
 from app.middleware.demo import DemoEnvironmentMiddleware
 
 # Setup logging
@@ -168,6 +168,9 @@ app.include_router(voucher_journal.router)
 # DNB Open Banking API (Automatic transaction import)
 from app.api.routes import dnb
 app.include_router(dnb.router)
+
+# EHF Test API (Test EHF invoice processing without webhook verification)
+app.include_router(test_ehf.router)
 
 
 # Health check endpoint
