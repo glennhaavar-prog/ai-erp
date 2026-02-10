@@ -55,7 +55,7 @@ export default function SupplierLedgerPage() {
     try {
       setLoading(true);
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/supplier-ledger?client_id=${cid}&status=${statusFilter}`
+        `http://localhost:8000/supplier-ledger/?client_id=${cid}&status=${statusFilter}`
       );
       const data = await response.json();
       setEntries(data.entries || []);
@@ -69,7 +69,7 @@ export default function SupplierLedgerPage() {
   const fetchAging = async (cid: string) => {
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/supplier-ledger/aging?client_id=${cid}`
+        `http://localhost:8000/supplier-ledger/aging?client_id=${cid}`
       );
       const data = await response.json();
       setAging(data.aging);

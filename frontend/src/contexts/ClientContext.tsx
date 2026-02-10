@@ -1,7 +1,6 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { useViewMode } from './ViewModeContext';
 
 interface Client {
   id: string;
@@ -23,17 +22,15 @@ export const ClientProvider = ({ children }: { children: ReactNode }) => {
   const [selectedClient, setSelectedClientState] = useState<Client | null>(null);
   const [clients, setClients] = useState<Client[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const { setViewMode } = useViewMode();
 
-  // Wrapper to save to localStorage and sync viewMode
+  // Wrapper to save to localStorage
+  // Note: ViewMode syncing removed to prevent circular dependency issues
   const setSelectedClient = (client: Client | null) => {
     setSelectedClientState(client);
     if (client) {
       localStorage.setItem('selected_client_id', client.id);
-      setViewMode('client'); // Switch to client mode when client is selected
     } else {
       localStorage.removeItem('selected_client_id');
-      setViewMode('multi-client'); // Switch to multi-client mode when no client selected
     }
   };
 

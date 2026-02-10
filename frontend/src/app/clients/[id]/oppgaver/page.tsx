@@ -42,7 +42,7 @@ const OppgaverPage = () => {
 
   const fetchClient = async () => {
     try {
-      const response = await fetch(`/api/clients/${clientId}`);
+      const response = await fetch(`http://localhost:8000/api/clients/${clientId}`);
       const data = await response.json();
       setClient(data);
     } catch (error) {
@@ -59,7 +59,7 @@ const OppgaverPage = () => {
         period_month: periodMonth.toString(),
       });
 
-      const response = await fetch(`/api/tasks?${params.toString()}`);
+      const response = await fetch(`http://localhost:8000/api/tasks?${params.toString()}`);
       const data = await response.json();
       
       setTaskSummary({
@@ -78,7 +78,7 @@ const OppgaverPage = () => {
 
   const handleApplyTemplate = async () => {
     try {
-      await fetch('/api/tasks/templates/apply', {
+      await fetch('http://localhost:8000/api/tasks/templates/apply', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

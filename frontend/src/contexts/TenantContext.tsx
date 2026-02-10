@@ -27,21 +27,31 @@ export function TenantProvider({ children }: TenantProviderProps) {
     setError(null);
     
     try {
-      const response = await fetch('http://localhost:8000/api/tenants/demo');
+      // Add timeout to prevent infinite loading
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+      
+      const response = await fetch('http://localhost:8000/api/tenants/demo', {
+        signal: controller.signal,
+      });
+      
+      clearTimeout(timeoutId);
       
       if (!response.ok) {
         throw new Error(`Failed to fetch tenant: ${response.statusText}`);
       }
       
       const data = await response.json();
+      console.log('TenantContext: Fetched tenant:', data);
       setTenantId(data.id);
       setTenantName(data.name);
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Unknown error';
       setError(errorMsg);
-      console.error('Failed to fetch tenant:', err);
+      console.error('TenantContext: Failed to fetch tenant:', err);
     } finally {
       setIsLoading(false);
+      console.log('TenantContext: Loading complete');
     }
   };
 

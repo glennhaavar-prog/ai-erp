@@ -1,7 +1,6 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import { Layout } from '@/components/Layout';
 import { ReviewQueueDetail } from '@/components/ReviewQueueDetail';
 
 export default function ReviewQueueItemPage() {
@@ -10,17 +9,11 @@ export default function ReviewQueueItemPage() {
 
   if (!itemId) {
     return (
-      <Layout>
-        <div className="text-center py-12">
-          <p className="text-xl text-gray-600">Invalid review item ID</p>
-        </div>
-      </Layout>
+      <div className="text-center py-12">
+        <p className="text-xl text-gray-600">Invalid review item ID</p>
+      </div>
     );
   }
 
-  return (
-    <Layout>
-      <ReviewQueueDetail itemId={itemId} />
-    </Layout>
-  );
+  return <ReviewQueueDetail itemId={itemId} />;
 }

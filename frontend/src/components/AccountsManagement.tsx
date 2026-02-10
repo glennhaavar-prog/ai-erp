@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { PlusIcon, MagnifyingGlassIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { useClient } from '@/contexts/ClientContext';
 
 interface Account {
   id: string;
@@ -48,6 +49,7 @@ const VAT_CODES = [
 ];
 
 export const AccountsManagement: React.FC = () => {
+  const { selectedClient, isLoading: clientLoading } = useClient();
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -55,8 +57,6 @@ export const AccountsManagement: React.FC = () => {
   const [filterType, setFilterType] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingAccount, setEditingAccount] = useState<Account | null>(null);
-
-  const CLIENT_ID = '09409ccf-d23e-45e5-93b9-68add0b96277'; // GHB AS Test
 
   const [formData, setFormData] = useState<AccountFormData>({
     account_number: '',
@@ -68,16 +68,20 @@ export const AccountsManagement: React.FC = () => {
     requires_reconciliation: false,
   });
 
-  // Fetch accounts
+  // Fetch accounts when client changes
   useEffect(() => {
-    fetchAccounts();
-  }, [searchQuery, filterType]);
+    if (selectedClient?.id) {
+      fetchAccounts();
+    }
+  }, [selectedClient, searchQuery, filterType]);
 
   const fetchAccounts = async () => {
+    if (!selectedClient?.id) return;
+    
     try {
       setLoading(true);
       const params = new URLSearchParams({
-        client_id: CLIENT_ID,
+        client_id: selectedClient.id,
         active_only: 'true',
       });
       
@@ -103,8 +107,10 @@ export const AccountsManagement: React.FC = () => {
   };
 
   const handleCreateAccount = async () => {
+    if (!selectedClient?.id) return;
+    
     try {
-      const response = await fetch(`http://localhost:8000/api/accounts/?client_id=${CLIENT_ID}`, {
+      const response = await fetch(`http://localhost:8000/api/accounts/?client_id=${selectedClient.id}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -162,6 +168,33 @@ export const AccountsManagement: React.FC = () => {
     const found = ACCOUNT_TYPES.find(t => t.value === type);
     return found ? found.label : type;
   };
+
+  // Show loading state
+  if (clientLoading || loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <p className="mt-2 text-muted-foreground">
+            {clientLoading ? "Laster klient..." : "Laster kontoplan..."}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show no client selected
+  if (!selectedClient) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <p className="text-lg text-muted-foreground">
+            Velg en klient fra menyen øverst for å se kontoplan
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
