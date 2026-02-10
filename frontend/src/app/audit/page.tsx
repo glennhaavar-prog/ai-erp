@@ -176,6 +176,31 @@ export default function AuditTrailPage() {
     }
   };
 
+  // Show loading when client context is loading
+  if (clientLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <p className="mt-2 text-muted-foreground">Laster klient...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show message when no client is selected
+  if (!clientId) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <p className="text-lg text-muted-foreground">
+            Velg en klient fra menyen øverst for å se revisjonslogg
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-dark-bg text-gray-100 p-6">
       <div className="max-w-7xl mx-auto space-y-6">

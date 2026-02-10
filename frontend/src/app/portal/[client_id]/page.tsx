@@ -39,28 +39,38 @@ export default function ClientPortalPage() {
     try {
       // Fetch client info
       const clientRes = await fetch(`http://localhost:8000/api/clients/${clientId}`);
+      if (!clientRes.ok) {
+        throw new Error('Client not found');
+      }
       const clientData = await clientRes.json();
       setClient(clientData);
 
-      // Fetch transactions (general ledger entries)
-      const glRes = await fetch(
-        `http://localhost:8000/api/general-ledger/?client_id=${clientId}&limit=50`
+      // Fetch transactions from voucher journal
+      const journalRes = await fetch(
+        `http://localhost:8000/api/vouchers/journal?client_id=${clientId}&limit=50`
       );
-      const glData = await glRes.json();
       
-      // Filter by date range
-      const now = new Date();
-      const filterDate = new Date();
-      filterDate.setDate(now.getDate() - parseInt(filter));
-      
-      const filtered = glData.entries?.filter((entry: any) => {
-        const entryDate = new Date(entry.accounting_date);
-        return entryDate >= filterDate;
-      }) || [];
-      
-      setTransactions(filtered);
+      if (journalRes.ok) {
+        const journalData = await journalRes.json();
+        
+        // Filter by date range
+        const now = new Date();
+        const filterDate = new Date();
+        filterDate.setDate(now.getDate() - parseInt(filter));
+        
+        const filtered = journalData.entries?.filter((entry: any) => {
+          const entryDate = new Date(entry.accounting_date);
+          return entryDate >= filterDate;
+        }) || [];
+        
+        setTransactions(filtered);
+      } else {
+        // If voucher journal doesn't work, set empty array
+        setTransactions([]);
+      }
     } catch (error) {
       console.error("Error fetching portal data:", error);
+      setTransactions([]);
     } finally {
       setLoading(false);
     }
