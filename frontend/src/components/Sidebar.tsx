@@ -149,6 +149,27 @@ export const Sidebar = () => {
           ],
         },
         {
+          id: 'bankavstemming',
+          label: 'Bankavstemming',
+          icon: '🏦',
+          path: '/bank-reconciliation',
+          enabled: true,
+        },
+        {
+          id: 'leverandorreskontro',
+          label: 'Leverandørreskontro',
+          icon: '🏢',
+          path: '/reskontro/leverandorer',
+          enabled: true,
+        },
+        {
+          id: 'kundereskontro',
+          label: 'Kundereskontro',
+          icon: '👤',
+          path: '/reskontro/kunder',
+          enabled: true,
+        },
+        {
           id: 'oppgaver',
           label: 'Oppgaver',
           icon: '✅',

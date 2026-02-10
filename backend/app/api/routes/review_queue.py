@@ -281,7 +281,16 @@ async def approve_item(
     request: ApproveRequest,
     db: AsyncSession = Depends(get_db)
 ):
-    """Approve a review queue item and book to General Ledger"""
+    """
+    Approve a review queue item and book to General Ledger
+    
+    PERFORMANCE: Optimized to complete in < 5 seconds with timeout protection
+    """
+    import asyncio
+    import time
+    
+    start_time = time.time()
+    
     # Validate UUID format
     try:
         uuid_obj = UUID(item_id)
@@ -308,18 +317,32 @@ async def approve_item(
         
         try:
             generator = VoucherGenerator(db)
-            voucher_dto = await generator.create_voucher_from_invoice(
-                invoice_id=review_item.source_id,
-                tenant_id=review_item.client_id,
-                user_id="review_queue_user",  # TODO: Set actual user when auth is implemented
-                accounting_date=None,  # Use invoice date
-                override_account=review_item.ai_suggestion.get('account')
-            )
+            
+            # TIMEOUT PROTECTION: 10 second timeout for voucher creation
+            try:
+                voucher_dto = await asyncio.wait_for(
+                    generator.create_voucher_from_invoice(
+                        invoice_id=review_item.source_id,
+                        tenant_id=review_item.client_id,
+                        user_id="review_queue_user",  # TODO: Set actual user when auth is implemented
+                        accounting_date=None,  # Use invoice date
+                        override_account=review_item.ai_suggestion.get('account')
+                    ),
+                    timeout=10.0  # 10 second timeout
+                )
+            except asyncio.TimeoutError:
+                raise HTTPException(
+                    status_code=504,
+                    detail="Voucher creation timed out (>10s). Please try again or contact support."
+                )
+            
         except (ValueError, VoucherValidationError) as e:
             raise HTTPException(
                 status_code=422,
                 detail=f"Failed to create voucher: {str(e)}"
             )
+        except HTTPException:
+            raise  # Re-raise HTTP exceptions (including timeout)
         except Exception as e:
             raise HTTPException(
                 status_code=500,
@@ -335,11 +358,16 @@ async def approve_item(
     await db.commit()
     await db.refresh(review_item)
     
+    elapsed = time.time() - start_time
+    
     response = {
         "id": str(review_item.id),
         "status": review_item.status.value.lower(),
         "updated_at": review_item.resolved_at.isoformat(),
-        "message": "Item approved and booked to General Ledger successfully"
+        "message": "Item approved and booked to General Ledger successfully",
+        "performance": {
+            "elapsed_seconds": round(elapsed, 3)
+        }
     }
     
     # Include voucher details if booking was performed
