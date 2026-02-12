@@ -26,6 +26,13 @@ class ChatMessage(BaseModel):
     content: str
 
 
+class ChatAttachment(BaseModel):
+    """File attachment model"""
+    filename: str = Field(..., description="Original filename")
+    content_type: str = Field(..., description="MIME type (e.g., 'application/pdf')")
+    data: str = Field(..., description="Base64-encoded file data")
+
+
 class ChatRequest(BaseModel):
     """Chat request"""
     message: str = Field(..., description="User's message")
@@ -33,6 +40,7 @@ class ChatRequest(BaseModel):
     user_id: Optional[str] = Field(None, description="User UUID (optional)")
     session_id: Optional[str] = Field(None, description="Session ID (auto-generated if not provided)")
     conversation_history: Optional[List[ChatMessage]] = Field(None, description="Conversation history")
+    attachments: Optional[List[ChatAttachment]] = Field(None, description="File attachments (PDF, images)")
 
 
 class ChatResponse(BaseModel):
@@ -75,14 +83,21 @@ async def send_message(
         session_id = request.session_id or str(UUID(int=0))  # Default session
         
         # Process message
-        logger.info(f"Chat booking: session={session_id}, client={request.client_id}, message={request.message[:50]}")
+        attachment_info = f", attachments={len(request.attachments)}" if request.attachments else ""
+        logger.info(f"Chat booking: session={session_id}, client={request.client_id}, message={request.message[:50]}{attachment_info}")
+        
+        # Log attachment details
+        if request.attachments:
+            for att in request.attachments:
+                logger.info(f"  - Attachment: {att.filename} ({att.content_type}, {len(att.data)} bytes base64)")
         
         result = await chat_service.process_message(
             db=db,
             session_id=session_id,
             client_id=request.client_id,
             user_id=request.user_id,
-            message=request.message
+            message=request.message,
+            attachments=request.attachments  # Pass attachments to service
         )
         
         return ChatResponse(

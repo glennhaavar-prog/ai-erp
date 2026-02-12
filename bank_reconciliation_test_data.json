@@ -1,0 +1,195 @@
+{
+  "client_id": "308e0336-d5c9-496f-8141-9087ee1fcae3",
+  "timestamp": "2026-02-11T11:37:49.566571",
+  "accounts": [
+    {
+      "account_id": "acc_001",
+      "account_number": "1920",
+      "account_name": "Hovedkonto - Bank",
+      "saldo_i_bank": 125450.5,
+      "saldo_i_go": 125200.25,
+      "differanse": 250.25,
+      "poster_a_avstemme": 3,
+      "currency": "NOK"
+    },
+    {
+      "account_id": "acc_002",
+      "account_number": "1921",
+      "account_name": "Sparekonto",
+      "saldo_i_bank": 50000.0,
+      "saldo_i_go": 50000.0,
+      "differanse": 0.0,
+      "poster_a_avstemme": 0,
+      "currency": "NOK"
+    }
+  ],
+  "reconciliation_details": [
+    {
+      "account_id": "acc_001",
+      "account_number": "1920",
+      "account_name": "Hovedkonto - Bank",
+      "period_start": "2026-02-01",
+      "period_end": "2026-02-11",
+      "categories": [
+        {
+          "category_key": "uttak_postert_ikke_statement",
+          "category_name": "Uttak postert - ikke inkludert i kontoutskrift",
+          "transactions": [
+            {
+              "id": "t001",
+              "date": "2026-02-05",
+              "description": "Lønn utbetaling februar",
+              "beløp": -45000.0,
+              "valutakode": "NOK",
+              "voucher_number": "V001",
+              "status": "posted"
+            },
+            {
+              "id": "t002",
+              "date": "2026-02-08",
+              "description": "Leverandør betaling - Acme AS",
+              "beløp": -12500.0,
+              "valutakode": "NOK",
+              "voucher_number": "V002",
+              "status": "posted"
+            }
+          ],
+          "total_beløp": -57500.0
+        },
+        {
+          "category_key": "innskudd_postert_ikke_statement",
+          "category_name": "Innskudd postert - ikke inkludert i kontoutskrift",
+          "transactions": [
+            {
+              "id": "t003",
+              "date": "2026-02-10",
+              "description": "Kundebetalinger - invoices",
+              "beløp": 35250.0,
+              "valutakode": "NOK",
+              "voucher_number": "V003",
+              "status": "posted"
+            }
+          ],
+          "total_beløp": 35250.0
+        },
+        {
+          "category_key": "uttak_ikke_postert_i_statement",
+          "category_name": "Uttak ikke postert - inkludert i kontoutskrift",
+          "transactions": [
+            {
+              "id": "t004",
+              "date": "2026-02-11",
+              "description": "Gebyr fra bank",
+              "beløp": -500.0,
+              "valutakode": "NOK",
+              "status": "in_statement"
+            }
+          ],
+          "total_beløp": -500.0
+        },
+        {
+          "category_key": "innskudd_ikke_postert_i_statement",
+          "category_name": "Innskudd ikke postert - inkludert i kontoutskrift",
+          "transactions": [],
+          "total_beløp": 0
+        }
+      ],
+      "saldo_i_go": 125200.25,
+      "korreksjoner_total": -22250.0,
+      "saldo_etter_korreksjoner": 102950.25,
+      "kontoutskrift_saldo": 102450.25,
+      "differanse": 500.0,
+      "is_balanced": false,
+      "currency": "NOK"
+    },
+    {
+      "account_id": "acc_002",
+      "account_number": "1921",
+      "account_name": "Sparekonto",
+      "period_start": "2026-02-01",
+      "period_end": "2026-02-11",
+      "categories": [
+        {
+          "category_key": "uttak_postert_ikke_statement",
+          "category_name": "Uttak postert - ikke inkludert i kontoutskrift",
+          "transactions": [],
+          "total_beløp": 0.0
+        },
+        {
+          "category_key": "innskudd_postert_ikke_statement",
+          "category_name": "Innskudd postert - ikke inkludert i kontoutskrift",
+          "transactions": [],
+          "total_beløp": 0.0
+        },
+        {
+          "category_key": "uttak_ikke_postert_i_statement",
+          "category_name": "Uttak ikke postert - inkludert i kontoutskrift",
+          "transactions": [],
+          "total_beløp": 0.0
+        },
+        {
+          "category_key": "innskudd_ikke_postert_i_statement",
+          "category_name": "Innskudd ikke postert - inkludert i kontoutskrift",
+          "transactions": [],
+          "total_beløp": 0.0
+        }
+      ],
+      "saldo_i_go": 50000.0,
+      "korreksjoner_total": 0.0,
+      "saldo_etter_korreksjoner": 50000.0,
+      "kontoutskrift_saldo": 50000.0,
+      "differanse": 0.0,
+      "is_balanced": true,
+      "currency": "NOK"
+    }
+  ],
+  "test_scenarios": {
+    "scenario_1_unmatched_withdrawals": {
+      "description": "Shows withdrawals posted in system but not yet in bank statement",
+      "category": "Uttak postert - ikke inkludert i kontoutskrift",
+      "example_amount": -57500.0,
+      "example_transactions": [
+        {
+          "date": "2026-02-05",
+          "description": "Salary payment",
+          "amount": -45000
+        },
+        {
+          "date": "2026-02-08",
+          "description": "Vendor payment",
+          "amount": -12500
+        }
+      ]
+    },
+    "scenario_2_unmatched_deposits": {
+      "description": "Shows deposits posted in system but not yet in bank statement",
+      "category": "Innskudd postert - ikke inkludert i kontoutskrift",
+      "example_amount": 35250.0,
+      "example_transactions": [
+        {
+          "date": "2026-02-10",
+          "description": "Customer invoice payments",
+          "amount": 35250
+        }
+      ]
+    },
+    "scenario_3_bank_fees": {
+      "description": "Shows bank charges in statement but not yet posted in system",
+      "category": "Uttak ikke postert - inkludert i kontoutskrift",
+      "example_amount": -500.0,
+      "example_transactions": [
+        {
+          "date": "2026-02-11",
+          "description": "Bank fee",
+          "amount": -500
+        }
+      ]
+    },
+    "scenario_4_balanced": {
+      "description": "Perfectly reconciled account with no differences",
+      "category": "All categories",
+      "difference": 0.0,
+      "is_balanced": true
+    }
+  }
+}

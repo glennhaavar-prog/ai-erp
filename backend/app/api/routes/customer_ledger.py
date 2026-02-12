@@ -11,7 +11,12 @@ import uuid
 
 from app.database import get_db
 from app.models.customer_ledger import CustomerLedger, CustomerLedgerTransaction
+from app.models.client import Client
 from app.models.general_ledger import GeneralLedger
+from app.utils.export_utils import (
+    generate_pdf_customer_ledger,
+    generate_excel_customer_ledger,
+)
 
 router = APIRouter(prefix="/customer-ledger", tags=["customer_ledger"])
 
@@ -308,6 +313,51 @@ async def reconcile_customer_ledger(
         "status": "OK" if reconciles else "ERROR - Does not reconcile!",
     }
 
+
+
+
+
+# ==================== EXPORT ENDPOINTS ====================
+
+async def get_client_name_customer(client_id: uuid.UUID, db: AsyncSession) -> str:
+    """Helper function to get client name"""
+    result = await db.execute(select(Client).where(Client.id == client_id))
+    client = result.scalar_one_or_none()
+    if not client:
+        raise HTTPException(status_code=404, detail=f"Client {client_id} not found")
+    return client.name
+
+
+@router.get("/pdf")
+async def export_customer_ledger_pdf(
+    client_id: uuid.UUID,
+    status: Optional[str] = Query(None, regex="^(open|partially_paid|paid|overdue|all)$"),
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
+    customer_id: Optional[uuid.UUID] = None,
+    db: AsyncSession = Depends(get_db)
+):
+    """Export Kundereskontro as PDF"""
+    data = await get_customer_ledger(client_id, status, date_from, date_to, customer_id, db)
+    client_name = await get_client_name_customer(client_id, db)
+    
+    return generate_pdf_customer_ledger(data, client_name)
+
+
+@router.get("/excel")
+async def export_customer_ledger_excel(
+    client_id: uuid.UUID,
+    status: Optional[str] = Query(None, regex="^(open|partially_paid|paid|overdue|all)$"),
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
+    customer_id: Optional[uuid.UUID] = None,
+    db: AsyncSession = Depends(get_db)
+):
+    """Export Kundereskontro as Excel"""
+    data = await get_customer_ledger(client_id, status, date_from, date_to, customer_id, db)
+    client_name = await get_client_name_customer(client_id, db)
+    
+    return generate_excel_customer_ledger(data, client_name)
 
 
 @router.get("/{ledger_id}")

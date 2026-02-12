@@ -9,17 +9,21 @@ import { RightPanel } from '@/components/RightPanel';
 import { useViewMode } from '@/contexts/ViewModeContext';
 import ReceiptVerificationDashboard from '@/components/ReceiptVerificationDashboard';
 import TrustDashboard from '@/components/TrustDashboard';
+import { DashboardMetricsCards } from '@/components/DashboardMetricsCards';
+import AutoBookingDashboard from '@/components/AutoBookingDashboard';
 
-type DashboardTab = 'multi-client' | 'verification' | 'system';
+type DashboardTab = 'overview' | 'multi-client' | 'verification' | 'auto-booking' | 'system';
 
 export default function Home() {
   const { viewMode, selectedItem } = useViewMode();
-  const [activeTab, setActiveTab] = useState<DashboardTab>('multi-client');
+  const [activeTab, setActiveTab] = useState<DashboardTab>('overview');
 
   // Tab Navigation
   const tabs: { id: DashboardTab; label: string; icon: string }[] = [
+    { id: 'overview', label: 'Oversikt', icon: '📊' },
     { id: 'multi-client', label: 'Klient Oversikt', icon: '👥' },
     { id: 'verification', label: 'Bilagsføring', icon: '📄' },
+    { id: 'auto-booking', label: 'Auto-Bokføring', icon: '🤖' },
     { id: 'system', label: 'System Status', icon: '⚙️' },
   ];
 
@@ -59,6 +63,12 @@ export default function Home() {
 
       {/* Main Content Area */}
       <div className="flex-1 overflow-hidden">
+        {activeTab === 'overview' && (
+          <div className="h-full overflow-auto">
+            <DashboardMetricsCards />
+          </div>
+        )}
+
         {activeTab === 'multi-client' && (
           <div className="h-full flex gap-6 p-6 overflow-hidden">
             {/* Left: Mini status widget + Client list (60%) */}
@@ -79,6 +89,12 @@ export default function Home() {
         {activeTab === 'verification' && (
           <div className="h-full overflow-auto">
             <ReceiptVerificationDashboard />
+          </div>
+        )}
+
+        {activeTab === 'auto-booking' && (
+          <div className="h-full overflow-auto">
+            <AutoBookingDashboard />
           </div>
         )}
 

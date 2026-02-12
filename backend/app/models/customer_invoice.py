@@ -64,9 +64,9 @@ class CustomerInvoice(Base):
         default="unpaid",
         nullable=False,
         index=True
-    )  # unpaid/partial/paid/overdue
+    )  # unpaid/partially_paid/paid/overdue (enum in DB)
     paid_amount = Column(Numeric(15, 2), default=Decimal("0.00"))
-    payment_date = Column(Date, nullable=True)
+    paid_date = Column(Date, nullable=True)  # When fully paid
     
     # AI Processing
     ai_processed = Column(Boolean, default=False)

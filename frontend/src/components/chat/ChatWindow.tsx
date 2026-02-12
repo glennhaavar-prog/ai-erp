@@ -7,6 +7,7 @@ import ChatInput from './ChatInput';
 import QuickActions from './QuickActions';
 
 interface Message {
+  id: string;
   role: 'user' | 'assistant';
   content: string;
   action?: string;
@@ -34,6 +35,7 @@ export default function ChatWindow({ clientId, userId }: ChatWindowProps) {
     
     // Add welcome message
     setMessages([{
+      id: `msg-${Date.now()}`,
       role: 'assistant',
       content: "👋 Hei! Jeg er din AI bokføringsassistent.\n\nJeg kan hjelpe deg med:\n• Bokføre fakturaer\n• Vise fakturastatus\n• Godkjenne bokføringer\n• Korrigere kontoføringer\n\nSi f.eks: 'Vis meg fakturaer som venter' eller 'Bokfør faktura INV-12345'",
       timestamp: new Date().toISOString()
@@ -45,11 +47,12 @@ export default function ChatWindow({ clientId, userId }: ChatWindowProps) {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const sendMessage = async (message: string) => {
+  const sendMessage = async (message: string, files: any[] = []) => {
     if (!message.trim()) return;
 
     // Add user message
     const userMessage: Message = {
+      id: `msg-${Date.now()}`,
       role: 'user',
       content: message,
       timestamp: new Date().toISOString()
@@ -78,6 +81,7 @@ export default function ChatWindow({ clientId, userId }: ChatWindowProps) {
       
       // Add assistant message
       const assistantMessage: Message = {
+        id: `msg-${Date.now()}`,
         role: 'assistant',
         content: data.message,
         action: data.action,
@@ -92,6 +96,7 @@ export default function ChatWindow({ clientId, userId }: ChatWindowProps) {
       
       // Add error message
       setMessages(prev => [...prev, {
+        id: `msg-${Date.now()}`,
         role: 'assistant',
         content: '❌ Beklager, jeg fikk ikke kontakt med serveren. Prøv igjen.',
         timestamp: new Date().toISOString()
@@ -119,7 +124,13 @@ export default function ChatWindow({ clientId, userId }: ChatWindowProps) {
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
         {messages.map((msg, idx) => (
-          <ChatMessage key={idx} message={msg} />
+          <ChatMessage 
+            key={idx} 
+            message={{
+              ...msg,
+              timestamp: msg.timestamp ? new Date(msg.timestamp) : new Date()
+            }} 
+          />
         ))}
         
         {loading && (
@@ -138,7 +149,7 @@ export default function ChatWindow({ clientId, userId }: ChatWindowProps) {
       </div>
 
       {/* Input */}
-      <ChatInput onSend={sendMessage} disabled={loading} />
+      <ChatInput onSend={sendMessage} isLoading={loading} />
     </div>
   );
 }

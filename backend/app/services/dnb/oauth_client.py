@@ -4,7 +4,7 @@ DNB OAuth2 Client - Handles authentication flow
 import httpx
 import logging
 from typing import Optional, Dict, Any
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from urllib.parse import urlencode
 
 from app.config import settings
@@ -115,7 +115,7 @@ class DNBOAuth2Client:
             
             # Calculate expiration time
             expires_in = token_data.get("expires_in", 3600)
-            token_data["expires_at"] = (datetime.utcnow() + timedelta(seconds=expires_in)).isoformat()
+            token_data["expires_at"] = (datetime.now(timezone.utc) + timedelta(seconds=expires_in)).isoformat()
             
             return token_data
             
@@ -155,7 +155,7 @@ class DNBOAuth2Client:
             
             # Calculate expiration time
             expires_in = token_data.get("expires_in", 3600)
-            token_data["expires_at"] = (datetime.utcnow() + timedelta(seconds=expires_in)).isoformat()
+            token_data["expires_at"] = (datetime.now(timezone.utc) + timedelta(seconds=expires_in)).isoformat()
             
             return token_data
             

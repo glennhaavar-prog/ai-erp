@@ -12,6 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { AlertCircle, DollarSign, Calendar, TrendingUp } from "lucide-react";
+import { ReportExportButtons } from "@/components/ReportExportButtons";
 
 interface CustomerLedgerEntry {
   id: string;
@@ -131,11 +132,17 @@ export default function CustomerLedgerPage() {
 
   return (
     <div className="container mx-auto p-6">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-2">Kundereskontro</h1>
-        <p className="text-muted-foreground">
-          Oversikt over kundefakturaer og betalingsstatus
-        </p>
+      <div className="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold mb-2">Kundereskontro</h1>
+          <p className="text-muted-foreground">
+            Oversikt over kundefakturaer og betalingsstatus
+          </p>
+        </div>
+        <ReportExportButtons
+          reportType="customer-ledger"
+          clientId={selectedClient?.id || ""}
+        />
       </div>
 
       {/* Summary Cards */}

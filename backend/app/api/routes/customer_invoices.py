@@ -84,11 +84,27 @@ async def create_customer_invoice(
 async def list_customer_invoices(
     client_id: UUID = Query(..., description="Client ID"),
     payment_status: str = Query(None, description="Filter by payment status"),
-    limit: int = Query(100, le=500),
+    limit: int = Query(50, ge=1, le=500, description="Items per page (default: 50)"),
+    offset: int = Query(0, ge=0, description="Starting index (default: 0)"),
     db: AsyncSession = Depends(get_db)
 ) -> Dict[str, Any]:
     """
-    List customer invoices for a client
+    List customer invoices for a client with pagination
+    
+    Query params:
+    - client_id: Client ID (required)
+    - payment_status: Filter by payment status (optional)
+    - limit: Items per page (default: 50, max: 500)
+    - offset: Starting index (default: 0)
+    
+    Returns:
+    {
+        "items": [...],
+        "total": int,
+        "limit": int,
+        "offset": int,
+        "page_number": int
+    }
     """
     
     query = select(CustomerInvoice).where(
@@ -98,14 +114,30 @@ async def list_customer_invoices(
     if payment_status:
         query = query.where(CustomerInvoice.payment_status == payment_status)
     
-    query = query.order_by(CustomerInvoice.invoice_date.desc()).limit(limit)
+    # Get total count
+    count_query = select(func.count()).select_from(CustomerInvoice).where(
+        CustomerInvoice.client_id == client_id
+    )
+    if payment_status:
+        count_query = count_query.where(CustomerInvoice.payment_status == payment_status)
+    
+    total_result = await db.execute(count_query)
+    total = total_result.scalar() or 0
+    
+    # Apply pagination
+    query = query.order_by(CustomerInvoice.invoice_date.desc()).limit(limit).offset(offset)
     
     result = await db.execute(query)
     invoices = result.scalars().all()
     
+    page_number = (offset // limit) + 1 if limit > 0 else 1
+    
     return {
-        "invoices": [inv.to_dict() for inv in invoices],
-        "total": len(invoices)
+        "items": [inv.to_dict() for inv in invoices],
+        "total": total,
+        "limit": limit,
+        "offset": offset,
+        "page_number": page_number
     }
 
 

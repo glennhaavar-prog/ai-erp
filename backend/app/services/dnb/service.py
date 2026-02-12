@@ -3,7 +3,7 @@ DNB Integration Service - Main orchestration service
 """
 import logging
 from typing import List, Dict, Any, Optional
-from datetime import datetime, date, timedelta
+from datetime import datetime, date, timedelta, timezone
 from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_
@@ -102,7 +102,7 @@ class DNBService:
         
         # Calculate expiration
         expires_in = token_data.get("expires_in", 3600)
-        token_expires_at = datetime.utcnow() + timedelta(seconds=expires_in)
+        token_expires_at = datetime.now(timezone.utc) + timedelta(seconds=expires_in)
         
         # Create connection
         connection = BankConnection(
@@ -145,7 +145,7 @@ class DNBService:
             Valid access token (decrypted)
         """
         # Check if token expires in next 5 minutes
-        if connection.token_expires_at > datetime.utcnow() + timedelta(minutes=5):
+        if connection.token_expires_at > datetime.now(timezone.utc) + timedelta(minutes=5):
             # Token still valid
             return token_encryption.decrypt(connection.access_token)
         
@@ -163,8 +163,8 @@ class DNBService:
                 connection.refresh_token = token_encryption.encrypt(token_data["refresh_token"])
             
             expires_in = token_data.get("expires_in", 3600)
-            connection.token_expires_at = datetime.utcnow() + timedelta(seconds=expires_in)
-            connection.updated_at = datetime.utcnow()
+            connection.token_expires_at = datetime.now(timezone.utc) + timedelta(seconds=expires_in)
+            connection.updated_at = datetime.now(timezone.utc)
             
             await db.commit()
             await db.refresh(connection)
@@ -280,7 +280,7 @@ class DNBService:
             await db.commit()
             
             # Update connection metadata
-            connection.last_sync_at = datetime.utcnow()
+            connection.last_sync_at = datetime.now(timezone.utc)
             connection.last_sync_status = "success"
             connection.total_transactions_imported += new_count
             
@@ -308,7 +308,7 @@ class DNBService:
             
         except Exception as e:
             logger.error(f"Failed to fetch/store transactions: {e}")
-            connection.last_sync_at = datetime.utcnow()
+            connection.last_sync_at = datetime.now(timezone.utc)
             connection.last_sync_status = "error"
             connection.last_sync_error = str(e)
             await db.commit()
@@ -335,7 +335,7 @@ class DNBService:
         txn_date_str = txn_data.get("valueDate") or txn_data.get("bookingDate")
         booking_date_str = txn_data.get("bookingDate")
         
-        transaction_date = datetime.fromisoformat(txn_date_str.replace("Z", "+00:00")) if txn_date_str else datetime.utcnow()
+        transaction_date = datetime.fromisoformat(txn_date_str.replace("Z", "+00:00")) if txn_date_str else datetime.now(timezone.utc)
         booking_date = datetime.fromisoformat(booking_date_str.replace("Z", "+00:00")) if booking_date_str else None
         
         # Parse amount
@@ -418,7 +418,7 @@ class DNBService:
                 # Check if sync needed (based on sync_frequency_hours)
                 if connection.last_sync_at:
                     next_sync = connection.last_sync_at + timedelta(hours=connection.sync_frequency_hours)
-                    if datetime.utcnow() < next_sync:
+                    if datetime.now(timezone.utc) < next_sync:
                         logger.debug(f"Skipping connection {connection.id} - not due for sync")
                         continue
                 

@@ -1,96 +1,98 @@
-"use client";
+'use client';
 
 import React from 'react';
-import ReactMarkdown from 'react-markdown';
+import { motion } from 'framer-motion';
+import { Bot, User, FileText, Image as ImageIcon } from 'lucide-react';
 import { ClientSafeTimestamp } from '@/lib/date-utils';
 
-interface Message {
+export interface ChatMessageData {
+  id: string;
   role: 'user' | 'assistant';
   content: string;
-  action?: string;
-  data?: any;
-  timestamp?: string;
+  timestamp: Date;
+  attachments?: {
+    filename: string;
+    content_type: string;
+  }[];
 }
 
 interface ChatMessageProps {
-  message: Message;
+  message: ChatMessageData;
 }
 
 export default function ChatMessage({ message }: ChatMessageProps) {
   const isUser = message.role === 'user';
-  
-  // Get status emoji based on action
-  const getActionEmoji = (action?: string) => {
-    if (!action) return '';
-    
-    const emojiMap: Record<string, string> = {
-      'booking_executed': '✅',
-      'suggest_booking': '💡',
-      'error': '❌',
-      'approve': '✅',
-      'cancelled': '❌',
-      'status': '📊',
-      'list_invoices': '📋',
-      'help': '🤖'
-    };
-    
-    return emojiMap[action] || '';
+
+  const getFileIcon = (contentType: string) => {
+    if (contentType.startsWith('image/')) {
+      return <ImageIcon className="w-4 h-4" />;
+    }
+    return <FileText className="w-4 h-4" />;
   };
 
   return (
-    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
-      <div
-        className={`max-w-[80%] rounded-2xl px-4 py-3 ${
-          isUser
-            ? 'bg-blue-600 text-white'
-            : 'bg-white text-gray-900 border border-gray-200 shadow-sm'
-        }`}
-      >
-        {/* Action emoji indicator */}
-        {!isUser && message.action && (
-          <div className="text-xs opacity-60 mb-1">
-            {getActionEmoji(message.action)}
-          </div>
-        )}
-        
-        {/* Message content with markdown support */}
-        <div className="prose prose-sm max-w-none text-gray-900">
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0 }}
+      className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}
+    >
+      <div className={`flex gap-3 max-w-[85%] ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
+        {/* Avatar */}
+        <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+          isUser 
+            ? 'bg-primary/10' 
+            : 'bg-muted'
+        }`}>
           {isUser ? (
-            <p className="text-white m-0 whitespace-pre-wrap">{message.content}</p>
+            <User className="w-4 h-4 text-primary" />
           ) : (
-            <ReactMarkdown
-              components={{
-                p: ({children}) => <p className="m-0 mb-2 last:mb-0 whitespace-pre-wrap">{children}</p>,
-                strong: ({children}) => <strong className="font-semibold text-gray-900">{children}</strong>,
-                ul: ({children}) => <ul className="my-2 ml-4 space-y-1">{children}</ul>,
-                li: ({children}) => <li className="text-sm">{children}</li>,
-                code: ({children}) => <code className="bg-gray-100 px-1 py-0.5 rounded text-xs font-mono text-blue-600">{children}</code>
-              }}
-            >
-              {message.content}
-            </ReactMarkdown>
+            <Bot className="w-4 h-4 text-muted-foreground" />
           )}
         </div>
-        
-        {/* Timestamp */}
-        {message.timestamp && (
-          <div className={`text-xs mt-2 ${isUser ? 'text-blue-100' : 'text-gray-400'}`}>
-            <ClientSafeTimestamp date={message.timestamp} format="time" />
-          </div>
-        )}
-        
-        {/* Rich data display (optional) */}
-        {!isUser && message.data && message.data.invoices && message.data.invoices.length > 0 && (
-          <div className="mt-3 space-y-2">
-            {message.data.invoices.slice(0, 3).map((invoice: any, idx: number) => (
-              <div key={idx} className="bg-gray-50 rounded-lg p-2 text-xs border border-gray-200">
-                <div className="font-medium text-gray-900">{invoice.invoice_number}</div>
-                <div className="text-gray-600">{invoice.vendor} • {invoice.total_amount.toLocaleString('nb-NO')} kr</div>
+
+        {/* Message bubble */}
+        <div className="flex flex-col gap-2">
+          <div className={`rounded-2xl px-4 py-3 ${
+            isUser
+              ? 'bg-primary text-primary-foreground'
+              : 'bg-muted text-foreground'
+          }`}>
+            <p className="text-sm leading-relaxed whitespace-pre-wrap">
+              {message.content}
+            </p>
+            
+            {/* Attachments */}
+            {message.attachments && message.attachments.length > 0 && (
+              <div className="mt-2 space-y-1">
+                {message.attachments.map((attachment, index) => (
+                  <div
+                    key={index}
+                    className={`flex items-center gap-2 px-2 py-1 rounded ${
+                      isUser
+                        ? 'bg-primary-foreground/20'
+                        : 'bg-background'
+                    }`}
+                  >
+                    {getFileIcon(attachment.content_type)}
+                    <span className="text-xs truncate max-w-[200px]">
+                      {attachment.filename}
+                    </span>
+                  </div>
+                ))}
               </div>
-            ))}
+            )}
+
+            <p className={`text-xs mt-1 ${
+              isUser 
+                ? 'text-primary-foreground/60' 
+                : 'text-muted-foreground'
+            }`}>
+              <ClientSafeTimestamp date={message.timestamp} format="time" />
+            </p>
           </div>
-        )}
+        </div>
       </div>
-    </div>
+    </motion.div>
   );
 }

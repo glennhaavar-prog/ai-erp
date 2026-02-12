@@ -25,14 +25,35 @@ async def get_voucher_journal(
     amount_min: Optional[float] = None,
     amount_max: Optional[float] = None,
     search: Optional[str] = None,
-    limit: int = Query(100, le=1000),
-    offset: int = 0,
+    limit: int = Query(50, ge=1, le=500, description="Items per page (default: 50)"),
+    offset: int = Query(0, ge=0, description="Starting index (default: 0)"),
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Get voucher journal (bilagsjournal) with comprehensive filters
+    Get voucher journal (bilagsjournal) with comprehensive filters and pagination
     
     Returns chronological list of all journal entries (vouchers).
+    
+    Query params:
+    - client_id: Client ID (required)
+    - date_from: Filter from date (optional)
+    - date_to: Filter to date (optional)
+    - voucher_type: Filter by voucher type (optional)
+    - account_number: Filter by account number (optional)
+    - amount_min: Minimum amount filter (optional)
+    - amount_max: Maximum amount filter (optional)
+    - search: Search in description/voucher_number/external_reference (optional)
+    - limit: Items per page (default: 50, max: 500)
+    - offset: Starting index (default: 0)
+    
+    Returns:
+    {
+        "items": [...],
+        "total": int,
+        "limit": int,
+        "offset": int,
+        "page_number": int
+    }
     """
     query = select(GeneralLedger).where(GeneralLedger.client_id == client_id)
     
@@ -69,10 +90,26 @@ async def get_voucher_journal(
         desc(GeneralLedger.voucher_number)
     )
     
-    # Get total count for pagination
-    count_query = select(func.count()).select_from(query.subquery())
-    total_result = await db.execute(count_query)
-    total_count = total_result.scalar()
+    # Get total count for pagination before limit/offset
+    count_stmt = select(func.count(GeneralLedger.id)).select_from(GeneralLedger).where(GeneralLedger.client_id == client_id)
+    if date_from:
+        count_stmt = count_stmt.where(GeneralLedger.accounting_date >= date_from)
+    if date_to:
+        count_stmt = count_stmt.where(GeneralLedger.accounting_date <= date_to)
+    if voucher_type:
+        count_stmt = count_stmt.where(GeneralLedger.voucher_type == voucher_type)
+    if search:
+        search_pattern = f"%{search}%"
+        count_stmt = count_stmt.where(
+            or_(
+                GeneralLedger.description.ilike(search_pattern),
+                GeneralLedger.voucher_number.ilike(search_pattern),
+                GeneralLedger.external_reference.ilike(search_pattern)
+            )
+        )
+    
+    total_result = await db.execute(count_stmt)
+    total_count = total_result.scalar() or 0
     
     # Apply pagination
     query = query.limit(limit).offset(offset)
@@ -97,7 +134,7 @@ async def get_voucher_journal(
         total_debit = sum(line.debit_amount for line in lines)
         total_credit = sum(line.credit_amount for line in lines)
         
-        # Apply amount filters if specified
+        # Apply amount filters if specified (after loading, since we need the lines)
         if amount_min is not None and float(total_debit) < amount_min:
             continue
         if amount_max is not None and float(total_debit) > amount_max:
@@ -111,12 +148,14 @@ async def get_voucher_journal(
         
         journal_entries.append(voucher_dict)
     
+    page_number = (offset // limit) + 1 if limit > 0 else 1
+    
     return {
-        "entries": journal_entries,
-        "total_count": total_count,
-        "returned_count": len(journal_entries),
+        "items": journal_entries,
+        "total": total_count,
         "limit": limit,
         "offset": offset,
+        "page_number": page_number
     }
 
 

@@ -28,9 +28,9 @@ class DemoResetService:
     async def get_demo_tenant(self) -> Tenant | None:
         """Get the demo tenant"""
         result = await self.db.execute(
-            select(Tenant).where(Tenant.is_demo == True)
+            select(Tenant).where(Tenant.is_demo == True).limit(1)
         )
-        return result.scalar_one_or_none()
+        return result.scalars().first()
     
     async def get_demo_stats(self) -> dict:
         """Get current demo environment statistics"""

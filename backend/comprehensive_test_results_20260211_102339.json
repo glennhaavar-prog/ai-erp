@@ -1,0 +1,167 @@
+{
+  "kontaktregister": {
+    "passed": 0,
+    "failed": 5,
+    "tests": [
+      {
+        "test": "Create Supplier",
+        "status": "\u274c FAIL",
+        "details": "Expecting value: line 1 column 3 (char 2)",
+        "response": null
+      },
+      {
+        "test": "Create Customer",
+        "status": "\u274c FAIL",
+        "details": "Expecting value: line 1 column 3 (char 2)",
+        "response": null
+      },
+      {
+        "test": "Duplicate Validation",
+        "status": "\u274c FAIL",
+        "details": "Expecting value: line 1 column 3 (char 2)",
+        "response": null
+      },
+      {
+        "test": "List Suppliers",
+        "status": "\u274c FAIL",
+        "details": "Expecting value: line 1 column 3 (char 2)",
+        "response": null
+      },
+      {
+        "test": "List Customers",
+        "status": "\u274c FAIL",
+        "details": "Expecting value: line 1 column 3 (char 2)",
+        "response": null
+      }
+    ]
+  },
+  "firmainnstillinger": {
+    "passed": 5,
+    "failed": 0,
+    "tests": [
+      {
+        "test": "GET Settings",
+        "status": "\u2705 PASS",
+        "details": "Retrieved settings with all 6 sections",
+        "response": null
+      },
+      {
+        "test": "Full Update",
+        "status": "\u2705 PASS",
+        "details": "All 6 sections updated successfully",
+        "response": null
+      },
+      {
+        "test": "Partial Update",
+        "status": "\u2705 PASS",
+        "details": "Only accountant section updated, others preserved",
+        "response": null
+      },
+      {
+        "test": "Invalid Client",
+        "status": "\u2705 PASS",
+        "details": "Correctly returned 404 for non-existent client",
+        "response": null
+      },
+      {
+        "test": "All 6 Sections",
+        "status": "\u2705 PASS",
+        "details": "All required sections present",
+        "response": null
+      }
+    ]
+  },
+  "\u00e5pningsbalanse": {
+    "passed": 1,
+    "failed": 3,
+    "tests": [
+      {
+        "test": "Import Balanced",
+        "status": "\u274c FAIL",
+        "details": "Status 201",
+        "response": {
+          "id": "0c61b543-acd9-4d2c-b4ae-c75736923d34",
+          "client_id": "b3776033-40e5-42e2-ab7b-b1df97062d0c",
+          "import_date": "2024-01-01",
+          "fiscal_year": "2024",
+          "description": "Test Balanced Opening Balance",
+          "status": "draft",
+          "is_balanced": false,
+          "balance_difference": "0.00",
+          "bank_balance_verified": false,
+          "total_debit": "0.00",
+          "total_credit": "0.00",
+          "line_count": 4,
+          "lines": null,
+          "validation_errors": null,
+          "bank_balance_errors": null,
+          "missing_accounts": null,
+          "original_filename": null,
+          "created_at": "2026-02-11T10:23:39.147793",
+          "imported_at": null,
+          "journal_entry_id": null
+        }
+      },
+      {
+        "test": "Unbalanced Validation",
+        "status": "\u274c FAIL",
+        "details": "Status 201",
+        "response": {
+          "id": "65c879f7-5fda-40b8-a354-a7eeef4ffcfc",
+          "client_id": "b3776033-40e5-42e2-ab7b-b1df97062d0c",
+          "import_date": "2024-01-01",
+          "fiscal_year": "2024",
+          "description": "Test Unbalanced - Should Fail",
+          "status": "draft",
+          "is_balanced": false,
+          "balance_difference": "0.00",
+          "bank_balance_verified": false,
+          "total_debit": "0.00",
+          "total_credit": "0.00",
+          "line_count": 2,
+          "lines": null,
+          "validation_errors": null,
+          "bank_balance_errors": null,
+          "missing_accounts": null,
+          "original_filename": null,
+          "created_at": "2026-02-11T10:23:39.165361",
+          "imported_at": null,
+          "journal_entry_id": null
+        }
+      },
+      {
+        "test": "Bank Mismatch Validation",
+        "status": "\u274c FAIL",
+        "details": "Status 201",
+        "response": {
+          "id": "4e4be6e1-b48e-4403-9b87-55319966d824",
+          "client_id": "b3776033-40e5-42e2-ab7b-b1df97062d0c",
+          "import_date": "2024-01-01",
+          "fiscal_year": "2024",
+          "description": "Test Bank Mismatch",
+          "status": "draft",
+          "is_balanced": false,
+          "balance_difference": "0.00",
+          "bank_balance_verified": false,
+          "total_debit": "0.00",
+          "total_credit": "0.00",
+          "line_count": 2,
+          "lines": null,
+          "validation_errors": null,
+          "bank_balance_errors": null,
+          "missing_accounts": null,
+          "original_filename": null,
+          "created_at": "2026-02-11T10:23:39.177518",
+          "imported_at": null,
+          "journal_entry_id": null
+        }
+      },
+      {
+        "test": "List Opening Balances",
+        "status": "\u2705 PASS",
+        "details": "Found 3 opening balance records",
+        "response": null
+      }
+    ]
+  }
+}

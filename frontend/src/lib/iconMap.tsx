@@ -39,6 +39,7 @@ import {
   ArrowRight,
   Download,
   Upload,
+  Shield,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -81,6 +82,7 @@ export const iconMap: Record<string, LucideIcon> = {
   arrowRight: ArrowRight,
   download: Download,
   upload: Upload,
+  shield: Shield,
 };
 
 export type IconName = keyof typeof iconMap;

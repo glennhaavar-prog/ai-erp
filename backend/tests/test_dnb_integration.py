@@ -2,7 +2,7 @@
 Tests for DNB Open Banking integration
 """
 import pytest
-from datetime import datetime, date, timedelta
+from datetime import datetime, date, timedelta, timezone
 from uuid import uuid4
 from unittest.mock import AsyncMock, patch, MagicMock
 
@@ -23,12 +23,14 @@ def mock_oauth_client():
         "access_token": "test_access_token",
         "refresh_token": "test_refresh_token",
         "expires_in": 3600,
+        "expires_at": (datetime.now(timezone.utc) + timedelta(seconds=3600)).isoformat(),
         "token_type": "Bearer",
         "scope": "psd2:accounts:read psd2:transactions:read"
     }
     client.refresh_access_token.return_value = {
         "access_token": "new_access_token",
-        "expires_in": 3600
+        "expires_in": 3600,
+        "expires_at": (datetime.now(timezone.utc) + timedelta(seconds=3600)).isoformat()
     }
     return client
 

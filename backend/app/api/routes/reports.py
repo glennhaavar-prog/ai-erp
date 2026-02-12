@@ -14,6 +14,17 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_db
 from app.models.general_ledger import GeneralLedger, GeneralLedgerLine
 from app.models.chart_of_accounts import Account
+from app.models.client import Client
+from app.utils.export_utils import (
+    generate_pdf_saldobalanse,
+    generate_excel_saldobalanse,
+    generate_pdf_resultat,
+    generate_excel_resultat,
+    generate_pdf_balanse,
+    generate_excel_balanse,
+    generate_pdf_hovedbok,
+    generate_excel_hovedbok,
+)
 
 router = APIRouter(prefix="/api/reports", tags=["reports"])
 
@@ -506,3 +517,203 @@ async def get_hovedbok(
         "limit": limit,
         "offset": offset
     }
+
+
+# ==================== EXPORT ENDPOINTS ====================
+# PDF and Excel export for all reports
+
+async def get_client_name(client_id: UUID, db: AsyncSession) -> str:
+    """Helper function to get client name"""
+    result = await db.execute(select(Client).where(Client.id == client_id))
+    client = result.scalar_one_or_none()
+    if not client:
+        raise HTTPException(status_code=404, detail=f"Client {client_id} not found")
+    return client.name
+
+
+@router.get("/saldobalanse/pdf")
+async def export_saldobalanse_pdf(
+    client_id: UUID = Query(..., description="Client UUID"),
+    from_date: Optional[date] = Query(None, description="Fra-dato (inklusiv)"),
+    to_date: Optional[date] = Query(None, description="Til-dato (inklusiv)"),
+    account_from: Optional[str] = Query(None, description="Kontoområde fra"),
+    account_to: Optional[str] = Query(None, description="Kontoområde til"),
+    db: AsyncSession = Depends(get_db)
+):
+    """Export Saldobalanse as PDF"""
+    # Get data from existing endpoint logic
+    data = await get_saldobalanse(client_id, from_date, to_date, account_from, account_to, db)
+    client_name = await get_client_name(client_id, db)
+    
+    return generate_pdf_saldobalanse(data, client_name)
+
+
+@router.get("/saldobalanse/excel")
+async def export_saldobalanse_excel(
+    client_id: UUID = Query(..., description="Client UUID"),
+    from_date: Optional[date] = Query(None, description="Fra-dato (inklusiv)"),
+    to_date: Optional[date] = Query(None, description="Til-dato (inklusiv)"),
+    account_from: Optional[str] = Query(None, description="Kontoområde fra"),
+    account_to: Optional[str] = Query(None, description="Kontoområde til"),
+    db: AsyncSession = Depends(get_db)
+):
+    """Export Saldobalanse as Excel"""
+    data = await get_saldobalanse(client_id, from_date, to_date, account_from, account_to, db)
+    client_name = await get_client_name(client_id, db)
+    
+    return generate_excel_saldobalanse(data, client_name)
+
+
+@router.get("/resultat/pdf")
+async def export_resultat_pdf(
+    client_id: UUID = Query(..., description="Client UUID"),
+    from_date: Optional[date] = Query(None, description="Fra-dato (inklusiv)"),
+    to_date: Optional[date] = Query(None, description="Til-dato (inklusiv)"),
+    db: AsyncSession = Depends(get_db)
+):
+    """Export Resultatregnskap as PDF"""
+    data = await get_resultatregnskap(client_id, from_date, to_date, db)
+    client_name = await get_client_name(client_id, db)
+    
+    return generate_pdf_resultat(data, client_name)
+
+
+@router.get("/resultat/excel")
+async def export_resultat_excel(
+    client_id: UUID = Query(..., description="Client UUID"),
+    from_date: Optional[date] = Query(None, description="Fra-dato (inklusiv)"),
+    to_date: Optional[date] = Query(None, description="Til-dato (inklusiv)"),
+    db: AsyncSession = Depends(get_db)
+):
+    """Export Resultatregnskap as Excel"""
+    data = await get_resultatregnskap(client_id, from_date, to_date, db)
+    client_name = await get_client_name(client_id, db)
+    
+    return generate_excel_resultat(data, client_name)
+
+
+@router.get("/balanse/pdf")
+async def export_balanse_pdf(
+    client_id: UUID = Query(..., description="Client UUID"),
+    to_date: Optional[date] = Query(None, description="Balansedato (default = i dag)"),
+    db: AsyncSession = Depends(get_db)
+):
+    """Export Balanse as PDF"""
+    data = await get_balanse(client_id, to_date, db)
+    client_name = await get_client_name(client_id, db)
+    
+    return generate_pdf_balanse(data, client_name)
+
+
+@router.get("/balanse/excel")
+async def export_balanse_excel(
+    client_id: UUID = Query(..., description="Client UUID"),
+    to_date: Optional[date] = Query(None, description="Balansedato (default = i dag)"),
+    db: AsyncSession = Depends(get_db)
+):
+    """Export Balanse as Excel"""
+    data = await get_balanse(client_id, to_date, db)
+    client_name = await get_client_name(client_id, db)
+    
+    return generate_excel_balanse(data, client_name)
+
+
+@router.get("/hovedbok/pdf")
+async def export_hovedbok_pdf(
+    client_id: UUID = Query(..., description="Client UUID"),
+    account_number: Optional[str] = Query(None, description="Filtrer på enkeltkonto"),
+    account_from: Optional[str] = Query(None, description="Kontoområde fra"),
+    account_to: Optional[str] = Query(None, description="Kontoområde til"),
+    from_date: Optional[date] = Query(None, description="Fra-dato (inklusiv)"),
+    to_date: Optional[date] = Query(None, description="Til-dato (inklusiv)"),
+    limit: int = Query(1000, description="Max antall posteringer"),
+    offset: int = Query(0, description="Offset for paginering"),
+    db: AsyncSession = Depends(get_db)
+):
+    """Export Hovedbok as PDF"""
+    data = await get_hovedbok(client_id, account_number, account_from, account_to, 
+                              from_date, to_date, limit, offset, db)
+    client_name = await get_client_name(client_id, db)
+    
+    return generate_pdf_hovedbok(data, client_name)
+
+
+@router.get("/hovedbok/excel")
+async def export_hovedbok_excel(
+    client_id: UUID = Query(..., description="Client UUID"),
+    account_number: Optional[str] = Query(None, description="Filtrer på enkeltkonto"),
+    account_from: Optional[str] = Query(None, description="Kontoområde fra"),
+    account_to: Optional[str] = Query(None, description="Kontoområde til"),
+    from_date: Optional[date] = Query(None, description="Fra-dato (inklusiv)"),
+    to_date: Optional[date] = Query(None, description="Til-dato (inklusiv)"),
+    limit: int = Query(1000, description="Max antall posteringer"),
+    offset: int = Query(0, description="Offset for paginering"),
+    db: AsyncSession = Depends(get_db)
+):
+    """Export Hovedbok as Excel"""
+    data = await get_hovedbok(client_id, account_number, account_from, account_to, 
+                              from_date, to_date, limit, offset, db)
+    client_name = await get_client_name(client_id, db)
+    
+    return generate_excel_hovedbok(data, client_name)
+
+
+# === ALIASES FOR RESKONTRO ENDPOINTS (Frontend compatibility) ===
+from fastapi.responses import RedirectResponse
+
+@router.get("/leverandor-reskontro/")
+async def leverandor_reskontro_alias(
+    client_id: UUID = Query(...),
+    status: Optional[str] = Query(None),
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
+    supplier_id: Optional[UUID] = None
+):
+    """
+    Alias for supplier-ledger endpoint (Leverandørreskontro).
+    Redirects to /supplier-ledger/
+    """
+    from starlette.datastructures import QueryParams
+    params = {
+        "client_id": str(client_id),
+    }
+    if status:
+        params["status"] = status
+    if date_from:
+        params["date_from"] = str(date_from)
+    if date_to:
+        params["date_to"] = str(date_to)
+    if supplier_id:
+        params["supplier_id"] = str(supplier_id)
+    
+    query_string = "&".join([f"{k}={v}" for k, v in params.items()])
+    return RedirectResponse(url=f"/supplier-ledger/?{query_string}", status_code=307)
+
+
+@router.get("/kunde-reskontro/")
+async def kunde_reskontro_alias(
+    client_id: UUID = Query(...),
+    status: Optional[str] = Query(None),
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
+    customer_id: Optional[UUID] = None
+):
+    """
+    Alias for customer-ledger endpoint (Kundereskontro).
+    Redirects to /customer-ledger/
+    """
+    from starlette.datastructures import QueryParams
+    params = {
+        "client_id": str(client_id),
+    }
+    if status:
+        params["status"] = status
+    if date_from:
+        params["date_from"] = str(date_from)
+    if date_to:
+        params["date_to"] = str(date_to)
+    if customer_id:
+        params["customer_id"] = str(customer_id)
+    
+    query_string = "&".join([f"{k}={v}" for k, v in params.items()])
+    return RedirectResponse(url=f"/customer-ledger/?{query_string}", status_code=307)

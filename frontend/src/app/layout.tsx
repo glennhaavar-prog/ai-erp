@@ -6,6 +6,9 @@ import { ClientProvider } from '@/contexts/ClientContext';
 import { ViewModeProvider } from '@/contexts/ViewModeContext';
 import { TenantProvider } from '@/contexts/TenantContext';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { GlobalSearch } from '@/components/GlobalSearch';
+import { KeyboardShortcutsProvider } from '@/components/KeyboardShortcutsHelp';
+import { Toaster } from 'sonner';
 
 export const metadata: Metadata = {
   title: 'Kontali ERP - AI-drevet Regnskapsautomatisering',
@@ -28,8 +31,12 @@ export default function RootLayout({
           <TenantProvider>
             <ViewModeProvider>
               <ClientProvider>
-                <DemoBanner />
-                <AppLayout>{children}</AppLayout>
+                <KeyboardShortcutsProvider>
+                  <DemoBanner />
+                  <AppLayout>{children}</AppLayout>
+                  <GlobalSearch />
+                  <Toaster position="top-right" />
+                </KeyboardShortcutsProvider>
               </ClientProvider>
             </ViewModeProvider>
           </TenantProvider>

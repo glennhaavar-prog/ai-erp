@@ -16,6 +16,7 @@ import uuid
 from app.database import get_db
 from app.models.general_ledger import GeneralLedger, GeneralLedgerLine
 from app.models.client import Client
+from app.services.ledger_sync_service import sync_ledgers_for_journal_entry
 
 router = APIRouter(prefix="/api/journal-entries", tags=["Journal Entries"])
 
@@ -152,6 +153,7 @@ async def create_journal_entry(
             )
         )
         .order_by(GeneralLedger.voucher_number.desc())
+        .limit(1)
     )
     last_entry = result.scalar_one_or_none()
     
@@ -200,9 +202,17 @@ async def create_journal_entry(
         db.add(gl_line)
         gl_lines.append(gl_line)
     
+    # Sync supplier/customer ledgers BEFORE commit
+    # This ensures ledger entries are created in same transaction
+    sync_results = await sync_ledgers_for_journal_entry(db, gl_entry, gl_lines)
+    
     # Commit transaction
     await db.commit()
     await db.refresh(gl_entry)
+    
+    # Log any sync errors (but don't fail the request)
+    if sync_results.get("errors"):
+        print(f"⚠️ Ledger sync warnings: {sync_results['errors']}")
     
     # Reload with lines
     result = await db.execute(

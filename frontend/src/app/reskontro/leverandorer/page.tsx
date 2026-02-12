@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { AlertCircle, FileText, TrendingUp, Calendar, DollarSign } from "lucide-react";
+import { ReportExportButtons } from "@/components/ReportExportButtons";
 
 interface SupplierLedgerEntry {
   id: string;
@@ -126,11 +127,17 @@ export default function SupplierLedgerPage() {
 
   return (
     <div className="container mx-auto p-6">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-2">Leverandørreskontro</h1>
-        <p className="text-muted-foreground">
-          Oversikt over leverandørfakturaer og betalingsstatus
-        </p>
+      <div className="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold mb-2">Leverandørreskontro</h1>
+          <p className="text-muted-foreground">
+            Oversikt over leverandørfakturaer og betalingsstatus
+          </p>
+        </div>
+        <ReportExportButtons
+          reportType="supplier-ledger"
+          clientId={selectedClient?.id || ""}
+        />
       </div>
 
       {/* Summary Cards */}

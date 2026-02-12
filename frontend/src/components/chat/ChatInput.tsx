@@ -1,138 +1,138 @@
-"use client";
+'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Command } from 'lucide-react';
+import { Send, Loader2, Paperclip, X } from 'lucide-react';
+import FileUpload, { UploadedFile } from './FileUpload';
 
 interface ChatInputProps {
-  onSend: (message: string) => void;
-  disabled?: boolean;
+  onSend: (message: string, files: UploadedFile[]) => void;
+  isLoading: boolean;
+  placeholder?: string;
 }
 
-const SUGGESTIONS = [
-  'Vis meg fakturaer som venter',
-  'Bokfør faktura INV-12345',
-  'Hva er status på alle fakturaer?',
-  'Vis fakturaer med lav confidence',
-  'help'
-];
+export default function ChatInput({ 
+  onSend, 
+  isLoading,
+  placeholder = "Skriv en melding..."
+}: ChatInputProps) {
+  const [input, setInput] = useState('');
+  const [files, setFiles] = useState<UploadedFile[]>([]);
+  const [showFileUpload, setShowFileUpload] = useState(false);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-export default function ChatInput({ onSend, disabled }: ChatInputProps) {
-  const [message, setMessage] = useState('');
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const [selectedSuggestion, setSelectedSuggestion] = useState(-1);
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  // Filter suggestions based on input
-  const filteredSuggestions = SUGGESTIONS.filter(s => 
-    s.toLowerCase().includes(message.toLowerCase())
-  );
+  // Auto-resize textarea
+  useEffect(() => {
+    const textarea = textareaRef.current;
+    if (textarea) {
+      textarea.style.height = 'auto';
+      textarea.style.height = Math.min(textarea.scrollHeight, 200) + 'px';
+    }
+  }, [input]);
 
   const handleSend = () => {
-    if (!message.trim() || disabled) return;
-    
-    onSend(message);
-    setMessage('');
-    setShowSuggestions(false);
-    setSelectedSuggestion(-1);
+    if ((!input.trim() && files.length === 0) || isLoading) return;
+
+    onSend(input, files);
+    setInput('');
+    setFiles([]);
+    setShowFileUpload(false);
+
+    // Reset textarea height
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+    }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSend();
-    } else if (e.key === '/') {
-      if (message === '') {
-        e.preventDefault();
-        setShowSuggestions(true);
-      }
-    } else if (e.key === 'Escape') {
-      setShowSuggestions(false);
-    } else if (showSuggestions && filteredSuggestions.length > 0) {
-      if (e.key === 'ArrowDown') {
-        e.preventDefault();
-        setSelectedSuggestion(prev => 
-          prev < filteredSuggestions.length - 1 ? prev + 1 : 0
-        );
-      } else if (e.key === 'ArrowUp') {
-        e.preventDefault();
-        setSelectedSuggestion(prev => 
-          prev > 0 ? prev - 1 : filteredSuggestions.length - 1
-        );
-      } else if (e.key === 'Tab' || e.key === 'Enter') {
-        if (selectedSuggestion >= 0) {
-          e.preventDefault();
-          setMessage(filteredSuggestions[selectedSuggestion]);
-          setShowSuggestions(false);
-          setSelectedSuggestion(-1);
-        }
-      }
     }
   };
 
-  const selectSuggestion = (suggestion: string) => {
-    setMessage(suggestion);
-    setShowSuggestions(false);
-    setSelectedSuggestion(-1);
-    inputRef.current?.focus();
+  const toggleFileUpload = () => {
+    setShowFileUpload(!showFileUpload);
   };
-
-  useEffect(() => {
-    if (message === '/') {
-      setShowSuggestions(true);
-    } else if (message === '') {
-      setShowSuggestions(false);
-    }
-  }, [message]);
 
   return (
-    <div className="border-t border-gray-200 p-4 bg-white rounded-b-2xl relative">
-      {/* Suggestions dropdown */}
-      {showSuggestions && filteredSuggestions.length > 0 && (
-        <div className="absolute bottom-full left-0 right-0 mb-2 mx-4 bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
-          <div className="p-2 border-b border-gray-100 text-xs text-gray-500 flex items-center gap-1">
-            <Command className="w-3 h-3" />
-            Kommandoer
-          </div>
-          {filteredSuggestions.map((suggestion, idx) => (
-            <button
-              key={idx}
-              onClick={() => selectSuggestion(suggestion)}
-              className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-50 transition-colors cursor-pointer ${
-                selectedSuggestion === idx ? 'bg-blue-50 text-blue-600' : 'text-gray-700'
-              }`}
-            >
-              {suggestion}
-            </button>
-          ))}
-        </div>
+    <div className="space-y-3">
+      {/* File upload section */}
+      {showFileUpload && (
+        <FileUpload
+          files={files}
+          onFilesChange={setFiles}
+        />
       )}
 
-      {/* Input field */}
-      <div className="flex space-x-2">
-        <input
-          ref={inputRef}
-          type="text"
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="Skriv melding... (/ for kommandoer)"
-          className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-          disabled={disabled}
-        />
+      {/* Input area */}
+      <div className="flex gap-2">
+        {/* Attachment button */}
+        <button
+          onClick={toggleFileUpload}
+          disabled={isLoading}
+          className={`
+            px-3 py-3 rounded-xl transition-colors flex-shrink-0
+            ${showFileUpload || files.length > 0
+              ? 'bg-primary text-primary-foreground'
+              : 'bg-muted text-muted-foreground hover:bg-muted/80'
+            }
+            disabled:opacity-50 disabled:cursor-not-allowed
+          `}
+          title="Vedlegg"
+        >
+          {files.length > 0 ? (
+            <div className="relative">
+              <Paperclip className="w-5 h-5" />
+              <div className="absolute -top-1 -right-1 w-4 h-4 bg-primary-foreground text-primary rounded-full flex items-center justify-center text-xs font-bold">
+                {files.length}
+              </div>
+            </div>
+          ) : (
+            <Paperclip className="w-5 h-5" />
+          )}
+        </button>
+
+        {/* Text input */}
+        <div className="flex-1 relative">
+          <textarea
+            ref={textareaRef}
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder={placeholder}
+            disabled={isLoading}
+            rows={1}
+            className="
+              w-full px-4 py-3 bg-background border border-border rounded-xl 
+              focus:outline-none focus:ring-2 focus:ring-primary 
+              disabled:opacity-50 disabled:cursor-not-allowed 
+              text-sm resize-none overflow-hidden
+            "
+          />
+        </div>
+
+        {/* Send button */}
         <button
           onClick={handleSend}
-          disabled={disabled || !message.trim()}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed cursor-pointer transition-colors flex items-center gap-2"
+          disabled={(!input.trim() && files.length === 0) || isLoading}
+          className="
+            px-6 py-3 bg-primary text-primary-foreground rounded-xl 
+            hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed 
+            transition-colors flex items-center gap-2 font-medium flex-shrink-0
+          "
         >
-          <Send className="w-4 h-4" />
-          <span className="hidden sm:inline">Send</span>
+          {isLoading ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" />
+              <span className="hidden sm:inline">Sender...</span>
+            </>
+          ) : (
+            <>
+              <Send className="w-4 h-4" />
+              <span className="hidden sm:inline">Send</span>
+            </>
+          )}
         </button>
-      </div>
-
-      {/* Hint */}
-      <div className="text-xs text-gray-400 mt-2 flex items-center gap-1">
-        <Command className="w-3 h-3" />
-        Trykk <kbd className="px-1 py-0.5 bg-gray-100 rounded text-xs">/</kbd> for kommandoer
       </div>
     </div>
   );

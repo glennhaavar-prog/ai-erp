@@ -1,7 +1,8 @@
 """
 Task Auto-Marking Service - AI automatisk markering av oppgaver
 """
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 from typing import Optional
 from uuid import UUID
 from datetime import datetime
@@ -22,10 +23,10 @@ class TaskAutoMarkingService:
     - Alle fakturaer bokført → mark "Bokføring inngående fakturaer" complete
     """
     
-    def __init__(self, db: Session):
+    def __init__(self, db: AsyncSession):
         self.db = db
     
-    def mark_bank_reconciliation_complete(
+    async def mark_bank_reconciliation_complete(
         self,
         client_id: UUID,
         period_year: int,
@@ -47,7 +48,7 @@ class TaskAutoMarkingService:
             Updated task or None if not found
         """
         # Find task
-        task = self._find_task(
+        task = await self._find_task(
             client_id=client_id,
             period_year=period_year,
             period_month=period_month,
@@ -87,12 +88,12 @@ class TaskAutoMarkingService:
         )
         self.db.add(audit_log)
         
-        self.db.commit()
-        self.db.refresh(task)
+        await self.db.commit()
+        await self.db.refresh(task)
         
         return task
     
-    def mark_customer_receivables_complete(
+    async def mark_customer_receivables_complete(
         self,
         client_id: UUID,
         period_year: int,
@@ -101,7 +102,7 @@ class TaskAutoMarkingService:
         documentation_url: str
     ) -> Optional[Task]:
         """Mark customer receivables (1500) reconciliation complete"""
-        task = self._find_task(
+        task = await self._find_task(
             client_id=client_id,
             period_year=period_year,
             period_month=period_month,
@@ -111,14 +112,14 @@ class TaskAutoMarkingService:
         if not task:
             return None
         
-        return self._mark_reconciliation_task(
+        return await self._mark_reconciliation_task(
             task=task,
             difference=difference,
             documentation_url=documentation_url,
             task_description="Kundefordringer (1500)"
         )
     
-    def mark_vendor_payables_complete(
+    async def mark_vendor_payables_complete(
         self,
         client_id: UUID,
         period_year: int,
@@ -127,7 +128,7 @@ class TaskAutoMarkingService:
         documentation_url: str
     ) -> Optional[Task]:
         """Mark vendor payables (2400) reconciliation complete"""
-        task = self._find_task(
+        task = await self._find_task(
             client_id=client_id,
             period_year=period_year,
             period_month=period_month,
@@ -137,14 +138,14 @@ class TaskAutoMarkingService:
         if not task:
             return None
         
-        return self._mark_reconciliation_task(
+        return await self._mark_reconciliation_task(
             task=task,
             difference=difference,
             documentation_url=documentation_url,
             task_description="Leverandørgjeld (2400)"
         )
     
-    def mark_accruals_complete(
+    async def mark_accruals_complete(
         self,
         client_id: UUID,
         period_year: int,
@@ -153,7 +154,7 @@ class TaskAutoMarkingService:
         documentation_url: str
     ) -> Optional[Task]:
         """Mark accruals/prepayments reconciliation complete"""
-        task = self._find_task(
+        task = await self._find_task(
             client_id=client_id,
             period_year=period_year,
             period_month=period_month,
@@ -163,14 +164,14 @@ class TaskAutoMarkingService:
         if not task:
             return None
         
-        return self._mark_reconciliation_task(
+        return await self._mark_reconciliation_task(
             task=task,
             difference=difference,
             documentation_url=documentation_url,
             task_description="Periodiseringer"
         )
     
-    def mark_invoice_booking_complete(
+    async def mark_invoice_booking_complete(
         self,
         client_id: UUID,
         period_year: int,
@@ -183,7 +184,7 @@ class TaskAutoMarkingService:
         
         Betingelse: Ingen fakturaer i Review Queue
         """
-        task = self._find_task(
+        task = await self._find_task(
             client_id=client_id,
             period_year=period_year,
             period_month=period_month,
@@ -222,12 +223,12 @@ class TaskAutoMarkingService:
         )
         self.db.add(audit_log)
         
-        self.db.commit()
-        self.db.refresh(task)
+        await self.db.commit()
+        await self.db.refresh(task)
         
         return task
     
-    def _find_task(
+    async def _find_task(
         self,
         client_id: UUID,
         period_year: int,
@@ -235,16 +236,19 @@ class TaskAutoMarkingService:
         task_name_pattern: str
     ) -> Optional[Task]:
         """Find task by client, period, and name pattern"""
-        task = self.db.query(Task).filter(
+        query = select(Task).where(
             Task.client_id == client_id,
             Task.period_year == period_year,
             Task.period_month == period_month,
             Task.name.ilike(f"%{task_name_pattern}%")
-        ).first()
+        )
+        
+        result = await self.db.execute(query)
+        task = result.scalars().first()
         
         return task
     
-    def _mark_reconciliation_task(
+    async def _mark_reconciliation_task(
         self,
         task: Task,
         difference: float,
@@ -282,7 +286,7 @@ class TaskAutoMarkingService:
         )
         self.db.add(audit_log)
         
-        self.db.commit()
-        self.db.refresh(task)
+        await self.db.commit()
+        await self.db.refresh(task)
         
         return task

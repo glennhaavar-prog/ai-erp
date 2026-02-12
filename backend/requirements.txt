@@ -85,6 +85,7 @@ python-multipart==0.0.6
 openpyxl==3.1.5
 xlsxwriter==3.2.9
 et_xmlfile==2.0.0
+pandas==2.2.0
 
 # === PDF Processing ===
 PyPDF2==3.0.1
@@ -142,3 +143,7 @@ pygments==2.17.2
 # === Serialization ===
 packaging==24.0
 attrs==23.2.0
+
+# === Report Export (2026-02-11) ===
+weasyprint>=68.1
+openpyxl>=3.1.5

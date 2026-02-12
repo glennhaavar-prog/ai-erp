@@ -60,17 +60,30 @@ export const menuConfig: MenuCategory[] = [
         visibility: 'both',
       },
       {
-        id: 'banktransaksjoner',
-        label: 'Banktransaksjoner',
-        icon: 'building2',
-        route: '/bank',
-        visibility: 'both',
-      },
-      {
         id: 'kundefakturaer',
         label: 'Kundefakturaer',
         icon: 'fileText',
         route: '/customer-invoices',
+        visibility: 'both',
+      },
+    ],
+  },
+  {
+    id: 'import',
+    label: 'IMPORT',
+    items: [
+      {
+        id: 'banktransaksjoner',
+        label: 'Banktransaksjoner',
+        icon: 'upload',
+        route: '/import/banktransaksjoner',
+        visibility: 'both',
+      },
+      {
+        id: 'bankintegrasjon',
+        label: 'Bankintegrasjon (Tink)',
+        icon: 'plug',
+        route: '/import/bankintegrasjon',
         visibility: 'both',
       },
     ],
@@ -153,10 +166,9 @@ export const menuConfig: MenuCategory[] = [
         id: 'oppgaver',
         label: 'Oppgaver',
         icon: 'checkCircle2',
-        route: '/clients/CURRENT_CLIENT/oppgaver',
+        route: '/oppgaver',
         visibility: 'client',
         disabled: false,
-        tooltip: 'Oppgaveadministrasjon',
       },
     ],
   },
@@ -201,19 +213,17 @@ export const menuConfig: MenuCategory[] = [
         id: 'kunder',
         label: 'Kunder',
         icon: 'user',
-        route: '/kunder',
+        route: '/kontakter/kunder',
         visibility: 'client',
-        disabled: true,
-        tooltip: 'Kommer snart',
+        disabled: false,
       },
       {
         id: 'leverandorer',
         label: 'Leverandører',
         icon: 'building',
-        route: '/leverandorer',
+        route: '/kontakter/leverandorer',
         visibility: 'client',
-        disabled: true,
-        tooltip: 'Kommer snart',
+        disabled: false,
       },
       {
         id: 'ansatte',
@@ -256,6 +266,28 @@ export const menuConfig: MenuCategory[] = [
         visibility: 'client',
       },
       {
+        id: 'firmainnstillinger',
+        label: 'Firmainnstillinger',
+        icon: 'settings',
+        route: '/innstillinger',
+        visibility: 'client',
+      },
+      {
+        id: 'aapningsbalanse',
+        label: 'Åpningsbalanse',
+        icon: 'clipboardList',
+        route: '/aapningsbalanse',
+        visibility: 'client',
+      },
+      {
+        id: 'klienter',
+        label: 'Klienter',
+        icon: 'building',
+        route: '/innstillinger/klienter',
+        visibility: 'multi',
+        disabled: false,
+      },
+      {
         id: 'byrainnstillinger',
         label: 'Byråinnstillinger',
         icon: 'settings',
@@ -284,10 +316,42 @@ export const menuConfig: MenuCategory[] = [
       },
     ],
   },
+  {
+    id: 'verktoy',
+    label: 'VERKTØY',
+    items: [
+      {
+        id: 'ai-chat',
+        label: 'AI Chat',
+        icon: 'messageSquare',
+        route: '/chat',
+        visibility: 'both',
+        disabled: false,
+      },
+      {
+        id: 'nlq',
+        label: 'Spør data',
+        icon: 'search',
+        route: '/nlq',
+        visibility: 'both',
+        disabled: false,
+        tooltip: 'Naturlig språk spørring - still spørsmål om regnskapsdata',
+      },
+      {
+        id: 'tillitsmodell',
+        label: 'Tillitsmodell',
+        icon: 'shield',
+        route: '/trust',
+        visibility: 'client',
+        disabled: false,
+        tooltip: 'Oversikt og kontroll - ingenting forsvinner',
+      },
+    ],
+  },
 ];
 
 /**
- * Standalone Chat item (not in any category)
+ * Standalone Chat item (not in any category) - kept for backwards compatibility
  */
 export const chatMenuItem: MenuItem = {
   id: 'chat',

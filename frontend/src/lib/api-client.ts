@@ -217,3 +217,152 @@ export async function rejectReviewItem(itemId: string): Promise<void> {
     throw new APIError(`Failed to reject item: ${response.statusText}`, response.status);
   }
 }
+
+// ============================================================================
+// Auto-Booking API
+// ============================================================================
+
+export interface AutoBookingStatsData {
+  processed_count: number;
+  auto_booked_count: number;
+  review_queue_count: number;
+  success_rate: number;
+  escalation_rate: number;
+  avg_confidence_auto_booked: number | null;
+  avg_confidence_escalated: number | null;
+  false_positives: number;
+  false_positive_rate: number;
+  period_start: string;
+  period_end: string;
+}
+
+export interface AutoBookingStatsResponse {
+  success: boolean;
+  stats: AutoBookingStatsData;
+  skattefunn_compliant: boolean;
+  message?: string;
+}
+
+export interface AutoBookingStatusData {
+  pending_invoices: number;
+  auto_booked_today: number;
+  in_review_queue: number;
+  processing_available: boolean;
+}
+
+export interface AutoBookingStatusResponse {
+  success: boolean;
+  status: AutoBookingStatusData;
+}
+
+export interface AutoBookingHealthResponse {
+  success: boolean;
+  service: string;
+  status: string;
+  timestamp: string;
+}
+
+export interface ProcessBatchResponse {
+  success: boolean;
+  processed_count: number;
+  auto_booked_count: number;
+  review_queue_count: number;
+  failed_count: number;
+  results: Array<{
+    invoice_id: string;
+    status: string;
+    error?: string;
+  }>;
+}
+
+/**
+ * Fetch auto-booking statistics
+ */
+export async function fetchAutoBookingStats(
+  clientId?: string,
+  days: number = 30
+): Promise<AutoBookingStatsResponse> {
+  const url = new URL(`${API_BASE_URL}/api/auto-booking/stats`);
+  if (clientId) {
+    url.searchParams.append('client_id', clientId);
+  }
+  url.searchParams.append('days', days.toString());
+
+  const response = await fetch(url.toString(), {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+
+  return handleResponse<AutoBookingStatsResponse>(response);
+}
+
+/**
+ * Fetch current auto-booking status
+ */
+export async function fetchAutoBookingStatus(clientId?: string): Promise<AutoBookingStatusResponse> {
+  const url = new URL(`${API_BASE_URL}/api/auto-booking/status`);
+  if (clientId) {
+    url.searchParams.append('client_id', clientId);
+  }
+
+  const response = await fetch(url.toString(), {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+
+  return handleResponse<AutoBookingStatusResponse>(response);
+}
+
+/**
+ * Fetch auto-booking health check
+ */
+export async function fetchAutoBookingHealth(): Promise<AutoBookingHealthResponse> {
+  const response = await fetch(`${API_BASE_URL}/api/auto-booking/health`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+
+  return handleResponse<AutoBookingHealthResponse>(response);
+}
+
+/**
+ * Start batch auto-booking process
+ */
+export async function startAutoBookingBatch(
+  clientId?: string,
+  limit: number = 50
+): Promise<ProcessBatchResponse> {
+  const response = await fetch(`${API_BASE_URL}/api/auto-booking/process`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      client_id: clientId,
+      limit: limit,
+    }),
+  });
+
+  return handleResponse<ProcessBatchResponse>(response);
+}
+
+/**
+ * Process single invoice
+ */
+export async function processSingleInvoice(invoiceId: string): Promise<any> {
+  const response = await fetch(`${API_BASE_URL}/api/auto-booking/process-single`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ invoice_id: invoiceId }),
+  });
+
+  return handleResponse<any>(response);
+}

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import DateQuickPicker from "@/components/DateQuickPicker";
+import { ReportExportButtons } from "@/components/ReportExportButtons";
 
 interface BalanceItem {
   account_number: string;
@@ -120,7 +121,7 @@ export default function BalansePage() {
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
             Balanserapport
@@ -130,13 +131,20 @@ export default function BalansePage() {
           </p>
         </div>
 
-        {data.is_balanced && (
-          <div className="flex items-center gap-2 px-4 py-2 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
-            <span className="text-green-600 dark:text-green-400 text-sm font-medium">
-              ✓ Balanse OK
-            </span>
-          </div>
-        )}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+          {data.is_balanced && (
+            <div className="flex items-center gap-2 px-4 py-2 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+              <span className="text-green-600 dark:text-green-400 text-sm font-medium">
+                ✓ Balanse OK
+              </span>
+            </div>
+          )}
+          <ReportExportButtons
+            reportType="balanse"
+            clientId={clientId}
+            toDate={balanceDate}
+          />
+        </div>
       </div>
 
       {/* Date filter */}

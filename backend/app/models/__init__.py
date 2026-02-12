@@ -3,12 +3,14 @@ SQLAlchemy Models
 """
 from app.models.tenant import Tenant
 from app.models.client import Client
+from app.models.client_settings import ClientSettings
 from app.models.user import User
 from app.models.vendor import Vendor
 from app.models.vendor_invoice import VendorInvoice
 from app.models.customer_invoice import CustomerInvoice
 from app.models.bank_transaction import BankTransaction
 from app.models.bank_reconciliation import BankReconciliation
+from app.models.bank_connection import BankConnection
 from app.models.general_ledger import GeneralLedger, GeneralLedgerLine
 from app.models.chart_of_accounts import Account
 from app.models.account_balance import AccountBalance
@@ -31,16 +33,22 @@ from app.models.task import Task
 from app.models.task_audit_log import TaskAuditLog
 from app.models.supplier_ledger import SupplierLedger, SupplierLedgerTransaction
 from app.models.customer_ledger import CustomerLedger, CustomerLedgerTransaction
+from app.models.opening_balance import OpeningBalance, OpeningBalanceLine
+from app.models.supplier import Supplier, SupplierAuditLog
+from app.models.customer import Customer, CustomerAuditLog
+from app.models.currency_rate import CurrencyRate
 
 __all__ = [
     "Tenant",
     "Client",
+    "ClientSettings",
     "User",
     "Vendor",
     "VendorInvoice",
     "CustomerInvoice",
     "BankTransaction",
     "BankReconciliation",
+    "BankConnection",
     "GeneralLedger",
     "GeneralLedgerLine",
     "Account",
@@ -66,4 +74,11 @@ __all__ = [
     "SupplierLedgerTransaction",
     "CustomerLedger",
     "CustomerLedgerTransaction",
+    "OpeningBalance",
+    "OpeningBalanceLine",
+    "Supplier",
+    "SupplierAuditLog",
+    "Customer",
+    "CustomerAuditLog",
+    "CurrencyRate",
 ]

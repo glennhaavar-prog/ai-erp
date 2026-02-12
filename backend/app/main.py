@@ -12,7 +12,8 @@ from app.database import init_db, close_db
 from app.graphql.schema import schema
 from app.api.webhooks import ehf
 from app.api import chat
-from app.api.routes import review_queue, dashboard, reports, documents, accounts, audit, bank, customer_invoices, invoices, demo, chat_booking, saldobalanse, clients, accruals, copilot, nlq, period_close, bank_reconciliation, trust, income_statement, balance_sheet, journal_entries, auto_booking, tenants, tasks, supplier_ledger, customer_ledger, voucher_journal, test_ehf
+from app.api.routes import review_queue, dashboard, dashboard_metrics, reports, documents, accounts, audit, bank, customer_invoices, invoices, demo, chat_booking, saldobalanse, clients, client_settings, accruals, copilot, nlq, period_close, bank_reconciliation, trust, income_statement, balance_sheet, journal_entries, auto_booking, tenants, tasks, supplier_ledger, customer_ledger, voucher_journal, test_ehf, suppliers, customers, opening_balance, currencies, tink
+from app.api import ai_features
 from app.middleware.demo import DemoEnvironmentMiddleware
 
 # Setup logging
@@ -82,6 +83,9 @@ app.include_router(review_queue.router)
 # Trust Dashboard API
 app.include_router(dashboard.router)
 
+# Dashboard Metrics API (Main page comprehensive metrics - Task 2B)
+app.include_router(dashboard_metrics.router)
+
 # Reports API (Hovedbok and other reports)
 app.include_router(reports.router)
 
@@ -90,6 +94,9 @@ app.include_router(saldobalanse.router)
 
 # Clients API (List clients)
 app.include_router(clients.router)
+
+# Client Settings API (FIRMAINNSTILLINGER - Company settings per client)
+app.include_router(client_settings.router)
 
 # Tenants API (Get tenant information)
 app.include_router(tenants.router)
@@ -169,8 +176,26 @@ app.include_router(voucher_journal.router)
 from app.api.routes import dnb
 app.include_router(dnb.router)
 
+# Tink Bank Integration API (Multi-bank transaction import via Tink)
+app.include_router(tink.router)
+
 # EHF Test API (Test EHF invoice processing without webhook verification)
 app.include_router(test_ehf.router)
+
+# Supplier Contact Register API (KONTAKTREGISTER - Master data for suppliers)
+app.include_router(suppliers.router, prefix="/api/contacts/suppliers", tags=["Suppliers"])
+
+# Customer Contact Register API (KONTAKTREGISTER - Master data for customers)
+app.include_router(customers.router, prefix="/api/contacts/customers", tags=["Customers"])
+
+# Opening Balance API (ÅPNINGSBALANSE - Opening Balance Import)
+app.include_router(opening_balance.router)
+
+# Currency Exchange Rates API (Multi-currency support with auto-updates)
+app.include_router(currencies.router)
+
+# AI Features API (Smart categorization, anomaly detection, reconciliation, etc.)
+app.include_router(ai_features.router)
 
 
 # Health check endpoint

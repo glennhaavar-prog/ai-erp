@@ -96,11 +96,27 @@ async def import_bank_transactions(
 async def get_bank_transactions(
     client_id: UUID = Query(..., description="Client ID"),
     status: str = Query(None, description="Filter by status (unmatched, matched, reviewed, ignored)"),
-    limit: int = Query(100, le=500),
+    limit: int = Query(50, ge=1, le=500, description="Items per page (default: 50)"),
+    offset: int = Query(0, ge=0, description="Starting index (default: 0)"),
     db: AsyncSession = Depends(get_db)
 ) -> Dict[str, Any]:
     """
-    Get bank transactions for a client
+    Get bank transactions for a client with pagination
+    
+    Query params:
+    - client_id: Client ID (required)
+    - status: Filter by status (unmatched, matched, reviewed, ignored)
+    - limit: Items per page (default: 50, max: 500)
+    - offset: Starting index (default: 0)
+    
+    Returns:
+    {
+        "items": [...],
+        "total": int,
+        "limit": int,
+        "offset": int,
+        "page_number": int
+    }
     """
     
     query = select(BankTransaction).where(
@@ -110,14 +126,30 @@ async def get_bank_transactions(
     if status:
         query = query.where(BankTransaction.status == status)
     
-    query = query.order_by(BankTransaction.transaction_date.desc()).limit(limit)
+    # Get total count
+    count_query = select(func.count()).select_from(BankTransaction).where(
+        BankTransaction.client_id == client_id
+    )
+    if status:
+        count_query = count_query.where(BankTransaction.status == status)
+    
+    total_result = await db.execute(count_query)
+    total = total_result.scalar() or 0
+    
+    # Apply pagination
+    query = query.order_by(BankTransaction.transaction_date.desc()).limit(limit).offset(offset)
     
     result = await db.execute(query)
     transactions = result.scalars().all()
     
+    page_number = (offset // limit) + 1 if limit > 0 else 1
+    
     return {
-        "transactions": [t.to_dict() for t in transactions],
-        "total": len(transactions)
+        "items": [t.to_dict() for t in transactions],
+        "total": total,
+        "limit": limit,
+        "offset": offset,
+        "page_number": page_number
     }
 
 

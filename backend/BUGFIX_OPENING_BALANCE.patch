@@ -1,0 +1,28 @@
+--- app/api/routes/opening_balance.py.ORIGINAL	2026-02-11 10:26:00.000000000 +0000
++++ app/api/routes/opening_balance.py.FIXED	2026-02-11 10:26:30.000000000 +0000
+@@ -318,19 +318,23 @@
+     
+     db.add(opening_balance)
+     await db.flush()
+     
+     # Create lines
+     for idx, line_data in enumerate(request.lines, start=1):
+         line = OpeningBalanceLine(
+             id=uuid.uuid4(),
+             opening_balance_id=opening_balance.id,
+             line_number=idx,
+             account_number=line_data.account_number,
+             account_name=line_data.account_name,
+             debit_amount=line_data.debit,
+             credit_amount=line_data.credit,
+         )
+         db.add(line)
+     
++    # Flush lines to database before calculating totals
++    await db.flush()
++    
+     await db.commit()
+     await db.refresh(opening_balance)
+     
+     # Calculate totals
+     totals = await calculate_totals(opening_balance.id, db)

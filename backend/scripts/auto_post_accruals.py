@@ -18,7 +18,7 @@ from datetime import date, datetime
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.database import get_db_session
+from app.database import AsyncSessionLocal
 from app.services.accrual_service import AccrualService
 import logging
 
@@ -38,7 +38,7 @@ async def run_auto_post():
     
     try:
         # Get database session
-        async with get_db_session() as db:
+        async with AsyncSessionLocal() as db:
             service = AccrualService()
             
             # Auto-post all due accruals

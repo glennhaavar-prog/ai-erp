@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import DateQuickPicker from "@/components/DateQuickPicker";
+import { ReportExportButtons } from "@/components/ReportExportButtons";
 
 interface LineItem {
   account_number: string;
@@ -123,13 +124,21 @@ export default function ResultatPage() {
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-          Resultatregnskap
-        </h1>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-          Inntekter og kostnader {fromDate && toDate ? `${fromDate} - ${toDate}` : "alle perioder"}
-        </p>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+            Resultatregnskap
+          </h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            Inntekter og kostnader {fromDate && toDate ? `${fromDate} - ${toDate}` : "alle perioder"}
+          </p>
+        </div>
+        <ReportExportButtons
+          reportType="resultat"
+          clientId={clientId}
+          fromDate={fromDate}
+          toDate={toDate}
+        />
       </div>
 
       {/* Filters */}

@@ -232,7 +232,7 @@ export const IntegratedChatReview: React.FC = () => {
         // Use real API with conversation history
         const history = chatMessages
           .filter(msg => msg.role !== 'system')
-          .map(msg => ({ role: msg.role, content: msg.content }));
+          .map(msg => ({ role: msg.role as 'user' | 'assistant', content: msg.content }));
         
         const apiResponse = await chatApi.sendMessage(
           userMessage.content, 

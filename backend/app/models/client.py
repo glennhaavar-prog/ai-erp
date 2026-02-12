@@ -48,6 +48,11 @@ class Client(Base):
     client_number = Column(String(50), nullable=False)  # Sequential per tenant
     name = Column(String(255), nullable=False, index=True)
     org_number = Column(String(20), unique=True, nullable=False, index=True)
+    industry = Column(String(100), nullable=True)  # Industry sector
+    start_date = Column(String(10), nullable=True)  # Accounting start date (YYYY-MM-DD)
+    address = Column(String(500), nullable=True)  # Company address
+    contact_person = Column(String(200), nullable=True)  # Contact person name
+    contact_email = Column(String(255), nullable=True)  # Contact email
     
     # Integrations
     ehf_endpoint = Column(String(255), nullable=True)  # Pepol access point
@@ -57,6 +62,7 @@ class Client(Base):
     # Fiscal Setup
     fiscal_year_start = Column(Integer, default=1)  # Month (1=January)
     accounting_method = Column(String(20), default="accrual")  # accrual/cash
+    vat_registered = Column(Boolean, default=True)  # VAT registered
     vat_term = Column(String(20), default="bimonthly")  # monthly/bimonthly/annual
     base_currency = Column(String(3), default="NOK")
     
@@ -85,6 +91,7 @@ class Client(Base):
     
     # Relationships
     tenant = relationship("Tenant", back_populates="clients")
+    settings = relationship("ClientSettings", back_populates="client", uselist=False, cascade="all, delete-orphan")
     vendors = relationship("Vendor", back_populates="client", cascade="all, delete-orphan")
     chart_of_accounts = relationship("Account", back_populates="client", cascade="all, delete-orphan")
     vendor_invoices = relationship("VendorInvoice", back_populates="client")
@@ -95,6 +102,7 @@ class Client(Base):
     voucher_series = relationship("VoucherSeries", back_populates="client", cascade="all, delete-orphan")
     fiscal_years = relationship("FiscalYear", back_populates="client", cascade="all, delete-orphan")
     accruals = relationship("Accrual", back_populates="client", cascade="all, delete-orphan")
+    opening_balances = relationship("OpeningBalance", back_populates="client", cascade="all, delete-orphan")
     
     # Constraints
     __table_args__ = (

@@ -77,10 +77,12 @@ class VendorInvoice(Base):
     payment_status = Column(
         String(20),
         default="unpaid",
-        nullable=False
-    )  # unpaid/partial/paid/overdue
+        nullable=False,
+        index=True
+    )  # unpaid/partially_paid/paid/overdue (enum in DB)
     paid_amount = Column(Numeric(15, 2), default=Decimal("0.00"))
-    payment_date = Column(Date, nullable=True)
+    paid_date = Column(Date, nullable=True)  # When fully paid
+    payment_terms_days = Column(Integer, nullable=True)  # Number of days for payment (e.g., 30)
     
     # AI Processing
     ai_processed = Column(Boolean, default=False)

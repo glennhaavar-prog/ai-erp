@@ -116,13 +116,52 @@ async def list_accounts(
     }
 
 
+@router.get("/by-number/{account_number}")
+async def get_account_by_number(
+    account_number: str,
+    client_id: UUID = Query(..., description="Client ID"),
+    db: AsyncSession = Depends(get_db)
+) -> AccountResponse:
+    """
+    Get a single account by account number
+    """
+    query = select(Account).where(
+        and_(
+            Account.client_id == client_id,
+            Account.account_number == account_number
+        )
+    )
+    result = await db.execute(query)
+    account = result.scalar_one_or_none()
+    
+    if not account:
+        raise HTTPException(status_code=404, detail=f"Account {account_number} not found for this client")
+    
+    return AccountResponse(
+        id=str(account.id),
+        client_id=str(account.client_id),
+        account_number=account.account_number,
+        account_name=account.account_name,
+        account_type=account.account_type,
+        parent_account_number=account.parent_account_number,
+        account_level=account.account_level,
+        default_vat_code=account.default_vat_code,
+        vat_deductible=account.vat_deductible,
+        requires_reconciliation=account.requires_reconciliation,
+        ai_usage_count=account.ai_usage_count,
+        is_active=account.is_active,
+        created_at=account.created_at.isoformat(),
+        updated_at=account.updated_at.isoformat()
+    )
+
+
 @router.get("/{account_id}")
 async def get_account(
     account_id: UUID,
     db: AsyncSession = Depends(get_db)
 ) -> AccountResponse:
     """
-    Get a single account by ID
+    Get a single account by UUID
     """
     query = select(Account).where(Account.id == account_id)
     result = await db.execute(query)

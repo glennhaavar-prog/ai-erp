@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import DateQuickPicker from "@/components/DateQuickPicker";
+import { ReportExportButtons } from "@/components/ReportExportButtons";
 
 interface HovedbokEntry {
   entry_id: string;
@@ -140,15 +141,25 @@ function HovedbokPageContent() {
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-          Hovedbok
-        </h1>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-          {data.account_number
-            ? `Konto ${data.account_number} - ${data.count} posteringer`
-            : `Alle kontoer - ${data.count} posteringer`}
-        </p>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+            Hovedbok
+          </h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            {data.account_number
+              ? `Konto ${data.account_number} - ${data.count} posteringer`
+              : `Alle kontoer - ${data.count} posteringer`}
+          </p>
+        </div>
+        <ReportExportButtons
+          reportType="hovedbok"
+          clientId={clientId}
+          accountFrom={accountFrom || accountNumber}
+          accountTo={accountTo || accountNumber}
+          fromDate={fromDate}
+          toDate={toDate}
+        />
       </div>
 
       {/* Filters - FIX: Kontorange (fra/til) */}

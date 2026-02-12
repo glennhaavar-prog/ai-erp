@@ -248,20 +248,22 @@ class AccrualService:
         debit_line = GeneralLedgerLine(
             id=uuid.uuid4(),
             general_ledger_id=gl_entry.id,
+            line_number=1,
             account_number=accrual.result_account,
-            debit=posting.amount,
-            credit=Decimal("0.00"),
-            description=f"Periodisert kostnad: {accrual.description}"
+            debit_amount=posting.amount,
+            credit_amount=Decimal("0.00"),
+            line_description=f"Periodisert kostnad: {accrual.description}"
         )
         
         # Credit: Balance account (prepaid asset reduction or deferred liability)
         credit_line = GeneralLedgerLine(
             id=uuid.uuid4(),
             general_ledger_id=gl_entry.id,
+            line_number=2,
             account_number=accrual.balance_account,
-            debit=Decimal("0.00"),
-            credit=posting.amount,
-            description=f"Nedskriving av forskudd: {accrual.description}"
+            debit_amount=Decimal("0.00"),
+            credit_amount=posting.amount,
+            line_description=f"Nedskriving av forskudd: {accrual.description}"
         )
         
         db.add(gl_entry)

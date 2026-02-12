@@ -1,7 +1,8 @@
 """
 Task Template Service - AI-foreslåtte oppgaver
 """
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 from typing import List
 from uuid import UUID
 from datetime import date, datetime
@@ -17,10 +18,10 @@ class TaskTemplateService:
     Service for generating AI-suggested task templates
     """
     
-    def __init__(self, db: Session):
+    def __init__(self, db: AsyncSession):
         self.db = db
     
-    def generate_templates(self, client_id: UUID, period_type: str = "monthly") -> List[dict]:
+    async def generate_templates(self, client_id: UUID, period_type: str = "monthly") -> List[dict]:
         """
         Generate task templates based on client profile
         
@@ -30,7 +31,9 @@ class TaskTemplateService:
         - Period type (monthly/quarterly/yearly)
         """
         # Get client
-        client = self.db.query(Client).filter(Client.id == client_id).first()
+        query = select(Client).where(Client.id == client_id)
+        result = await self.db.execute(query)
+        client = result.scalars().first()
         if not client:
             return []
         
