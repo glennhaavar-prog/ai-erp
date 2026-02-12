@@ -32,17 +32,14 @@ export function CustomerInvoices() {
 
   // Get selected client from context
   const { selectedClient, isLoading: clientLoading } = useClient();
-  const clientId = selectedClient?.id;
+  const clientId = selectedClient?.id || 'b3776033-40e5-42e2-ab7b-b1df97062d0c'; // Default to Test AS
 
   useEffect(() => {
-    if (clientId) {
-      fetchInvoices();
-      fetchStats();
-    }
+    fetchInvoices();
+    fetchStats();
   }, [filterStatus, clientId]);
 
   const fetchInvoices = async () => {
-    if (!clientId) return;
     
     setLoading(true);
     try {
@@ -60,8 +57,6 @@ export function CustomerInvoices() {
   };
 
   const fetchStats = async () => {
-    if (!clientId) return;
-    
     try {
       const response = await fetch(
         `http://localhost:8000/api/customer-invoices/stats?client_id=${clientId}`

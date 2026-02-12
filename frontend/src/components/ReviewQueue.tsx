@@ -38,9 +38,11 @@ export const ReviewQueue: React.FC = () => {
       try {
         setLoading(true);
         const data = await reviewQueueApi.getReviewItems({ client_id: selectedClient.id });
-        setItems(data);
-        if (data.length > 0 && !selectedItem) {
-          setSelectedItem(data[0]);
+        // Backend returns {items: [], total, page, page_size}
+        const itemsArray = Array.isArray(data) ? data : ((data as any).items || []);
+        setItems(itemsArray);
+        if (itemsArray.length > 0 && !selectedItem) {
+          setSelectedItem(itemsArray[0]);
         }
         setError(null);
       } catch (err) {
@@ -92,7 +94,8 @@ export const ReviewQueue: React.FC = () => {
     const interval = setInterval(async () => {
       try {
         const data = await reviewQueueApi.getReviewItems({ client_id: selectedClient.id });
-        setItems(data);
+        const itemsArray = Array.isArray(data) ? data : ((data as any).items || []);
+        setItems(itemsArray);
       } catch (err) {
         console.error('Error polling review items:', err);
       }

@@ -1,34 +1,22 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
-import {
-  Box,
-  Card,
-  CardContent,
-  Typography,
-  Button,
-  TextField,
-  MenuItem,
-  Alert,
-  Stack,
-  CircularProgress,
-  LinearProgress,
-  Paper,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemIcon,
-  IconButton,
-  Chip,
-} from '@mui/material';
+import React, { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { useRouter } from 'next/navigation';
 import { useClient } from '@/contexts/ClientContext';
-import CloudUploadIcon from '@mui/icons-material/CloudUpload';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import ErrorIcon from '@mui/icons-material/Error';
-import DeleteIcon from '@mui/icons-material/Delete';
-import DescriptionIcon from '@mui/icons-material/Description';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
+import {
+  CloudUpload,
+  CheckCircle,
+  AlertCircle,
+  Trash2,
+  FileText,
+  Loader2,
+} from 'lucide-react';
 
 interface UploadFile {
   file: File;
@@ -42,7 +30,7 @@ interface UploadFile {
 
 export default function UploadPage() {
   const router = useRouter();
-  const { selectedClient, clients, isLoading: clientsLoading } = useClient();
+  const { selectedClient } = useClient();
   const [files, setFiles] = useState<UploadFile[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -152,26 +140,26 @@ export default function UploadPage() {
   const getStatusIcon = (status: UploadFile['status']) => {
     switch (status) {
       case 'success':
-        return <CheckCircleIcon color="success" />;
+        return <CheckCircle className="h-5 w-5 text-green-500" />;
       case 'error':
-        return <ErrorIcon color="error" />;
+        return <AlertCircle className="h-5 w-5 text-red-500" />;
       case 'uploading':
-        return <CircularProgress size={24} />;
+        return <Loader2 className="h-5 w-5 animate-spin text-blue-500" />;
       default:
-        return <DescriptionIcon />;
+        return <FileText className="h-5 w-5 text-gray-500" />;
     }
   };
 
-  const getStatusColor = (status: UploadFile['status']) => {
+  const getStatusBadgeVariant = (status: UploadFile['status']) => {
     switch (status) {
       case 'success':
-        return 'success';
-      case 'error':
-        return 'error';
-      case 'uploading':
-        return 'info';
-      default:
         return 'default';
+      case 'error':
+        return 'destructive';
+      case 'uploading':
+        return 'secondary';
+      default:
+        return 'outline';
     }
   };
 
@@ -193,162 +181,144 @@ export default function UploadPage() {
   const allFilesProcessed = files.length > 0 && !hasPendingFiles;
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Typography variant="h4" gutterBottom>
-        Last opp leverandørfakturaer
-      </Typography>
+    <div className="p-6 max-w-4xl mx-auto">
+      <h1 className="text-3xl font-bold mb-6">Last opp leverandørfakturaer</h1>
 
       {!selectedClient && (
-        <Alert severity="info" sx={{ mb: 3 }}>
-          Velg en klient fra menyen øverst for å laste opp fakturaer
+        <Alert className="mb-6">
+          <AlertDescription>
+            Velg en klient fra menyen øverst for å laste opp fakturaer
+          </AlertDescription>
         </Alert>
       )}
 
       {selectedClient && (
-        <Card sx={{ mb: 3 }}>
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>Laster opp for: {selectedClient.name}</CardTitle>
+          </CardHeader>
           <CardContent>
-            <Typography variant="h6" gutterBottom>
-              Laster opp for: {selectedClient.name}
-            </Typography>
+            <div
+              {...getRootProps()}
+              className={`
+                p-8 text-center border-2 border-dashed rounded-lg cursor-pointer
+                transition-all duration-200
+                ${
+                  isDragActive
+                    ? 'border-primary bg-primary/5'
+                    : 'border-border hover:border-primary hover:bg-accent'
+                }
+              `}
+            >
+              <input {...getInputProps()} />
+              <CloudUpload className="h-16 w-16 mx-auto mb-4 text-primary" />
+              <h3 className="text-lg font-semibold mb-2">
+                {isDragActive
+                  ? 'Slipp filene her...'
+                  : 'Dra og slipp PDF-filer her, eller klikk for å velge'}
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                Kun PDF-filer er støttet
+              </p>
+            </div>
 
-          <Paper
-            {...getRootProps()}
-            sx={{
-              p: 4,
-              textAlign: 'center',
-              border: '2px dashed',
-              borderColor: isDragActive ? 'primary.main' : 'divider',
-              bgcolor: isDragActive ? 'action.hover' : 'background.paper',
-              cursor: 'pointer',
-              transition: 'all 0.2s',
-              '&:hover': {
-                borderColor: 'primary.main',
-                bgcolor: 'action.hover',
-              },
-            }}
-          >
-            <input {...getInputProps()} />
-            <CloudUploadIcon sx={{ fontSize: 64, color: 'primary.main', mb: 2 }} />
-            <Typography variant="h6" gutterBottom>
-              {isDragActive
-                ? 'Slipp filene her...'
-                : 'Dra og slipp PDF-filer her, eller klikk for å velge'}
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Kun PDF-filer er støttet
-            </Typography>
-          </Paper>
-
-          {files.length > 0 && (
-            <Box sx={{ mt: 3 }}>
-              <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
-                <Button
-                  variant="contained"
-                  onClick={uploadAll}
-                  disabled={!hasPendingFiles || !selectedClient}
-                >
-                  Last opp alle ({files.filter((f) => f.status === 'pending').length})
-                </Button>
-                {hasSuccessfulUploads && (
-                  <Button variant="outlined" onClick={goToReviewQueue}>
-                    Gå til Review Queue
+            {files.length > 0 && (
+              <div className="mt-6">
+                <div className="flex gap-2 mb-4">
+                  <Button
+                    onClick={uploadAll}
+                    disabled={!hasPendingFiles || !selectedClient}
+                  >
+                    Last opp alle ({files.filter((f) => f.status === 'pending').length})
                   </Button>
-                )}
-                <Button
-                  variant="outlined"
-                  color="error"
-                  onClick={() => setFiles([])}
-                  disabled={files.some((f) => f.status === 'uploading')}
-                >
-                  Fjern alle
-                </Button>
-              </Stack>
+                  {hasSuccessfulUploads && (
+                    <Button variant="outline" onClick={goToReviewQueue}>
+                      Gå til Review Queue
+                    </Button>
+                  )}
+                  <Button
+                    variant="destructive"
+                    onClick={() => setFiles([])}
+                    disabled={files.some((f) => f.status === 'uploading')}
+                  >
+                    Fjern alle
+                  </Button>
+                </div>
 
-              <List>
-                {files.map((uploadFile) => (
-                  <ListItem
-                    key={uploadFile.id}
-                    secondaryAction={
-                      <IconButton
-                        edge="end"
-                        aria-label="delete"
+                <ul className="space-y-4">
+                  {files.map((uploadFile) => (
+                    <li
+                      key={uploadFile.id}
+                      className="flex items-start gap-3 p-4 border rounded-lg"
+                    >
+                      <div className="mt-0.5">{getStatusIcon(uploadFile.status)}</div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium truncate">{uploadFile.file.name}</p>
+                        <div className="mt-2 space-y-2">
+                          {uploadFile.status === 'uploading' && (
+                            <Progress value={undefined} className="h-2" />
+                          )}
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <Badge variant={getStatusBadgeVariant(uploadFile.status) as any}>
+                              {getStatusText(uploadFile.status)}
+                            </Badge>
+                            {uploadFile.confidence && (
+                              <Badge
+                                variant={uploadFile.confidence >= 0.8 ? 'default' : 'secondary'}
+                              >
+                                Confidence: {(uploadFile.confidence * 100).toFixed(0)}%
+                              </Badge>
+                            )}
+                            {uploadFile.error && (
+                              <span className="text-sm text-red-500">
+                                {uploadFile.error}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
                         onClick={() => removeFile(uploadFile.id)}
                         disabled={uploadFile.status === 'uploading'}
                       >
-                        <DeleteIcon />
-                      </IconButton>
-                    }
-                  >
-                    <ListItemIcon>{getStatusIcon(uploadFile.status)}</ListItemIcon>
-                    <ListItemText
-                      primary={uploadFile.file.name}
-                      secondary={
-                        <Stack spacing={1} sx={{ mt: 1 }}>
-                          {uploadFile.status === 'uploading' && (
-                            <LinearProgress
-                              variant="indeterminate"
-                              sx={{ width: '100%' }}
-                            />
-                          )}
-                          <Stack direction="row" spacing={1} alignItems="center">
-                            <Chip
-                              label={getStatusText(uploadFile.status)}
-                              size="small"
-                              color={getStatusColor(uploadFile.status)}
-                            />
-                            {uploadFile.confidence && (
-                              <Chip
-                                label={`Confidence: ${(uploadFile.confidence * 100).toFixed(0)}%`}
-                                size="small"
-                                color={uploadFile.confidence >= 0.8 ? 'success' : 'warning'}
-                              />
-                            )}
-                            {uploadFile.error && (
-                              <Typography variant="caption" color="error">
-                                {uploadFile.error}
-                              </Typography>
-                            )}
-                          </Stack>
-                        </Stack>
-                      }
-                    />
-                  </ListItem>
-                ))}
-              </List>
-            </Box>
-          )}
-        </CardContent>
-      </Card>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       )}
 
       {error && (
-        <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError(null)}>
-          {error}
+        <Alert variant="destructive" className="mb-6">
+          <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
 
       {success && (
-        <Alert severity="success" sx={{ mb: 3 }} onClose={() => setSuccess(null)}>
-          {success}
+        <Alert className="mb-6">
+          <AlertDescription>{success}</AlertDescription>
         </Alert>
       )}
 
       {allFilesProcessed && hasSuccessfulUploads && (
-        <Alert severity="info" sx={{ mb: 3 }}>
-          <Typography variant="body2">
-            {files.filter((f) => f.status === 'success').length} faktura(er) er klar
-            for gjennomgang i Review Queue.
-          </Typography>
-          <Button
-            variant="text"
-            onClick={goToReviewQueue}
-            sx={{ mt: 1 }}
-            size="small"
-          >
-            Gå til Review Queue →
-          </Button>
+        <Alert className="mb-6">
+          <AlertDescription>
+            <p className="mb-2">
+              {files.filter((f) => f.status === 'success').length} faktura(er) er klar
+              for gjennomgang i Review Queue.
+            </p>
+            <Button variant="link" onClick={goToReviewQueue} className="p-0 h-auto">
+              Gå til Review Queue →
+            </Button>
+          </AlertDescription>
         </Alert>
       )}
-    </Box>
+    </div>
   );
 }

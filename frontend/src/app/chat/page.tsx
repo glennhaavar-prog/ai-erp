@@ -109,7 +109,7 @@ export default function ChatPage() {
       // Send to API
       const response = await chatApi.sendBookingMessage({
         message: message || '',
-        client_id: selectedClient?.id || 'default-client',
+        client_id: selectedClient?.id || 'b3776033-40e5-42e2-ab7b-b1df97062d0c', // Default to Test AS
         user_id: 'current-user', // TODO: Get from auth context
         session_id: sessionId,
         conversation_history,

@@ -12,7 +12,7 @@ const api = axios.create({
 
 export const reviewQueueApi = {
   // Get all review items
-  getReviewItems: async (filters?: ReviewQueueFilters): Promise<ReviewItem[]> => {
+  getReviewItems: async (filters?: ReviewQueueFilters): Promise<ReviewItem[] | { items: ReviewItem[], total: number, page: number, page_size: number }> => {
     const { data } = await api.get('/api/review-queue', { params: filters });
     return data;
   },

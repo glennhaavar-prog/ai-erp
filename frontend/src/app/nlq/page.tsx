@@ -1,38 +1,30 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useClient } from '@/contexts/ClientContext';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Separator } from '@/components/ui/separator';
 import {
-  Box,
-  Card,
-  CardContent,
-  Typography,
-  Button,
-  TextField,
-  Alert,
-  Stack,
-  CircularProgress,
-  Paper,
-  Chip,
-  IconButton,
   Table,
   TableBody,
   TableCell,
-  TableContainer,
   TableHead,
+  TableHeader,
   TableRow,
-  Divider,
-  Menu,
-  MenuItem,
-  Tooltip,
-} from '@mui/material';
-import { useClient } from '@/contexts/ClientContext';
-import SearchIcon from '@mui/icons-material/Search';
-import HistoryIcon from '@mui/icons-material/History';
-import DownloadIcon from '@mui/icons-material/Download';
-import SaveIcon from '@mui/icons-material/Save';
-import DeleteIcon from '@mui/icons-material/Delete';
-import LightbulbIcon from '@mui/icons-material/Lightbulb';
-import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+} from '@/components/ui/table';
+import {
+  Search,
+  History,
+  Download,
+  Trash2,
+  Lightbulb,
+  Info,
+  Loader2,
+} from 'lucide-react';
 
 interface NLQResult {
   success: boolean;
@@ -69,7 +61,7 @@ export default function NLQPage() {
   const [error, setError] = useState<string | null>(null);
   const [history, setHistory] = useState<QueryHistory[]>([]);
   const [showHistory, setShowHistory] = useState(false);
-  const [exportAnchor, setExportAnchor] = useState<null | HTMLElement>(null);
+  const [showExportMenu, setShowExportMenu] = useState(false);
 
   // Load query history from localStorage
   useEffect(() => {
@@ -161,7 +153,7 @@ export default function NLQPage() {
     link.href = URL.createObjectURL(blob);
     link.download = `nlq_resultat_${new Date().toISOString().split('T')[0]}.csv`;
     link.click();
-    setExportAnchor(null);
+    setShowExportMenu(false);
   };
 
   // Export to Excel (simple TSV format that Excel can open)
@@ -181,7 +173,7 @@ export default function NLQPage() {
     link.href = URL.createObjectURL(blob);
     link.download = `nlq_resultat_${new Date().toISOString().split('T')[0]}.xls`;
     link.click();
-    setExportAnchor(null);
+    setShowExportMenu(false);
   };
 
   // Clear history
@@ -194,8 +186,8 @@ export default function NLQPage() {
   const renderResults = () => {
     if (!result?.results || result.results.length === 0) {
       return (
-        <Alert severity="info" sx={{ mt: 2 }}>
-          Ingen resultater funnet
+        <Alert className="mt-4">
+          <AlertDescription>Ingen resultater funnet</AlertDescription>
         </Alert>
       );
     }
@@ -203,60 +195,55 @@ export default function NLQPage() {
     const headers = Object.keys(result.results[0]);
 
     return (
-      <Box sx={{ mt: 3 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-          <Typography variant="h6" sx={{ color: 'text.primary' }}>
+      <div className="mt-6">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-semibold">
             Resultater ({result.count} rader)
-          </Typography>
-          <Stack direction="row" spacing={1}>
+          </h3>
+          <div className="relative">
             <Button
-              variant="outlined"
-              size="small"
-              startIcon={<DownloadIcon />}
-              onClick={(e) => setExportAnchor(e.currentTarget)}
+              variant="outline"
+              size="sm"
+              onClick={() => setShowExportMenu(!showExportMenu)}
             >
+              <Download className="h-4 w-4 mr-2" />
               Eksporter
             </Button>
-          </Stack>
-        </Box>
+            {showExportMenu && (
+              <div className="absolute right-0 mt-2 w-48 bg-background border rounded-md shadow-lg z-10">
+                <button
+                  onClick={exportToCSV}
+                  className="w-full px-4 py-2 text-left hover:bg-accent flex items-center"
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Last ned som CSV
+                </button>
+                <button
+                  onClick={exportToExcel}
+                  className="w-full px-4 py-2 text-left hover:bg-accent flex items-center"
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Last ned som Excel
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
 
-        {/* Export Menu */}
-        <Menu
-          anchorEl={exportAnchor}
-          open={Boolean(exportAnchor)}
-          onClose={() => setExportAnchor(null)}
-        >
-          <MenuItem onClick={exportToCSV}>
-            <DownloadIcon sx={{ mr: 1 }} fontSize="small" />
-            Last ned som CSV
-          </MenuItem>
-          <MenuItem onClick={exportToExcel}>
-            <DownloadIcon sx={{ mr: 1 }} fontSize="small" />
-            Last ned som Excel
-          </MenuItem>
-        </Menu>
-
-        <TableContainer component={Paper} sx={{ maxHeight: 500 }}>
-          <Table stickyHeader size="small">
-            <TableHead>
+        <div className="border rounded-md max-h-[500px] overflow-auto">
+          <Table>
+            <TableHeader>
               <TableRow>
                 {headers.map((header) => (
-                  <TableCell
-                    key={header}
-                    sx={{
-                      fontWeight: 600,
-                      backgroundColor: 'primary.main',
-                      color: 'primary.contrastText',
-                    }}
-                  >
+                  <TableHead key={header} className="font-semibold">
                     {header}
-                  </TableCell>
+                  </TableHead>
                 ))}
               </TableRow>
-            </TableHead>
+            </TableHeader>
             <TableBody>
               {result.results.map((row, idx) => (
-                <TableRow key={idx} hover>
+                <TableRow key={idx}>
                   {headers.map((header) => (
                     <TableCell key={header}>
                       {row[header] !== null && row[header] !== undefined
@@ -268,55 +255,41 @@ export default function NLQPage() {
               ))}
             </TableBody>
           </Table>
-        </TableContainer>
+        </div>
 
-        {/* SQL Query Display (collapsed by default) */}
+        {/* SQL Query Display */}
         {result.sql && (
-          <Paper sx={{ mt: 2, p: 2, backgroundColor: 'grey.50' }}>
-            <Typography variant="caption" sx={{ color: 'text.secondary', display: 'flex', alignItems: 'center', gap: 0.5 }}>
-              <InfoOutlinedIcon fontSize="small" />
+          <div className="mt-4 p-4 border rounded-md bg-muted">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+              <Info className="h-4 w-4" />
               Generert SQL-spørring
-            </Typography>
-            <Typography
-              variant="body2"
-              component="pre"
-              sx={{
-                fontFamily: 'monospace',
-                fontSize: '0.75rem',
-                overflowX: 'auto',
-                mt: 1,
-                color: 'text.primary',
-              }}
-            >
+            </div>
+            <pre className="text-xs font-mono overflow-x-auto">
               {result.sql}
-            </Typography>
-          </Paper>
+            </pre>
+          </div>
         )}
-      </Box>
+      </div>
     );
   };
 
   return (
-    <Box sx={{ p: 3, maxWidth: 1400, mx: 'auto' }}>
+    <div className="p-6 max-w-7xl mx-auto">
       {/* Header */}
-      <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" sx={{ fontWeight: 600, mb: 1, color: 'text.primary' }}>
-          Naturlig Språk Spørring
-        </Typography>
-        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold mb-2">Naturlig Språk Spørring</h1>
+        <p className="text-muted-foreground">
           Still spørsmål om regnskapsdata på norsk. AI-en vil konvertere til SQL og hente resultater.
-        </Typography>
-      </Box>
+        </p>
+      </div>
 
       {/* Main Query Card */}
-      <Card sx={{ mb: 3, boxShadow: 3 }}>
-        <CardContent>
-          <Stack spacing={2}>
+      <Card className="mb-6">
+        <CardContent className="pt-6">
+          <div className="space-y-4">
             {/* Query Input */}
-            <TextField
-              fullWidth
-              multiline
-              rows={2}
+            <textarea
+              className="w-full min-h-[80px] p-3 border rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-primary"
               placeholder="Eksempel: Vis meg alle fakturaer over 10 000 kr fra siste måned"
               value={question}
               onChange={(e) => setQuestion(e.target.value)}
@@ -327,143 +300,136 @@ export default function NLQPage() {
                 }
               }}
               disabled={loading}
-              variant="outlined"
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  fontSize: '1rem',
-                },
-              }}
             />
 
             {/* Action Buttons */}
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div className="flex justify-between items-center">
               <Button
-                variant="contained"
-                size="large"
-                startIcon={loading ? <CircularProgress size={20} color="inherit" /> : <SearchIcon />}
+                size="lg"
                 onClick={() => handleQuery()}
                 disabled={loading || !question.trim()}
-                sx={{ minWidth: 150 }}
+                className="min-w-[150px]"
               >
-                {loading ? 'Søker...' : 'Spør'}
+                {loading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Søker...
+                  </>
+                ) : (
+                  <>
+                    <Search className="h-4 w-4 mr-2" />
+                    Spør
+                  </>
+                )}
               </Button>
 
               <Button
-                variant="text"
-                size="small"
-                startIcon={<HistoryIcon />}
+                variant="ghost"
+                size="sm"
                 onClick={() => setShowHistory(!showHistory)}
               >
+                <History className="h-4 w-4 mr-2" />
                 {showHistory ? 'Skjul' : 'Vis'} historikk ({history.length})
               </Button>
-            </Box>
+            </div>
 
             {/* Error Display */}
             {error && (
-              <Alert severity="error" onClose={() => setError(null)}>
-                {error}
+              <Alert variant="destructive">
+                <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
-          </Stack>
+          </div>
         </CardContent>
       </Card>
 
       {/* Query History */}
       {showHistory && history.length > 0 && (
-        <Card sx={{ mb: 3 }}>
-          <CardContent>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-              <Typography variant="h6" sx={{ color: 'text.primary' }}>
-                Spørsmålshistorikk
-              </Typography>
+        <Card className="mb-6">
+          <CardContent className="pt-6">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Spørsmålshistorikk</h3>
               <Button
-                size="small"
-                startIcon={<DeleteIcon />}
+                variant="destructive"
+                size="sm"
                 onClick={clearHistory}
-                color="error"
               >
+                <Trash2 className="h-4 w-4 mr-2" />
                 Tøm historikk
               </Button>
-            </Box>
-            <Stack spacing={1}>
+            </div>
+            <div className="space-y-2">
               {history.map((item) => (
-                <Paper
+                <div
                   key={item.id}
-                  sx={{
-                    p: 2,
-                    cursor: 'pointer',
-                    '&:hover': { backgroundColor: 'action.hover' },
-                  }}
+                  className="p-3 border rounded-md cursor-pointer hover:bg-accent transition-colors"
                   onClick={() => {
                     setQuestion(item.question);
                     handleQuery(item.question);
                   }}
                 >
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Typography variant="body2" sx={{ flex: 1, color: 'text.primary' }}>
-                      {item.question}
-                    </Typography>
-                    <Stack direction="row" spacing={1} alignItems="center">
+                  <div className="flex justify-between items-center">
+                    <p className="flex-1">{item.question}</p>
+                    <div className="flex items-center gap-2">
                       {item.count !== undefined && (
-                        <Chip label={`${item.count} rader`} size="small" color="primary" />
+                        <Badge variant="secondary">{item.count} rader</Badge>
                       )}
-                      <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                      <span className="text-xs text-muted-foreground">
                         {item.timestamp.toLocaleString('no-NO', {
                           day: '2-digit',
                           month: '2-digit',
                           hour: '2-digit',
                           minute: '2-digit',
                         })}
-                      </Typography>
-                    </Stack>
-                  </Box>
-                </Paper>
+                      </span>
+                    </div>
+                  </div>
+                </div>
               ))}
-            </Stack>
+            </div>
           </CardContent>
         </Card>
       )}
 
       {/* Example Queries */}
-      <Card sx={{ mb: 3 }}>
-        <CardContent>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-            <LightbulbIcon sx={{ color: 'warning.main' }} />
-            <Typography variant="h6" sx={{ color: 'text.primary' }}>
-              Eksempelspørsmål
-            </Typography>
-          </Box>
-          <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2 }}>
+      <Card className="mb-6">
+        <CardContent className="pt-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Lightbulb className="h-5 w-5 text-yellow-500" />
+            <h3 className="text-lg font-semibold">Eksempelspørsmål</h3>
+          </div>
+          <p className="text-sm text-muted-foreground mb-4">
             Klikk på et eksempel for å prøve det:
-          </Typography>
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+          </p>
+          <div className="flex flex-wrap gap-2">
             {EXAMPLE_QUERIES.map((example, idx) => (
-              <Chip
+              <Badge
                 key={idx}
-                label={example}
+                variant="outline"
+                className="cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors"
                 onClick={() => {
                   setQuestion(example);
                   handleQuery(example);
                 }}
-                clickable
-                color="primary"
-                variant="outlined"
-                sx={{ cursor: 'pointer' }}
-              />
+              >
+                {example}
+              </Badge>
             ))}
-          </Box>
+          </div>
         </CardContent>
       </Card>
 
       {/* Results */}
       {result && (
         <Card>
-          <CardContent>
+          <CardContent className="pt-6">
             {result.success ? (
               renderResults()
             ) : (
-              <Alert severity="error">
-                {result.error || 'Forespørselen feilet'}
+              <Alert variant="destructive">
+                <AlertDescription>
+                  {result.error || 'Forespørselen feilet'}
+                </AlertDescription>
               </Alert>
             )}
           </CardContent>
@@ -472,22 +438,14 @@ export default function NLQPage() {
 
       {/* Empty State */}
       {!result && !error && !loading && (
-        <Paper
-          sx={{
-            p: 6,
-            textAlign: 'center',
-            backgroundColor: 'grey.50',
-          }}
-        >
-          <SearchIcon sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }} />
-          <Typography variant="h6" sx={{ color: 'text.secondary', mb: 1 }}>
-            Ingen søk utført ennå
-          </Typography>
-          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+        <div className="p-12 text-center border rounded-lg bg-muted/50">
+          <Search className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
+          <h3 className="text-lg font-semibold mb-2">Ingen søk utført ennå</h3>
+          <p className="text-sm text-muted-foreground">
             Still et spørsmål ovenfor eller velg et eksempel for å komme i gang
-          </Typography>
-        </Paper>
+          </p>
+        </div>
       )}
-    </Box>
+    </div>
   );
 }
