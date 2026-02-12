@@ -56,21 +56,28 @@ async def calculate_saldobalanse(
     accounts_result = await db.execute(accounts_query)
     accounts = accounts_result.scalars().all()
     
-    # Step 2: Get opening balances
-    # Determine fiscal year from to_date or use current year
-    fiscal_year = str(to_date.year if to_date else date.today().year)
-    
-    opening_balances_query = select(AccountBalance).where(
-        and_(
-            AccountBalance.client_id == client_id,
-            AccountBalance.fiscal_year == fiscal_year
+    # Step 2: Get opening balances from general_ledger with source_type="opening_balance"
+    # This is the correct source of truth after opening balance import
+    opening_balances_query = (
+        select(
+            GeneralLedgerLine.account_number,
+            func.sum(GeneralLedgerLine.debit_amount - GeneralLedgerLine.credit_amount).label("opening_balance")
         )
+        .join(GeneralLedger, GeneralLedgerLine.general_ledger_id == GeneralLedger.id)
+        .where(
+            and_(
+                GeneralLedger.client_id == client_id,
+                GeneralLedger.source_type == "opening_balance",
+                GeneralLedger.status == "posted"
+            )
+        )
+        .group_by(GeneralLedgerLine.account_number)
     )
     
     opening_balances_result = await db.execute(opening_balances_query)
     opening_balances = {
-        ob.account_number: ob.opening_balance 
-        for ob in opening_balances_result.scalars().all()
+        row.account_number: row.opening_balance 
+        for row in opening_balances_result.all()
     }
     
     # Step 3: Calculate transaction sums per account
