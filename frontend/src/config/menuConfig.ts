@@ -66,27 +66,6 @@ export const menuConfig: MenuCategory[] = [
     ],
   },
   {
-    id: 'import',
-    label: 'IMPORT',
-    color: 'text-secondary', // Violet
-    items: [
-      {
-        id: 'banktransaksjoner',
-        label: 'Banktransaksjoner',
-        icon: 'upload',
-        route: '/import/banktransaksjoner',
-        visibility: 'both',
-      },
-      {
-        id: 'bankintegrasjon',
-        label: 'Bankintegrasjon (Tink)',
-        icon: 'plug',
-        route: '/import/bankintegrasjon',
-        visibility: 'both',
-      },
-    ],
-  },
-  {
     id: 'rapporter',
     label: 'RAPPORTER',
     color: 'text-warning', // Amber
@@ -333,6 +312,13 @@ export const menuConfig: MenuCategory[] = [
         disabled: true,
         tooltip: 'Kommer snart',
       },
+      {
+        id: 'bankintegrasjon',
+        label: 'Bankintegrasjon (Tink)',
+        icon: 'plug',
+        route: '/import/bankintegrasjon',
+        visibility: 'both',
+      },
     ],
   },
   {
@@ -385,6 +371,13 @@ export const menuConfig: MenuCategory[] = [
         label: 'Kundefakturaer',
         icon: 'archive',
         route: '/customer-invoices',
+        visibility: 'both',
+      },
+      {
+        id: 'banktransaksjoner',
+        label: 'Banktransaksjoner',
+        icon: 'upload',
+        route: '/import/banktransaksjoner',
         visibility: 'both',
       },
     ],
