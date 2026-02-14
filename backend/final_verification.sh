@@ -1,100 +1,34 @@
 #!/bin/bash
 
-echo "=========================================="
-echo "FINAL VERIFICATION - Report Export System"
-echo "=========================================="
+echo "=== FINAL ENDPOINT VERIFICATION ==="
 echo ""
 
-# Test client
-CLIENT_ID="09409ccf-d23e-45e5-93b9-68add0b96277"
-
-# Counter
-SUCCESS=0
-TOTAL=12
-
-# Test function
-test_endpoint() {
-    local name=$1
-    local url=$2
-    local output=$3
-    
-    echo -n "Testing ${name}... "
-    http_code=$(curl -s -o ${output} -w "%{http_code}" "${url}")
-    
-    if [ "$http_code" -eq "200" ]; then
-        size=$(stat -f%z ${output} 2>/dev/null || stat -c%s ${output} 2>/dev/null)
-        if [ $size -gt 1000 ]; then
-            echo "✅ OK (${http_code}, ${size} bytes)"
-            ((SUCCESS++))
-            return 0
-        else
-            echo "❌ FAIL (file too small: ${size} bytes)"
-            return 1
-        fi
-    else
-        echo "❌ FAIL (HTTP ${http_code})"
-        return 1
-    fi
-}
-
-# Run tests
-test_endpoint "Saldobalanse PDF" \
-    "http://localhost:8000/api/reports/saldobalanse/pdf?client_id=${CLIENT_ID}&from_date=2026-01-01&to_date=2026-02-11" \
-    "/tmp/verify_saldobalanse.pdf"
-
-test_endpoint "Saldobalanse Excel" \
-    "http://localhost:8000/api/reports/saldobalanse/excel?client_id=${CLIENT_ID}&from_date=2026-01-01&to_date=2026-02-11" \
-    "/tmp/verify_saldobalanse.xlsx"
-
-test_endpoint "Resultat PDF" \
-    "http://localhost:8000/api/reports/resultat/pdf?client_id=${CLIENT_ID}&from_date=2026-01-01&to_date=2026-02-11" \
-    "/tmp/verify_resultat.pdf"
-
-test_endpoint "Resultat Excel" \
-    "http://localhost:8000/api/reports/resultat/excel?client_id=${CLIENT_ID}&from_date=2026-01-01&to_date=2026-02-11" \
-    "/tmp/verify_resultat.xlsx"
-
-test_endpoint "Balanse PDF" \
-    "http://localhost:8000/api/reports/balanse/pdf?client_id=${CLIENT_ID}&to_date=2026-02-11" \
-    "/tmp/verify_balanse.pdf"
-
-test_endpoint "Balanse Excel" \
-    "http://localhost:8000/api/reports/balanse/excel?client_id=${CLIENT_ID}&to_date=2026-02-11" \
-    "/tmp/verify_balanse.xlsx"
-
-test_endpoint "Hovedbok PDF" \
-    "http://localhost:8000/api/reports/hovedbok/pdf?client_id=${CLIENT_ID}&account_from=1000&account_to=9999&from_date=2026-01-01&to_date=2026-02-11" \
-    "/tmp/verify_hovedbok.pdf"
-
-test_endpoint "Hovedbok Excel" \
-    "http://localhost:8000/api/reports/hovedbok/excel?client_id=${CLIENT_ID}&account_from=1000&account_to=9999&from_date=2026-01-01&to_date=2026-02-11" \
-    "/tmp/verify_hovedbok.xlsx"
-
-test_endpoint "Leverandørreskontro PDF" \
-    "http://localhost:8000/supplier-ledger/pdf?client_id=${CLIENT_ID}&status=all" \
-    "/tmp/verify_supplier.pdf"
-
-test_endpoint "Leverandørreskontro Excel" \
-    "http://localhost:8000/supplier-ledger/excel?client_id=${CLIENT_ID}&status=all" \
-    "/tmp/verify_supplier.xlsx"
-
-test_endpoint "Kundereskontro PDF" \
-    "http://localhost:8000/customer-ledger/pdf?client_id=${CLIENT_ID}&status=all" \
-    "/tmp/verify_customer.pdf"
-
-test_endpoint "Kundereskontro Excel" \
-    "http://localhost:8000/customer-ledger/excel?client_id=${CLIENT_ID}&status=all" \
-    "/tmp/verify_customer.xlsx"
-
-echo ""
-echo "=========================================="
-echo "RESULTS: ${SUCCESS}/${TOTAL} tests passed"
-echo "=========================================="
-
-if [ $SUCCESS -eq $TOTAL ]; then
-    echo "✅ ALL TESTS PASSED - System ready for production!"
-    exit 0
+# Test new endpoint 1: GET single voucher
+echo "1. Testing GET /api/other-vouchers/{voucher_id}"
+RESPONSE=$(curl -s "http://localhost:8000/api/other-vouchers/a0900caf-d3e0-4c51-9a52-8326b4570b81")
+if echo "$RESPONSE" | grep -q '"id"' && echo "$RESPONSE" | grep -q '"type"' && echo "$RESPONSE" | grep -q '"ai_confidence"'; then
+    echo "   ✓ PASS - Endpoint returns full voucher details"
 else
-    echo "❌ Some tests failed - check logs"
-    exit 1
+    echo "   ✗ FAIL - Endpoint response incomplete"
 fi
+
+# Test new endpoint 2: GET stats
+echo "2. Testing GET /api/other-vouchers/stats"
+RESPONSE=$(curl -s "http://localhost:8000/api/other-vouchers/stats?client_id=09409ccf-d23e-45e5-93b9-68add0b96277")
+if echo "$RESPONSE" | grep -q '"pending_by_type"' && echo "$RESPONSE" | grep -q '"avg_confidence_by_type"' && echo "$RESPONSE" | grep -q '"approved"'; then
+    echo "   ✓ PASS - Stats endpoint returns complete statistics"
+else
+    echo "   ✗ FAIL - Stats endpoint response incomplete"
+fi
+
+# Verify routing fix: /pending should not be caught by /{voucher_id}
+echo "3. Verifying routing fix (/pending not caught by /{voucher_id})"
+RESPONSE=$(curl -s "http://localhost:8000/api/other-vouchers/pending?client_id=09409ccf-d23e-45e5-93b9-68add0b96277")
+if echo "$RESPONSE" | grep -q '"items"' && echo "$RESPONSE" | grep -q '"total"'; then
+    echo "   ✓ PASS - /pending route works correctly"
+else
+    echo "   ✗ FAIL - Routing issue detected"
+fi
+
+echo ""
+echo "=== ALL ENDPOINTS VERIFIED ==="

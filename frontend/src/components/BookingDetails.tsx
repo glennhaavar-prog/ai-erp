@@ -5,7 +5,7 @@ interface BookingDetailsProps {
   bookings: BookingEntry[];
 }
 
-export const BookingDetails: React.FC<BookingDetailsProps> = ({ bookings }) => {
+export const BookingDetails: React.FC<BookingDetailsProps> = ({ bookings = [] }) => {
   const totalDebit = bookings.reduce((sum, b) => sum + (b.debit || 0), 0);
   const totalCredit = bookings.reduce((sum, b) => sum + (b.credit || 0), 0);
   const balanced = Math.abs(totalDebit - totalCredit) < 0.01;

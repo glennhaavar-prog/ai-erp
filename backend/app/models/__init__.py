@@ -15,6 +15,7 @@ from app.models.general_ledger import GeneralLedger, GeneralLedgerLine
 from app.models.chart_of_accounts import Account
 from app.models.account_balance import AccountBalance
 from app.models.review_queue import ReviewQueue
+from app.models.review_queue_feedback import ReviewQueueFeedback
 from app.models.agent_decision import AgentDecision
 from app.models.agent_learned_pattern import AgentLearnedPattern
 from app.models.agent_task import AgentTask
@@ -37,6 +38,8 @@ from app.models.opening_balance import OpeningBalance, OpeningBalanceLine
 from app.models.supplier import Supplier, SupplierAuditLog
 from app.models.customer import Customer, CustomerAuditLog
 from app.models.currency_rate import CurrencyRate
+from app.models.reconciliation import Reconciliation, ReconciliationAttachment
+from app.models.voucher_audit_log import VoucherAuditLog
 
 __all__ = [
     "Tenant",
@@ -54,6 +57,7 @@ __all__ = [
     "Account",
     "AccountBalance",
     "ReviewQueue",
+    "ReviewQueueFeedback",
     "AgentDecision",
     "AgentLearnedPattern",
     "AgentTask",
@@ -81,4 +85,7 @@ __all__ = [
     "Customer",
     "CustomerAuditLog",
     "CurrencyRate",
+    "Reconciliation",
+    "ReconciliationAttachment",
+    "VoucherAuditLog",
 ]

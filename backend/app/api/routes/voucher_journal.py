@@ -159,45 +159,6 @@ async def get_voucher_journal(
     }
 
 
-@router.get("/{voucher_id}")
-async def get_voucher_detail(
-    voucher_id: uuid.UUID,
-    db: AsyncSession = Depends(get_db)
-):
-    """
-    Get full detail of a single voucher including all lines
-    """
-    # Get voucher
-    voucher_query = select(GeneralLedger).where(GeneralLedger.id == voucher_id)
-    voucher_result = await db.execute(voucher_query)
-    voucher = voucher_result.scalar_one_or_none()
-    
-    if not voucher:
-        raise HTTPException(status_code=404, detail="Voucher not found")
-    
-    # Get lines
-    lines_query = (
-        select(GeneralLedgerLine)
-        .where(GeneralLedgerLine.general_ledger_id == voucher_id)
-        .order_by(GeneralLedgerLine.line_number)
-    )
-    lines_result = await db.execute(lines_query)
-    lines = lines_result.scalars().all()
-    
-    voucher_dict = voucher.to_dict()
-    voucher_dict["lines"] = [line.to_dict() for line in lines]
-    
-    # Calculate totals
-    voucher_dict["total_debit"] = sum(float(line.debit_amount) for line in lines)
-    voucher_dict["total_credit"] = sum(float(line.credit_amount) for line in lines)
-    voucher_dict["balanced"] = abs(
-        Decimal(str(voucher_dict["total_debit"])) - 
-        Decimal(str(voucher_dict["total_credit"]))
-    ) < Decimal("0.01")
-    
-    return voucher_dict
-
-
 @router.get("/stats")
 async def get_voucher_journal_stats(
     client_id: uuid.UUID,
@@ -248,6 +209,45 @@ async def get_voucher_journal_stats(
             stats["date_range"]["latest"] = max(dates).isoformat()
     
     return stats
+
+
+@router.get("/{voucher_id}")
+async def get_voucher_detail(
+    voucher_id: uuid.UUID,
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Get full detail of a single voucher including all lines
+    """
+    # Get voucher
+    voucher_query = select(GeneralLedger).where(GeneralLedger.id == voucher_id)
+    voucher_result = await db.execute(voucher_query)
+    voucher = voucher_result.scalar_one_or_none()
+    
+    if not voucher:
+        raise HTTPException(status_code=404, detail="Voucher not found")
+    
+    # Get lines
+    lines_query = (
+        select(GeneralLedgerLine)
+        .where(GeneralLedgerLine.general_ledger_id == voucher_id)
+        .order_by(GeneralLedgerLine.line_number)
+    )
+    lines_result = await db.execute(lines_query)
+    lines = lines_result.scalars().all()
+    
+    voucher_dict = voucher.to_dict()
+    voucher_dict["lines"] = [line.to_dict() for line in lines]
+    
+    # Calculate totals
+    voucher_dict["total_debit"] = sum(float(line.debit_amount) for line in lines)
+    voucher_dict["total_credit"] = sum(float(line.credit_amount) for line in lines)
+    voucher_dict["balanced"] = abs(
+        Decimal(str(voucher_dict["total_debit"])) - 
+        Decimal(str(voucher_dict["total_credit"]))
+    ) < Decimal("0.01")
+    
+    return voucher_dict
 
 
 @router.get("/types")

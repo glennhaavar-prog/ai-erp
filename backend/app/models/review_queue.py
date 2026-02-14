@@ -43,6 +43,15 @@ class IssueCategory(str, enum.Enum):
     MANUAL_REVIEW_REQUIRED = "manual_review_required"
 
 
+class VoucherType(str, enum.Enum):
+    """Type of voucher in review queue"""
+    SUPPLIER_INVOICE = "supplier_invoice"
+    EMPLOYEE_EXPENSE = "employee_expense"
+    INVENTORY_ADJUSTMENT = "inventory_adjustment"
+    MANUAL_CORRECTION = "manual_correction"
+    OTHER = "other"
+
+
 class ReviewQueue(Base):
     """
     Review Queue = Kø for menneskelig review
@@ -66,6 +75,14 @@ class ReviewQueue(Base):
     # Source (what needs review)
     source_type = Column(String(50), nullable=False)  # vendor_invoice/bank_transaction etc
     source_id = Column(UUID(as_uuid=True), nullable=False, index=True)
+    
+    # Voucher Type (for filtering different voucher types)
+    type = Column(
+        SQLEnum(VoucherType),
+        default=VoucherType.SUPPLIER_INVOICE,
+        nullable=False,
+        index=True
+    )
     
     # Priority & Status
     priority = Column(SQLEnum(ReviewPriority), default=ReviewPriority.MEDIUM, nullable=False)
@@ -104,6 +121,11 @@ class ReviewQueue(Base):
     
     # Relationships
     client = relationship("Client")
+    feedback = relationship(
+        "ReviewQueueFeedback",
+        back_populates="review_queue_item",
+        cascade="all, delete-orphan"
+    )
     
     def __repr__(self):
         return (

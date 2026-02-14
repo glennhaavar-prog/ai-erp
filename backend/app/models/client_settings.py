@@ -76,6 +76,21 @@ class ClientSettings(Base):
     # ]
     bank_accounts = Column(JSON, nullable=False, default=list)
     
+    # Bank reconciliation automation rules
+    # JSON array of rules for automatic matching between bank transactions and ledger entries
+    # [
+    #   {
+    #     "id": "uuid",
+    #     "rule_name": "Auto-match exact amounts",
+    #     "rule_type": "amount_exact",
+    #     "conditions": {"account": "1920", "amount_tolerance": 0.01},
+    #     "actions": {"auto_approve": false},
+    #     "active": true,
+    #     "priority": 10
+    #   }
+    # ]
+    bank_reconciliation_rules = Column(JSON, nullable=False, default=list)
+    
     # ===== SECTION 4: PAYROLL/EMPLOYEES =====
     has_employees = Column(Boolean, nullable=False, default=False)
     payroll_frequency = Column(String(20), nullable=True)  # monthly, bi-weekly, etc.

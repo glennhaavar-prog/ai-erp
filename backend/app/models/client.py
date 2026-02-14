@@ -72,7 +72,12 @@ class Client(Base):
         default=AutomationLevel.ASSISTED,
         nullable=False
     )
-    ai_confidence_threshold = Column(Integer, default=85)  # 0-100
+    ai_confidence_threshold = Column(Integer, default=85)  # 0-100 (DEPRECATED - use specific thresholds below)
+    
+    # Granular AI confidence thresholds (Module 1 feedback loop spec)
+    ai_threshold_account = Column(Integer, default=80, nullable=False)  # 0-100, account number confidence
+    ai_threshold_vat = Column(Integer, default=85, nullable=False)      # 0-100, VAT code confidence
+    ai_threshold_global = Column(Integer, default=85, nullable=False)   # 0-100, overall confidence (must pass all)
     
     # Status
     status = Column(String(20), default="active")  # active/inactive/suspended
@@ -103,6 +108,7 @@ class Client(Base):
     fiscal_years = relationship("FiscalYear", back_populates="client", cascade="all, delete-orphan")
     accruals = relationship("Accrual", back_populates="client", cascade="all, delete-orphan")
     opening_balances = relationship("OpeningBalance", back_populates="client", cascade="all, delete-orphan")
+    reconciliations = relationship("Reconciliation", back_populates="client", cascade="all, delete-orphan")
     
     # Constraints
     __table_args__ = (
@@ -122,7 +128,10 @@ class Client(Base):
             "org_number": self.org_number,
             "base_currency": self.base_currency,
             "ai_automation_level": self.ai_automation_level.value,
-            "ai_confidence_threshold": self.ai_confidence_threshold,
+            "ai_confidence_threshold": self.ai_confidence_threshold,  # Deprecated
+            "ai_threshold_account": self.ai_threshold_account,
+            "ai_threshold_vat": self.ai_threshold_vat,
+            "ai_threshold_global": self.ai_threshold_global,
             "status": self.status,
             "is_demo": self.is_demo,
             "created_at": self.created_at.isoformat(),

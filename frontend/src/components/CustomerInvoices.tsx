@@ -35,6 +35,7 @@ export function CustomerInvoices() {
   const clientId = selectedClient?.id || 'b3776033-40e5-42e2-ab7b-b1df97062d0c'; // Default to Test AS
 
   useEffect(() => {
+    if (!clientId) return;
     fetchInvoices();
     fetchStats();
   }, [filterStatus, clientId]);
@@ -134,7 +135,7 @@ export function CustomerInvoices() {
           <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
           <p className="mt-2 text-gray-600">Loading invoices...</p>
         </div>
-      ) : invoices.length === 0 ? (
+      ) : !invoices || invoices.length === 0 ? (
         <div className="text-center py-12 bg-gray-50 rounded-lg border border-gray-200">
           <div className="text-4xl mb-2">📄</div>
           <h3 className="text-lg font-semibold text-gray-900 mb-1">No Customer Invoices</h3>

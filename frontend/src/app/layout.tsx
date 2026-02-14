@@ -8,6 +8,7 @@ import { TenantProvider } from '@/contexts/TenantContext';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { GlobalSearch } from '@/components/GlobalSearch';
 import { KeyboardShortcutsProvider } from '@/components/KeyboardShortcutsHelp';
+import { ReactQueryProvider } from '@/components/providers/ReactQueryProvider';
 import { Toaster } from 'sonner';
 
 export const metadata: Metadata = {
@@ -28,18 +29,20 @@ export default function RootLayout({
       </head>
       <body className="font-body">
         <ErrorBoundary>
-          <TenantProvider>
-            <ViewModeProvider>
-              <ClientProvider>
-                <KeyboardShortcutsProvider>
-                  <DemoBanner />
-                  <AppLayout>{children}</AppLayout>
-                  <GlobalSearch />
-                  <Toaster position="top-right" />
-                </KeyboardShortcutsProvider>
-              </ClientProvider>
-            </ViewModeProvider>
-          </TenantProvider>
+          <ReactQueryProvider>
+            <TenantProvider>
+              <ViewModeProvider>
+                <ClientProvider>
+                  <KeyboardShortcutsProvider>
+                    <DemoBanner />
+                    <AppLayout>{children}</AppLayout>
+                    <GlobalSearch />
+                    <Toaster position="top-right" />
+                  </KeyboardShortcutsProvider>
+                </ClientProvider>
+              </ViewModeProvider>
+            </TenantProvider>
+          </ReactQueryProvider>
         </ErrorBoundary>
       </body>
     </html>

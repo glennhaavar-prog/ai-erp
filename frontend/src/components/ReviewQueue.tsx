@@ -189,7 +189,7 @@ export const ReviewQueue: React.FC = () => {
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <p className="text-lg text-muted-foreground">
-            Velg en klient fra menyen øverst for å se behandlingskø
+            Velg en klient fra menyen øverst for å se leverandørbilag
           </p>
         </div>
       </div>

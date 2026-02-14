@@ -1,0 +1,276 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - complementary [ref=e3]:
+      - generic [ref=e4]:
+        - link "K Kontali" [ref=e5] [cursor=pointer]:
+          - /url: /
+          - generic [ref=e6]:
+            - generic [ref=e7]: K
+            - generic [ref=e8]: Kontali
+        - button [ref=e9] [cursor=pointer]:
+          - img [ref=e10]
+      - navigation [ref=e11]:
+        - generic [ref=e12]:
+          - generic [ref=e13]: OVERSIKT
+          - link "Hovedoversikt" [ref=e14] [cursor=pointer]:
+            - /url: /
+            - generic [ref=e15]:
+              - img [ref=e16]
+              - generic [ref=e21]: Hovedoversikt
+          - link "Behandlingskø" [ref=e22] [cursor=pointer]:
+            - /url: /review-queue
+            - generic [ref=e23]:
+              - img [ref=e24]
+              - generic [ref=e27]: Behandlingskø
+          - link "Andre bilag" [ref=e28] [cursor=pointer]:
+            - /url: /andre-bilag
+            - generic [ref=e29]:
+              - img [ref=e30]
+              - generic [ref=e33]: Andre bilag
+        - generic [ref=e34]:
+          - generic [ref=e35]: INNBOKS
+          - link "Leverandørfakturaer" [ref=e36] [cursor=pointer]:
+            - /url: /upload
+            - generic [ref=e37]:
+              - img [ref=e38]
+              - generic [ref=e41]: Leverandørfakturaer
+          - link "Kundefakturaer" [ref=e42] [cursor=pointer]:
+            - /url: /customer-invoices
+            - generic [ref=e43]:
+              - img [ref=e44]
+              - generic [ref=e47]: Kundefakturaer
+        - generic [ref=e48]:
+          - generic [ref=e49]: IMPORT
+          - link "Banktransaksjoner" [ref=e50] [cursor=pointer]:
+            - /url: /import/banktransaksjoner
+            - generic [ref=e51]:
+              - img [ref=e52]
+              - generic [ref=e55]: Banktransaksjoner
+          - link "Bankintegrasjon (Tink)" [ref=e56] [cursor=pointer]:
+            - /url: /import/bankintegrasjon
+            - generic [ref=e57]:
+              - img [ref=e58]
+              - generic [ref=e60]: Bankintegrasjon (Tink)
+        - generic [ref=e61]:
+          - generic [ref=e62]: RAPPORTER
+          - link "Saldobalanse" [ref=e63] [cursor=pointer]:
+            - /url: /rapporter/saldobalanse
+            - generic [ref=e64]:
+              - img [ref=e65]
+              - generic [ref=e68]: Saldobalanse
+          - link "Resultatregnskap" [ref=e69] [cursor=pointer]:
+            - /url: /rapporter/resultat
+            - generic [ref=e70]:
+              - img [ref=e71]
+              - generic [ref=e74]: Resultatregnskap
+          - link "Balanse" [ref=e75] [cursor=pointer]:
+            - /url: /rapporter/balanse
+            - generic [ref=e76]:
+              - img [ref=e77]
+              - generic [ref=e81]: Balanse
+          - link "Hovedbok" [ref=e82] [cursor=pointer]:
+            - /url: /rapporter/hovedbok
+            - generic [ref=e83]:
+              - img [ref=e84]
+              - generic [ref=e86]: Hovedbok
+          - link "Leverandørreskontro" [ref=e87] [cursor=pointer]:
+            - /url: /reskontro/leverandorer
+            - generic [ref=e88]:
+              - img [ref=e89]
+              - generic [ref=e92]: Leverandørreskontro
+          - link "Kundereskontro" [ref=e93] [cursor=pointer]:
+            - /url: /reskontro/kunder
+            - generic [ref=e94]:
+              - img [ref=e95]
+              - generic [ref=e98]: Kundereskontro
+        - generic [ref=e99]:
+          - generic [ref=e100]: ANALYSE
+          - link "Bilagssplit og kontroll" [ref=e101] [cursor=pointer]:
+            - /url: /bilagssplit
+            - generic [ref=e102]:
+              - img [ref=e103]
+              - generic [ref=e106]: Bilagssplit og kontroll
+        - generic [ref=e107]:
+          - generic [ref=e108]: REGNSKAP
+          - link "Bilagsføring" [ref=e109] [cursor=pointer]:
+            - /url: /bilagsforing
+            - generic [ref=e110]:
+              - img [ref=e111]
+              - generic [ref=e114]: Bilagsføring
+          - link "Bilagsjournal" [ref=e115] [cursor=pointer]:
+            - /url: /bilag/journal
+            - generic [ref=e116]:
+              - img [ref=e117]
+              - generic [ref=e119]: Bilagsjournal
+          - link "Bankavstemming" [ref=e120] [cursor=pointer]:
+            - /url: /bank-reconciliation
+            - generic [ref=e121]:
+              - img [ref=e122]
+              - generic [ref=e126]: Bankavstemming
+          - link "Oppgaver" [ref=e127] [cursor=pointer]:
+            - /url: /oppgaver
+            - generic [ref=e128]:
+              - img [ref=e129]
+              - generic [ref=e132]: Oppgaver
+        - generic [ref=e133]:
+          - generic [ref=e134]: SALG
+          - generic "Kommer snart" [ref=e136]:
+            - img [ref=e137]
+            - generic [ref=e140]: Faktura
+          - generic "Kommer snart" [ref=e142]:
+            - img [ref=e143]
+            - generic [ref=e148]: Repeterende faktura
+          - generic "Kommer snart" [ref=e150]:
+            - img [ref=e151]
+            - generic [ref=e155]: Produkter
+        - generic [ref=e156]:
+          - generic [ref=e157]: REGISTER
+          - link "Kunder" [ref=e158] [cursor=pointer]:
+            - /url: /kontakter/kunder
+            - generic [ref=e159]:
+              - img [ref=e160]
+              - generic [ref=e163]: Kunder
+          - link "Leverandører" [ref=e164] [cursor=pointer]:
+            - /url: /kontakter/leverandorer
+            - generic [ref=e165]:
+              - img [ref=e166]
+              - generic [ref=e169]: Leverandører
+          - generic "Kommer snart" [ref=e171]:
+            - img [ref=e172]
+            - generic [ref=e177]: Ansatte
+          - generic "Kommer snart" [ref=e179]:
+            - img [ref=e180]
+            - generic [ref=e182]: Prosjekter
+          - generic "Kommer snart" [ref=e184]:
+            - img [ref=e185]
+            - generic [ref=e187]: Avdelinger
+        - generic [ref=e188]:
+          - generic [ref=e189]: INNSTILLINGER
+          - link "Kontoplan" [ref=e190] [cursor=pointer]:
+            - /url: /accounts
+            - generic [ref=e191]:
+              - img [ref=e192]
+              - generic [ref=e195]: Kontoplan
+          - link "Firmainnstillinger" [ref=e196] [cursor=pointer]:
+            - /url: /innstillinger
+            - generic [ref=e197]:
+              - img [ref=e198]
+              - generic [ref=e201]: Firmainnstillinger
+          - link "Åpningsbalanse" [ref=e202] [cursor=pointer]:
+            - /url: /aapningsbalanse
+            - generic [ref=e203]:
+              - img [ref=e204]
+              - generic [ref=e207]: Åpningsbalanse
+          - generic "Kommer snart" [ref=e209]:
+            - img [ref=e210]
+            - generic [ref=e212]: Integrasjoner
+          - generic "Kommer snart" [ref=e214]:
+            - img [ref=e215]
+            - generic [ref=e220]: Brukere
+        - generic [ref=e221]:
+          - generic [ref=e222]: VERKTØY
+          - link "AI Chat" [ref=e223] [cursor=pointer]:
+            - /url: /chat
+            - generic [ref=e224]:
+              - img [ref=e225]
+              - generic [ref=e227]: AI Chat
+          - link "Spør data" [ref=e228] [cursor=pointer]:
+            - /url: /nlq
+            - generic [ref=e229]:
+              - img [ref=e230]
+              - generic [ref=e233]: Spør data
+          - link "Tillitsmodell" [ref=e234] [cursor=pointer]:
+            - /url: /trust
+            - generic [ref=e235]:
+              - img [ref=e236]
+              - generic [ref=e238]: Tillitsmodell
+        - link "Chat" [ref=e241] [cursor=pointer]:
+          - /url: /chat
+          - generic [ref=e242]:
+            - img [ref=e243]
+            - generic [ref=e245]: Chat
+      - generic [ref=e247]:
+        - paragraph [ref=e248]: Klient-visning
+        - paragraph [ref=e249]: Demo-miljø
+    - generic [ref=e250]:
+      - banner [ref=e251]:
+        - generic [ref=e252]:
+          - button "AI AI Features Test Client Aktiv klient" [ref=e254] [cursor=pointer]:
+            - generic [ref=e255]: AI
+            - generic [ref=e256]:
+              - generic [ref=e257]: AI Features Test Client
+              - generic "Aktiv klient" [ref=e258]
+            - img [ref=e259]
+          - generic [ref=e261]:
+            - button "Multi-klient visning" [ref=e262] [cursor=pointer]:
+              - img [ref=e263]
+            - button "Enkeltklient visning" [ref=e268] [cursor=pointer]:
+              - img [ref=e269]
+        - generic "Global søk (kommer snart)" [ref=e274]:
+          - img [ref=e275]
+          - textbox "Søk etter bilag, faktura, klient..." [disabled] [ref=e278]
+        - generic "Brukerinnstillinger kommer snart" [ref=e280]:
+          - generic [ref=e281]: G
+          - generic [ref=e282]: Glenn
+      - navigation [ref=e283]:
+        - generic [ref=e284]:
+          - link "Klientens dashboard" [ref=e285] [cursor=pointer]:
+            - /url: /clients/df1da193-86e4-4515-b799-60c018ab6e1e
+            - img [ref=e286]
+          - img [ref=e289]
+          - link "AI Features Test Client" [ref=e291] [cursor=pointer]:
+            - /url: /clients/df1da193-86e4-4515-b799-60c018ab6e1e
+          - img [ref=e292]
+          - generic [ref=e294]: Bilagssplit og kontroll
+      - main [ref=e295]:
+        - generic [ref=e297]:
+          - generic [ref=e298]:
+            - generic [ref=e299]:
+              - heading "Bilagssplit og kontroll" [level=1] [ref=e300]
+              - paragraph [ref=e301]: Oversikt over alle bilag med behandlingshistorikk
+            - button "Oppdater" [ref=e302] [cursor=pointer]:
+              - img
+              - text: Oppdater
+          - generic [ref=e304]:
+            - generic [ref=e305]:
+              - img [ref=e306]
+              - heading "Filtre" [level=2] [ref=e308]
+            - generic [ref=e309]:
+              - generic [ref=e310]:
+                - text: Behandlingsmåte
+                - combobox [ref=e311]:
+                  - option "Alle" [selected]
+                  - option "🤖 Auto-godkjent (uten berøring)"
+                  - option "⏳ Venter på godkjenning"
+                  - option "✏️ Korrigert av regnskapsfører"
+                  - option "📋 Godkjent via regel"
+                  - option "👤 Godkjent av daglig leder"
+              - generic [ref=e312]:
+                - text: Bilagstype
+                - combobox [ref=e313]:
+                  - option "Alle" [selected]
+                  - option "Leverandørfaktura"
+                  - option "Andre bilag"
+                  - option "Bankavstemming"
+                  - option "Balansekonto"
+              - generic [ref=e314]:
+                - text: Fra dato
+                - textbox [ref=e315]
+              - generic [ref=e316]:
+                - text: Til dato
+                - textbox [ref=e317]
+            - generic [ref=e318]:
+              - img [ref=e319]
+              - textbox "Søk etter bilagsnummer eller leverandør..." [ref=e322]
+          - generic [ref=e324]: Viser 0 av 0 bilag
+          - generic [ref=e325]:
+            - img [ref=e326]
+            - heading "Ingen bilag funnet" [level=3] [ref=e329]
+            - paragraph [ref=e330]: Prøv å justere filtrene dine
+    - region "Notifications alt+T"
+  - region "Notifications alt+T"
+  - alert [ref=e331]
+```

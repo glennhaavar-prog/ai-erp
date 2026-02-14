@@ -2,7 +2,7 @@
 Trust Dashboard Service - Transparency & Control for Accountants
 Provides visibility into what the AI is doing and verification that nothing is missed
 """
-from sqlalchemy import select, func, and_, or_
+from sqlalchemy import select, func, and_, or_, String
 from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import datetime, timedelta
 from decimal import Decimal
@@ -187,7 +187,7 @@ class TrustDashboardService:
             .where(
                 and_(
                     CustomerInvoice.client_id == client_id,
-                    CustomerInvoice.payment_status == "paid"
+                    CustomerInvoice.payment_status.cast(String) == "paid"
                 )
             )
         )
@@ -200,8 +200,8 @@ class TrustDashboardService:
                 and_(
                     CustomerInvoice.client_id == client_id,
                     or_(
-                        CustomerInvoice.payment_status == "unpaid",
-                        CustomerInvoice.payment_status == "overdue"
+                        CustomerInvoice.payment_status.cast(String) == "unpaid",
+                        CustomerInvoice.payment_status.cast(String) == "overdue"
                     )
                 )
             )
@@ -215,7 +215,7 @@ class TrustDashboardService:
             .where(
                 and_(
                     CustomerInvoice.client_id == client_id,
-                    CustomerInvoice.payment_status != "paid",
+                    CustomerInvoice.payment_status.cast(String) != "paid",
                     CustomerInvoice.due_date < today
                 )
             )

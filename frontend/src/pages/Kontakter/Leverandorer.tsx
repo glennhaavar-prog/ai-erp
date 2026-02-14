@@ -24,7 +24,7 @@ import { BulkUpload } from '@/components/BulkUpload';
 
 export const Leverandorer: React.FC = () => {
   const router = useRouter();
-  const { selectedClient } = useClient();
+  const { selectedClient, isLoading: clientLoading } = useClient();
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -32,10 +32,18 @@ export const Leverandorer: React.FC = () => {
   const [showUploadModal, setShowUploadModal] = useState(false);
 
   useEffect(() => {
+    // Wait for ClientContext to finish loading
+    if (clientLoading) {
+      return;
+    }
+    
     if (selectedClient?.id) {
       fetchSuppliers();
+    } else {
+      // If no client selected, stop loading
+      setLoading(false);
     }
-  }, [selectedClient, searchQuery, statusFilter]);
+  }, [selectedClient, clientLoading, searchQuery, statusFilter]);
 
   const fetchSuppliers = async () => {
     if (!selectedClient?.id) return;
@@ -183,10 +191,12 @@ export const Leverandorer: React.FC = () => {
       </div>
 
       {/* Table */}
-      {loading ? (
+      {clientLoading || loading ? (
         <div className="text-center py-12">
           <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          <p className="text-gray-500 dark:text-gray-400 mt-4">Laster leverandører...</p>
+          <p className="text-gray-500 dark:text-gray-400 mt-4">
+            {clientLoading ? 'Laster klient...' : 'Laster leverandører...'}
+          </p>
         </div>
       ) : suppliers.length === 0 ? (
         <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">

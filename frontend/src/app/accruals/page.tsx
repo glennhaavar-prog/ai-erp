@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-// import { useClientContext } from '@/contexts/ClientContext';
+import { useClient } from '@/contexts/ClientContext';
 
 interface Accrual {
   id: string;
@@ -34,7 +34,8 @@ interface AccrualPosting {
 }
 
 export default function AccrualsPage() {
-  const clientId = '1'; // Mock clientId - TODO: implement proper context
+  const { selectedClient } = useClient();
+  const clientId = selectedClient?.id;
   const [accruals, setAccruals] = useState<Accrual[]>([]);
   const [selectedAccrual, setSelectedAccrual] = useState<string | null>(null);
   const [accrualDetails, setAccrualDetails] = useState<{
@@ -69,6 +70,8 @@ export default function AccrualsPage() {
   }, [selectedAccrual]);
 
   const loadAccruals = async () => {
+    if (!clientId) return;
+    
     setLoading(true);
     try {
       const params = new URLSearchParams({

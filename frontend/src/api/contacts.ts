@@ -88,7 +88,8 @@ export const suppliersApi = {
     limit?: number;
   }) => {
     const { data } = await api.get('/api/contacts/suppliers/', { params });
-    return data as Supplier[];
+    // Backend returns {items: [...], total: N}, extract items
+    return (data.items || data) as Supplier[];
   },
 
   get: async (supplierId: string, params?: {
@@ -203,7 +204,8 @@ export const customersApi = {
     limit?: number;
   }) => {
     const { data } = await api.get('/api/contacts/customers/', { params });
-    return data as Customer[];
+    // Backend returns {items: [...], total: N}, extract items
+    return (data.items || data) as Customer[];
   },
 
   get: async (customerId: string, params?: {

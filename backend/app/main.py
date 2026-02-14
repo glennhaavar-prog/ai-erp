@@ -12,7 +12,7 @@ from app.database import init_db, close_db
 from app.graphql.schema import schema
 from app.api.webhooks import ehf
 from app.api import chat
-from app.api.routes import review_queue, dashboard, dashboard_metrics, reports, documents, accounts, audit, bank, customer_invoices, invoices, demo, chat_booking, saldobalanse, clients, client_settings, accruals, copilot, nlq, period_close, bank_reconciliation, trust, income_statement, balance_sheet, journal_entries, auto_booking, tenants, tasks, supplier_ledger, customer_ledger, voucher_journal, test_ehf, suppliers, customers, opening_balance, currencies, tink
+from app.api.routes import review_queue, inbox, dashboard, dashboard_metrics, reports, documents, accounts, audit, bank, customer_invoices, invoices, demo, chat_booking, saldobalanse, clients, client_settings, accruals, copilot, nlq, period_close, bank_reconciliation, trust, income_statement, balance_sheet, journal_entries, auto_booking, tenants, tasks, supplier_ledger, customer_ledger, voucher_journal, test_ehf, suppliers, customers, opening_balance, currencies, tink, bank_recon, reconciliations, bank_matching, other_vouchers, voucher_control
 from app.api import ai_features
 from app.middleware.demo import DemoEnvironmentMiddleware
 
@@ -79,6 +79,12 @@ app.include_router(chat_booking.router)
 
 # Review Queue REST API (for frontend)
 app.include_router(review_queue.router)
+
+# Other Vouchers API (for non-supplier-invoice review queue items)
+app.include_router(other_vouchers.router)
+
+# Inbox API (items needing review - replaces mock data)
+app.include_router(inbox.router)
 
 # Trust Dashboard API
 app.include_router(dashboard.router)
@@ -148,6 +154,12 @@ app.include_router(period_close.router)
 # Bank Reconciliation API (Upload statements + auto-matching)
 app.include_router(bank_reconciliation.router)
 
+# Bank Recon API (Bank-to-Ledger Matching - Modul 2)
+app.include_router(bank_recon.router)
+
+# Bank Matching API (Advanced matching algorithms - KID, voucher, amount, combination)
+app.include_router(bank_matching.router)
+
 # Trust Dashboard API (Transparency and control for accountants)
 app.include_router(trust.router)
 
@@ -193,6 +205,12 @@ app.include_router(opening_balance.router)
 
 # Currency Exchange Rates API (Multi-currency support with auto-updates)
 app.include_router(currencies.router)
+
+# Reconciliations API (Balansekontoavstemming - Balance Account Reconciliation)
+app.include_router(reconciliations.router)
+
+# Voucher Control API (Bilagskontroll - Audit trail and control overview)
+app.include_router(voucher_control.router, prefix="/api/voucher-control", tags=["voucher-control"])
 
 # AI Features API (Smart categorization, anomaly detection, reconciliation, etc.)
 app.include_router(ai_features.router)

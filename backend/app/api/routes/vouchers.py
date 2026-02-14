@@ -182,6 +182,48 @@ async def list_vouchers_endpoint(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@router.get("/stats")
+async def get_voucher_stats(
+    client_id: UUID = Query(..., description="Client ID"),
+    db: AsyncSession = Depends(get_db)
+) -> dict:
+    """
+    Get voucher statistics for a client
+    
+    Returns aggregated statistics:
+    - Total number of vouchers
+    - Pending review count
+    - Approved count
+    - Rejected count
+    
+    Example:
+    ```
+    GET /api/vouchers/stats?client_id=123e4567-e89b-12d3-a456-426614174000
+    ```
+    """
+    try:
+        # Query vouchers for this client
+        query = select(GeneralLedger).where(GeneralLedger.client_id == client_id)
+        result = await db.execute(query)
+        vouchers = result.scalars().all()
+        
+        # Count by status
+        total_vouchers = len(vouchers)
+        pending_review = sum(1 for v in vouchers if getattr(v, 'status', None) == 'pending')
+        approved = sum(1 for v in vouchers if getattr(v, 'status', None) == 'approved')
+        rejected = sum(1 for v in vouchers if getattr(v, 'status', None) == 'rejected')
+        
+        return {
+            "total_vouchers": total_vouchers,
+            "pending_review": pending_review,
+            "approved": approved,
+            "rejected": rejected
+        }
+    except Exception as e:
+        logger.error(f"Error fetching voucher stats: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.get("/{voucher_id}", response_model=VoucherDTO)
 async def get_voucher(
     voucher_id: UUID,

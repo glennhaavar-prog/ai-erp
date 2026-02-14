@@ -2,7 +2,7 @@
 Customer Invoice model - Outgoing invoices (sales invoices)
 """
 from sqlalchemy import (
-    Column, String, Numeric, Date, DateTime, Boolean, ForeignKey, Text, JSON
+    Column, String, Numeric, Date, DateTime, Boolean, ForeignKey, Text, JSON, Enum as SQLEnum
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
@@ -60,7 +60,7 @@ class CustomerInvoice(Base):
     
     # Payment Status
     payment_status = Column(
-        String(20),
+        SQLEnum('unpaid', 'partially_paid', 'paid', 'overdue', name='payment_status_enum', create_type=False),
         default="unpaid",
         nullable=False,
         index=True

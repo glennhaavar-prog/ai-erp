@@ -54,8 +54,8 @@ test_endpoint "Health Check" "$BACKEND_URL/health" 200
 # 2. Tenants API
 test_endpoint "Tenants API" "$BACKEND_URL/api/tenants/demo" 200
 
-# 3. Clients API (v1)
-test_endpoint "Clients API" "$BACKEND_URL/api/v1/clients/" 200
+# 3. Clients API
+test_endpoint "Clients API" "$BACKEND_URL/api/clients/" 200
 
 # 4. Dashboard API (v1) - Skip for now due to enum error
 # echo -n "Testing Dashboard API (multi-client)... "

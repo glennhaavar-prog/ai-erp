@@ -70,7 +70,8 @@ class BankTransaction(Base):
     counterparty_account = Column(String(50), nullable=True)
     
     # Bank Details
-    bank_account = Column(String(20), nullable=False, index=True)  # Own account
+    bank_account = Column(String(20), nullable=False, index=True)  # Own account (actual bank account number)
+    ledger_account_number = Column(String(20), nullable=True, index=True)  # Chart of accounts number for ledger matching
     balance_after = Column(Numeric(15, 2), nullable=True)
     
     # Reconciliation

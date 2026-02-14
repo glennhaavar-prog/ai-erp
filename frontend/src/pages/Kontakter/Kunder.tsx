@@ -24,7 +24,7 @@ import { BulkUpload } from '@/components/BulkUpload';
 
 export const Kunder: React.FC = () => {
   const router = useRouter();
-  const { selectedClient } = useClient();
+  const { selectedClient, isLoading: clientLoading } = useClient();
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -32,10 +32,18 @@ export const Kunder: React.FC = () => {
   const [showUploadModal, setShowUploadModal] = useState(false);
 
   useEffect(() => {
+    // Wait for ClientContext to finish loading
+    if (clientLoading) {
+      return;
+    }
+    
     if (selectedClient?.id) {
       fetchCustomers();
+    } else {
+      // If no client selected, stop loading
+      setLoading(false);
     }
-  }, [selectedClient, searchQuery, statusFilter]);
+  }, [selectedClient, clientLoading, searchQuery, statusFilter]);
 
   const fetchCustomers = async () => {
     if (!selectedClient?.id) return;
@@ -183,10 +191,12 @@ export const Kunder: React.FC = () => {
       </div>
 
       {/* Table */}
-      {loading ? (
+      {clientLoading || loading ? (
         <div className="text-center py-12">
           <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          <p className="text-gray-500 dark:text-gray-400 mt-4">Laster kunder...</p>
+          <p className="text-gray-500 dark:text-gray-400 mt-4">
+            {clientLoading ? 'Laster klient...' : 'Laster kunder...'}
+          </p>
         </div>
       ) : customers.length === 0 ? (
         <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">

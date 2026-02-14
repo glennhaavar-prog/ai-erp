@@ -16,6 +16,7 @@ from app.models.review_queue import ReviewQueue, ReviewStatus, ReviewPriority, I
 from app.models.vendor_invoice import VendorInvoice
 from app.services.confidence_scoring import calculate_invoice_confidence
 from app.services.corrections_learning import record_invoice_correction
+from app.utils.audit import log_audit_event
 
 router = APIRouter(prefix="/api/review-queue", tags=["Review Queue"])
 
@@ -29,6 +30,36 @@ class CorrectRequest(BaseModel):
     """Correct review item request"""
     bookingEntries: List[dict]
     notes: Optional[str] = None
+
+
+@router.get("/pending")
+async def get_pending_items(
+    client_id: Optional[str] = None,
+    priority: Optional[str] = None,
+    category: Optional[str] = None,
+    sort_by: Optional[str] = "created_at",
+    sort_order: Optional[str] = "desc",
+    page: int = 1,
+    page_size: int = 50,
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Get pending review queue items (convenience endpoint for status=pending)
+    
+    NOTE: This route MUST come before /{item_id} to avoid route collision
+    """
+    # Delegate to main get_review_items with status=pending
+    return await get_review_items(
+        status="pending",
+        priority=priority,
+        client_id=client_id,
+        category=category,
+        sort_by=sort_by,
+        sort_order=sort_order,
+        page=page,
+        page_size=page_size,
+        db=db
+    )
 
 
 @router.get("/stats")
@@ -48,12 +79,18 @@ async def get_queue_stats(
     query = select(ReviewQueue)
     
     if client_id:
-        query = query.where(ReviewQueue.client_id == UUID(client_id))
+        try:
+            query = query.where(ReviewQueue.client_id == UUID(client_id))
+        except ValueError:
+            raise HTTPException(status_code=400, detail=f"Invalid client_id format: {client_id}. Must be a valid UUID.")
     
     # Count by status
     base_filters = []
     if client_id:
-        base_filters.append(ReviewQueue.client_id == UUID(client_id))
+        try:
+            base_filters.append(ReviewQueue.client_id == UUID(client_id))
+        except ValueError:
+            raise HTTPException(status_code=400, detail=f"Invalid client_id format: {client_id}. Must be a valid UUID.")
     
     pending_count_query = select(func.count(ReviewQueue.id)).where(
         and_(ReviewQueue.status == ReviewStatus.PENDING, *base_filters) if base_filters else ReviewQueue.status == ReviewStatus.PENDING
@@ -78,7 +115,10 @@ async def get_queue_stats(
         ReviewQueue.ai_confidence.isnot(None)
     )
     if client_id:
-        avg_confidence_query = avg_confidence_query.where(ReviewQueue.client_id == UUID(client_id))
+        try:
+            avg_confidence_query = avg_confidence_query.where(ReviewQueue.client_id == UUID(client_id))
+        except ValueError:
+            raise HTTPException(status_code=400, detail=f"Invalid client_id format: {client_id}. Must be a valid UUID.")
     
     avg_confidence_result = await db.execute(avg_confidence_query)
     avg_confidence = avg_confidence_result.scalar() or 0
@@ -135,16 +175,40 @@ async def get_review_items(
     
     # Apply filters
     if status:
-        query = query.where(ReviewQueue.status == ReviewStatus(status.upper()))
+        # Database stores UPPERCASE values (PENDING, APPROVED, etc.)
+        # API accepts lowercase or uppercase - normalize to UPPERCASE for DB comparison
+        from sqlalchemy import cast, String
+        status_upper = status.upper()  # e.g., "PENDING"
+        valid_statuses = ['PENDING', 'IN_PROGRESS', 'APPROVED', 'CORRECTED', 'REJECTED']
+        if status_upper not in valid_statuses:
+            raise HTTPException(status_code=400, detail=f"Invalid status: {status}")
+        query = query.where(cast(ReviewQueue.status, String) == status_upper)
     
     if priority:
-        query = query.where(ReviewQueue.priority == ReviewPriority(priority.upper()))
+        # Database stores UPPERCASE values - normalize to UPPERCASE
+        from sqlalchemy import cast, String
+        priority_upper = priority.upper()  # e.g., "MEDIUM"
+        valid_priorities = ['LOW', 'MEDIUM', 'HIGH', 'URGENT']
+        if priority_upper not in valid_priorities:
+            raise HTTPException(status_code=400, detail=f"Invalid priority: {priority}")
+        query = query.where(cast(ReviewQueue.priority, String) == priority_upper)
     
     if client_id:
-        query = query.where(ReviewQueue.client_id == UUID(client_id))
+        try:
+            query = query.where(ReviewQueue.client_id == UUID(client_id))
+        except ValueError:
+            raise HTTPException(status_code=400, detail=f"Invalid client_id format: {client_id}. Must be a valid UUID.")
     
     if category:
-        query = query.where(ReviewQueue.issue_category == IssueCategory(category.upper()))
+        # Database stores UPPERCASE values - normalize to UPPERCASE
+        from sqlalchemy import cast, String
+        category_upper = category.upper()
+        valid_categories = ['LOW_CONFIDENCE', 'UNKNOWN_VENDOR', 'UNUSUAL_AMOUNT', 'MISSING_VAT', 
+                           'UNCLEAR_DESCRIPTION', 'DUPLICATE_INVOICE', 'PROCESSING_ERROR', 
+                           'MANUAL_REVIEW_REQUIRED']
+        if category_upper not in valid_categories:
+            raise HTTPException(status_code=400, detail=f"Invalid category: {category}")
+        query = query.where(cast(ReviewQueue.issue_category, String) == category_upper)
     
     # Count total before pagination
     count_query = select(func.count()).select_from(query.subquery())
@@ -191,6 +255,7 @@ async def get_review_items(
             "status": review.status.value.lower(),
             # Additional fields for compatibility
             "supplier": invoice.vendor.name if invoice.vendor else "Unknown",
+            "supplier_id": str(invoice.vendor_id) if invoice.vendor_id else None,
             "amount": float(invoice.total_amount),
             "currency": invoice.currency,
             "invoice_number": invoice.invoice_number,
@@ -260,6 +325,7 @@ async def get_review_item(
         "status": review.status.value.lower(),
         # Additional details
         "supplier": invoice.vendor.name if invoice.vendor else "Unknown",
+        "supplier_id": str(invoice.vendor_id) if invoice.vendor_id else None,
         "supplier_org_number": invoice.vendor.org_number if invoice.vendor else None,
         "amount": float(invoice.total_amount),
         "amount_excl_vat": float(invoice.amount_excl_vat),
@@ -284,9 +350,12 @@ async def approve_item(
     Approve a review queue item and book to General Ledger
     
     PERFORMANCE: Optimized to complete in < 5 seconds with timeout protection
+    FEEDBACK LOOP: Records AI accuracy for machine learning
     """
     import asyncio
     import time
+    from app.models.review_queue_feedback import ReviewQueueFeedback
+    from app.models.vendor_invoice import VendorInvoice
     
     start_time = time.time()
     
@@ -296,12 +365,19 @@ async def approve_item(
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid UUID format")
     
-    query = select(ReviewQueue).where(ReviewQueue.id == uuid_obj)
-    result = await db.execute(query)
-    review_item = result.scalar_one_or_none()
+    # Fetch review item with invoice
+    query = select(ReviewQueue, VendorInvoice).join(
+        VendorInvoice,
+        ReviewQueue.source_id == VendorInvoice.id
+    ).where(ReviewQueue.id == uuid_obj)
     
-    if not review_item:
+    result = await db.execute(query)
+    row = result.first()
+    
+    if not row:
         raise HTTPException(status_code=404, detail="Review item not found")
+    
+    review_item, invoice = row
     
     if review_item.status != ReviewStatus.PENDING:
         raise HTTPException(
@@ -348,6 +424,28 @@ async def approve_item(
                 detail=f"Internal error creating voucher: {str(e)}"
             )
     
+    # FEEDBACK LOOP: Record that accountant approved AI suggestion
+    if review_item.ai_suggestion and invoice:
+        feedback = ReviewQueueFeedback(
+            id=uuid.uuid4(),
+            review_queue_id=review_item.id,
+            invoice_id=invoice.id,
+            reviewed_by=None,  # TODO: Set when auth is implemented
+            action="approved",
+            ai_suggestion=review_item.ai_suggestion,
+            accountant_correction=None,  # No correction - AI was correct
+            account_correct=True,
+            vat_correct=True,
+            fully_correct=True,
+            invoice_metadata={
+                "vendor_name": invoice.vendor.name if invoice.vendor else None,
+                "amount": float(invoice.total_amount),
+                "description": getattr(invoice, 'description', None),
+                "currency": invoice.currency,
+            }
+        )
+        db.add(feedback)
+    
     # Update status
     review_item.status = ReviewStatus.APPROVED
     review_item.resolved_at = datetime.utcnow()
@@ -356,6 +454,22 @@ async def approve_item(
     
     await db.commit()
     await db.refresh(review_item)
+    
+    # Log audit event
+    await log_audit_event(
+        db=db,
+        voucher_id=review_item.source_id,
+        voucher_type="supplier_invoice",
+        action="approved",
+        performed_by="accountant",
+        user_id=None,  # TODO: Set when auth is implemented
+        ai_confidence=review_item.ai_confidence / 100.0 if review_item.ai_confidence else None,
+        details={
+            "review_queue_id": str(review_item.id),
+            "notes": request.notes,
+            "resolution_time_seconds": round(time.time() - start_time, 3)
+        }
+    )
     
     elapsed = time.time() - start_time
     
@@ -366,7 +480,8 @@ async def approve_item(
         "message": "Item approved and booked to General Ledger successfully",
         "performance": {
             "elapsed_seconds": round(elapsed, 3)
-        }
+        },
+        "feedback_recorded": True
     }
     
     # Include voucher details if booking was performed
@@ -392,19 +507,30 @@ async def correct_item(
     """
     Correct a review queue item with manual booking entries
     This triggers the learning system to create patterns from the correction
+    FEEDBACK LOOP: Records AI mistakes for machine learning
     """
+    from app.models.review_queue_feedback import ReviewQueueFeedback
+    from app.models.vendor_invoice import VendorInvoice
+    
     # Validate UUID format
     try:
         uuid_obj = UUID(item_id)
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid UUID format")
     
-    query = select(ReviewQueue).where(ReviewQueue.id == uuid_obj)
-    result = await db.execute(query)
-    review_item = result.scalar_one_or_none()
+    # Fetch review item with invoice
+    query = select(ReviewQueue, VendorInvoice).join(
+        VendorInvoice,
+        ReviewQueue.source_id == VendorInvoice.id
+    ).where(ReviewQueue.id == uuid_obj)
     
-    if not review_item:
+    result = await db.execute(query)
+    row = result.first()
+    
+    if not row:
         raise HTTPException(status_code=404, detail="Review item not found")
+    
+    review_item, invoice = row
     
     if review_item.status != ReviewStatus.PENDING:
         raise HTTPException(
@@ -424,6 +550,53 @@ async def correct_item(
         'lines': request.bookingEntries
     }
     
+    # FEEDBACK LOOP: Analyze what AI got wrong
+    ai_suggestion = review_item.ai_suggestion or {}
+    corrected_account = None
+    corrected_vat = None
+    
+    # Extract corrected values from booking entries
+    if request.bookingEntries:
+        first_entry = request.bookingEntries[0]
+        corrected_account = first_entry.get('account_number')
+        corrected_vat = first_entry.get('vat_code')
+    
+    # Compare AI suggestion vs correction
+    account_correct = (
+        ai_suggestion.get('account_number') == corrected_account
+        if corrected_account else None
+    )
+    vat_correct = (
+        ai_suggestion.get('vat_code') == corrected_vat
+        if corrected_vat else None
+    )
+    fully_correct = account_correct and vat_correct if (account_correct is not None and vat_correct is not None) else False
+    
+    # Record feedback
+    feedback = ReviewQueueFeedback(
+        id=uuid.uuid4(),
+        review_queue_id=review_item.id,
+        invoice_id=invoice.id,
+        reviewed_by=None,  # TODO: Set when auth is implemented
+        action="corrected",
+        ai_suggestion=ai_suggestion,
+        accountant_correction={
+            "account_number": corrected_account,
+            "vat_code": corrected_vat,
+            "reason": request.notes
+        },
+        account_correct=account_correct,
+        vat_correct=vat_correct,
+        fully_correct=fully_correct,
+        invoice_metadata={
+            "vendor_name": invoice.vendor.name if invoice.vendor else None,
+            "amount": float(invoice.total_amount),
+            "description": getattr(invoice, 'description', None),
+            "currency": invoice.currency,
+        }
+    )
+    db.add(feedback)
+    
     # Record correction and trigger learning
     correction_result = await record_invoice_correction(
         db=db,
@@ -439,17 +612,30 @@ async def correct_item(
             detail=f"Failed to record correction: {correction_result.get('error')}"
         )
     
+    # Update review item status
+    review_item.status = ReviewStatus.CORRECTED
+    review_item.resolved_at = datetime.utcnow()
+    review_item.resolution_notes = request.notes
+    
+    await db.commit()
+    
     response = {
         "id": str(review_item.id),
         "status": "corrected",
         "updated_at": datetime.utcnow().isoformat(),
         "message": "Item corrected and AI learned from it",
+        "feedback_recorded": True,
         "correction": {
             "id": correction_result.get('correction_id'),
             "general_ledger_id": correction_result.get('general_ledger_id'),
             "voucher_number": correction_result.get('voucher_number'),
             "pattern_created": correction_result.get('pattern_created'),
             "similar_items_corrected": correction_result.get('similar_items_corrected')
+        },
+        "accuracy": {
+            "account_correct": account_correct,
+            "vat_correct": vat_correct,
+            "fully_correct": fully_correct
         }
     }
     
@@ -537,4 +723,169 @@ async def recalculate_confidence(
         "breakdown": confidence_result['breakdown'],
         "reasoning": confidence_result['reasoning'],
         "should_auto_approve": confidence_result['should_auto_approve']
+    }
+
+
+# =====================================================================
+# FEEDBACK ANALYTICS - ML Training Data Export
+# =====================================================================
+
+@router.get("/feedback/analytics")
+async def get_feedback_analytics(
+    client_id: Optional[str] = None,
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Get aggregated feedback analytics for ML model training.
+    
+    Returns:
+    - Overall accuracy metrics (account, VAT, fully correct)
+    - Accuracy trends over time
+    - Common mistake patterns
+    - Confidence calibration (predicted vs actual accuracy)
+    
+    Query params:
+    - client_id: Filter by client (optional)
+    - start_date: ISO date (optional)
+    - end_date: ISO date (optional)
+    """
+    from app.models.review_queue_feedback import ReviewQueueFeedback
+    from datetime import datetime as dt
+    
+    # Build base query
+    query = select(ReviewQueueFeedback)
+    
+    # Apply filters
+    if client_id:
+        try:
+            # Join with ReviewQueue to get client_id
+            query = query.join(
+                ReviewQueue,
+                ReviewQueueFeedback.review_queue_id == ReviewQueue.id
+            ).where(ReviewQueue.client_id == UUID(client_id))
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid client_id format")
+    
+    if start_date:
+        try:
+            start_dt = dt.fromisoformat(start_date.replace('Z', '+00:00'))
+            query = query.where(ReviewQueueFeedback.created_at >= start_dt)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid start_date format (use ISO 8601)")
+    
+    if end_date:
+        try:
+            end_dt = dt.fromisoformat(end_date.replace('Z', '+00:00'))
+            query = query.where(ReviewQueueFeedback.created_at <= end_dt)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid end_date format (use ISO 8601)")
+    
+    # Execute query
+    result = await db.execute(query)
+    feedback_records = result.scalars().all()
+    
+    if not feedback_records:
+        return {
+            "total_reviews": 0,
+            "accuracy": {
+                "account": None,
+                "vat": None,
+                "fully_correct": None
+            },
+            "trends": [],
+            "common_mistakes": []
+        }
+    
+    # Calculate metrics
+    total = len(feedback_records)
+    account_correct_count = sum(1 for f in feedback_records if f.account_correct)
+    vat_correct_count = sum(1 for f in feedback_records if f.vat_correct)
+    fully_correct_count = sum(1 for f in feedback_records if f.fully_correct)
+    
+    return {
+        "total_reviews": total,
+        "accuracy": {
+            "account": round(account_correct_count / total * 100, 2),
+            "vat": round(vat_correct_count / total * 100, 2),
+            "fully_correct": round(fully_correct_count / total * 100, 2)
+        },
+        "approved_count": sum(1 for f in feedback_records if f.action == "approved"),
+        "corrected_count": sum(1 for f in feedback_records if f.action == "corrected"),
+        "date_range": {
+            "start": min(f.created_at for f in feedback_records).isoformat(),
+            "end": max(f.created_at for f in feedback_records).isoformat()
+        }
+    }
+
+
+@router.get("/feedback/export")
+async def export_feedback_for_ml(
+    client_id: Optional[str] = None,
+    limit: int = 1000,
+    db: AsyncSession = Depends(get_db)
+):
+    """
+    Export feedback data in format suitable for ML model fine-tuning.
+    
+    Returns JSONL-like structure:
+    [
+      {
+        "invoice_metadata": {...},
+        "ai_suggestion": {...},
+        "accountant_correction": {...} or null,
+        "accuracy": {...}
+      },
+      ...
+    ]
+    
+    Use this endpoint to:
+    1. Export training data for Claude fine-tuning
+    2. Analyze patterns for prompt engineering
+    3. Generate accuracy reports
+    
+    Query params:
+    - client_id: Filter by client (optional)
+    - limit: Max records to return (default 1000)
+    """
+    from app.models.review_queue_feedback import ReviewQueueFeedback
+    
+    query = select(ReviewQueueFeedback).order_by(ReviewQueueFeedback.created_at.desc())
+    
+    # Apply filters
+    if client_id:
+        try:
+            query = query.join(
+                ReviewQueue,
+                ReviewQueueFeedback.review_queue_id == ReviewQueue.id
+            ).where(ReviewQueue.client_id == UUID(client_id))
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid client_id format")
+    
+    query = query.limit(limit)
+    
+    result = await db.execute(query)
+    feedback_records = result.scalars().all()
+    
+    # Format for ML training
+    training_data = []
+    for record in feedback_records:
+        training_data.append({
+            "id": str(record.id),
+            "invoice_metadata": record.invoice_metadata,
+            "ai_suggestion": record.ai_suggestion,
+            "accountant_correction": record.accountant_correction,
+            "accuracy": {
+                "account_correct": record.account_correct,
+                "vat_correct": record.vat_correct,
+                "fully_correct": record.fully_correct
+            },
+            "action": record.action,
+            "created_at": record.created_at.isoformat()
+        })
+    
+    return {
+        "count": len(training_data),
+        "data": training_data
     }

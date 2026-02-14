@@ -24,6 +24,8 @@ export interface MenuItem {
 export interface MenuCategory {
   id: string;
   label: string;
+  /** Icon color for this section (Tailwind color class) */
+  color?: string;
   items: MenuItem[];
 }
 
@@ -31,6 +33,7 @@ export const menuConfig: MenuCategory[] = [
   {
     id: 'oversikt',
     label: 'OVERSIKT',
+    color: 'text-accent', // Cyan
     items: [
       {
         id: 'hovedoversikt',
@@ -41,9 +44,16 @@ export const menuConfig: MenuCategory[] = [
       },
       {
         id: 'behandlingsko',
-        label: 'Behandlingskø',
+        label: 'Leverandørbilag',
         icon: 'checkCircle2',
         route: '/review-queue',
+        visibility: 'both',
+      },
+      {
+        id: 'andre-bilag',
+        label: 'Andre bilag',
+        icon: 'clipboardList',
+        route: '/andre-bilag',
         visibility: 'both',
       },
     ],
@@ -51,6 +61,7 @@ export const menuConfig: MenuCategory[] = [
   {
     id: 'innboks',
     label: 'INNBOKS',
+    color: 'text-success', // Green
     items: [
       {
         id: 'leverandorfakturaer',
@@ -71,6 +82,7 @@ export const menuConfig: MenuCategory[] = [
   {
     id: 'import',
     label: 'IMPORT',
+    color: 'text-secondary', // Violet
     items: [
       {
         id: 'banktransaksjoner',
@@ -91,6 +103,7 @@ export const menuConfig: MenuCategory[] = [
   {
     id: 'rapporter',
     label: 'RAPPORTER',
+    color: 'text-warning', // Amber
     items: [
       {
         id: 'saldobalanse',
@@ -137,8 +150,25 @@ export const menuConfig: MenuCategory[] = [
     ],
   },
   {
+    id: 'analyse',
+    label: 'ANALYSE',
+    color: 'text-primary', // Teal
+    items: [
+      {
+        id: 'bilagssplit',
+        label: 'Bilagssplit og kontroll',
+        icon: 'barChart3',
+        route: '/bilagssplit',
+        visibility: 'both',
+        disabled: false,
+        tooltip: 'Oversikt over alle bilag med behandlingshistorikk og audit trail',
+      },
+    ],
+  },
+  {
     id: 'regnskap',
     label: 'REGNSKAP',
+    color: 'text-accent', // Cyan
     items: [
       {
         id: 'bilagsforing',
@@ -175,6 +205,7 @@ export const menuConfig: MenuCategory[] = [
   {
     id: 'salg',
     label: 'SALG',
+    color: 'text-success', // Green
     items: [
       {
         id: 'faktura',
@@ -208,6 +239,7 @@ export const menuConfig: MenuCategory[] = [
   {
     id: 'register',
     label: 'REGISTER',
+    color: 'text-secondary', // Violet
     items: [
       {
         id: 'kunder',
@@ -257,6 +289,7 @@ export const menuConfig: MenuCategory[] = [
   {
     id: 'innstillinger',
     label: 'INNSTILLINGER',
+    color: 'text-muted-foreground', // Muted gray
     items: [
       {
         id: 'kontoplan',
@@ -319,6 +352,7 @@ export const menuConfig: MenuCategory[] = [
   {
     id: 'verktoy',
     label: 'VERKTØY',
+    color: 'text-primary', // Teal
     items: [
       {
         id: 'ai-chat',

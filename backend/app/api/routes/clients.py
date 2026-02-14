@@ -419,3 +419,123 @@ async def delete_client(
         }
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid client ID format")
+
+
+# =====================================================================
+# AI CONFIDENCE THRESHOLDS - Module 1 Feedback Loop
+# =====================================================================
+
+class ThresholdSettings(BaseModel):
+    """AI confidence threshold settings"""
+    ai_threshold_account: int  # 0-100
+    ai_threshold_vat: int      # 0-100
+    ai_threshold_global: int   # 0-100
+
+
+@router.get("/{client_id}/thresholds")
+async def get_threshold_settings(
+    client_id: str,
+    db: AsyncSession = Depends(get_db)
+) -> ThresholdSettings:
+    """
+    Get AI confidence threshold settings for a client.
+    
+    These thresholds determine when AI suggestions require manual review:
+    - ai_threshold_account: Minimum confidence for account number (0-100)
+    - ai_threshold_vat: Minimum confidence for VAT code (0-100)
+    - ai_threshold_global: Overall minimum confidence (0-100)
+    
+    If any suggestion is below threshold, item goes to Review Queue.
+    """
+    try:
+        query = select(Client).where(Client.id == UUID(client_id))
+        result = await db.execute(query)
+        client = result.scalar_one_or_none()
+        
+        if not client:
+            raise HTTPException(status_code=404, detail="Client not found")
+        
+        return ThresholdSettings(
+            ai_threshold_account=client.ai_threshold_account,
+            ai_threshold_vat=client.ai_threshold_vat,
+            ai_threshold_global=client.ai_threshold_global
+        )
+    
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid client ID format")
+
+
+@router.put("/{client_id}/thresholds")
+async def update_threshold_settings(
+    client_id: str,
+    settings: ThresholdSettings,
+    db: AsyncSession = Depends(get_db)
+) -> Dict[str, Any]:
+    """
+    Update AI confidence threshold settings for a client.
+    
+    Request body:
+    {
+      "ai_threshold_account": 80,
+      "ai_threshold_vat": 85,
+      "ai_threshold_global": 85
+    }
+    
+    All values must be between 0 and 100.
+    
+    Higher thresholds = more items require manual review (safer, slower)
+    Lower thresholds = more auto-approval (riskier, faster)
+    
+    Recommended defaults:
+    - Account: 80% (account selection is critical)
+    - VAT: 85% (VAT errors are costly)
+    - Global: 85% (overall safety threshold)
+    """
+    # Validate threshold values
+    if not (0 <= settings.ai_threshold_account <= 100):
+        raise HTTPException(
+            status_code=400,
+            detail="ai_threshold_account must be between 0 and 100"
+        )
+    
+    if not (0 <= settings.ai_threshold_vat <= 100):
+        raise HTTPException(
+            status_code=400,
+            detail="ai_threshold_vat must be between 0 and 100"
+        )
+    
+    if not (0 <= settings.ai_threshold_global <= 100):
+        raise HTTPException(
+            status_code=400,
+            detail="ai_threshold_global must be between 0 and 100"
+        )
+    
+    try:
+        query = select(Client).where(Client.id == UUID(client_id))
+        result = await db.execute(query)
+        client = result.scalar_one_or_none()
+        
+        if not client:
+            raise HTTPException(status_code=404, detail="Client not found")
+        
+        # Update thresholds
+        client.ai_threshold_account = settings.ai_threshold_account
+        client.ai_threshold_vat = settings.ai_threshold_vat
+        client.ai_threshold_global = settings.ai_threshold_global
+        client.updated_at = datetime.utcnow()
+        
+        await db.commit()
+        await db.refresh(client)
+        
+        return {
+            "message": "Threshold settings updated successfully",
+            "client_id": str(client.id),
+            "thresholds": {
+                "ai_threshold_account": client.ai_threshold_account,
+                "ai_threshold_vat": client.ai_threshold_vat,
+                "ai_threshold_global": client.ai_threshold_global
+            }
+        }
+    
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid client ID format")

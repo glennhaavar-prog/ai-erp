@@ -5,7 +5,7 @@ from sqlalchemy import (
     Column, String, DateTime, ForeignKey, Numeric, Boolean,
     Text, JSON, Date, Integer
 )
-from sqlalchemy.dialects.postgresql import UUID, ARRAY
+from sqlalchemy.dialects.postgresql import UUID, ARRAY, ENUM
 from sqlalchemy.orm import relationship
 from datetime import datetime, date
 from decimal import Decimal
@@ -75,11 +75,11 @@ class VendorInvoice(Base):
     
     # Payment Tracking
     payment_status = Column(
-        String(20),
-        default="unpaid",
+        ENUM('unpaid', 'partially_paid', 'paid', 'overdue', name='payment_status_enum', create_type=False),
         nullable=False,
+        server_default='unpaid',
         index=True
-    )  # unpaid/partially_paid/paid/overdue (enum in DB)
+    )
     paid_amount = Column(Numeric(15, 2), default=Decimal("0.00"))
     paid_date = Column(Date, nullable=True)  # When fully paid
     payment_terms_days = Column(Integer, nullable=True)  # Number of days for payment (e.g., 30)
@@ -95,7 +95,7 @@ class VendorInvoice(Base):
     # Review Status
     review_status = Column(
         String(20),
-        default="pending",
+        server_default="pending",
         nullable=False
     )  # pending/auto_approved/needs_review/reviewed/rejected
     reviewed_by_user_id = Column(UUID(as_uuid=True), nullable=True)

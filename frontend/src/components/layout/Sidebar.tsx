@@ -76,7 +76,7 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
     return normalizedPathname === normalizedRoute || normalizedPathname?.startsWith(normalizedRoute + '/');
   };
 
-  const renderMenuItem = (item: MenuItem, level: number = 0) => {
+  const renderMenuItem = (item: MenuItem, level: number = 0, categoryColor?: string) => {
     const hasChildren = item.children && item.children.length > 0;
     const isExpanded = expandedItems.has(item.id);
     const active = isActive(item.route);
@@ -99,7 +99,7 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
             `}
             style={{ paddingLeft: collapsed ? undefined : `${level * 12 + 16}px` }}
           >
-            <IconComponent className="w-5 h-5 flex-shrink-0" />
+            <IconComponent className={`w-5 h-5 flex-shrink-0 ${active ? 'text-primary' : (categoryColor || 'text-current')}`} />
             {!collapsed && (
               <>
                 <span className="flex-1 text-left">{item.label}</span>
@@ -121,7 +121,7 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
                 transition={{ duration: 0.2 }}
                 className="overflow-hidden"
               >
-                {item.children?.map(child => renderMenuItem(child, level + 1))}
+                {item.children?.map(child => renderMenuItem(child, level + 1, categoryColor))}
               </motion.div>
             )}
           </AnimatePresence>
@@ -141,7 +141,7 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
         style={{ paddingLeft: collapsed ? undefined : `${level * 12 + 16}px` }}
         title={item.disabled ? item.tooltip : undefined}
       >
-        <IconComponent className="w-5 h-5 flex-shrink-0" />
+        <IconComponent className={`w-5 h-5 flex-shrink-0 ${active ? 'text-primary' : (categoryColor || 'text-current')}`} />
         {!collapsed && <span className="flex-1 text-left">{item.label}</span>}
       </div>
     );
@@ -173,7 +173,7 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
           ${active ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'}
         `}
       >
-        <ChatIcon className="w-5 h-5 flex-shrink-0" />
+        <ChatIcon className={`w-5 h-5 flex-shrink-0 ${active ? 'text-primary' : 'text-primary'}`} />
         {!collapsed && <span className="flex-1 text-left">{chatMenuItem.label}</span>}
       </div>
     );
@@ -226,12 +226,12 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
           <div key={category.id} className="mb-6">
             {!collapsed && (
               <div className="px-4 mb-2">
-                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                <span className={`text-xs font-semibold uppercase tracking-wider ${category.color || 'text-muted-foreground'}`}>
                   {category.label}
                 </span>
               </div>
             )}
-            {category.items.map(item => renderMenuItem(item))}
+            {category.items.map(item => renderMenuItem(item, 0, category.color))}
           </div>
         ))}
 

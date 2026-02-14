@@ -295,7 +295,7 @@ export function BankReconciliation() {
           <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
           <p className="mt-2 text-gray-600">Loading transactions...</p>
         </div>
-      ) : transactions.length === 0 ? (
+      ) : !transactions || transactions.length === 0 ? (
         <div className="text-center py-12 bg-gray-50 rounded-lg border border-gray-200">
           <div className="text-4xl mb-2">📊</div>
           <h3 className="text-lg font-semibold text-gray-900 mb-1">No Transactions</h3>
@@ -386,7 +386,7 @@ export function BankReconciliation() {
                             <div className="text-center py-4">
                               <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
                             </div>
-                          ) : suggestions.length === 0 ? (
+                          ) : !suggestions || suggestions.length === 0 ? (
                             <p className="text-gray-600">No matching suggestions found</p>
                           ) : (
                             <div className="space-y-2">

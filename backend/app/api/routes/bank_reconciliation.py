@@ -102,33 +102,80 @@ async def get_bank_accounts(
     """
     
     try:
-        # TODO: Query bank accounts from database
-        # For now, return mock data for testing
+        from app.models.bank_transaction import BankTransaction, TransactionStatus
+        from app.models.general_ledger import GeneralLedger, GeneralLedgerLine
+        from app.models.chart_of_accounts import Account
         
-        mock_accounts = [
-            BankAccountSummary(
-                account_id="1",
-                account_number="1920",
-                account_name="Hovedkonto - Bank",
-                saldo_i_bank=125450.50,
-                saldo_i_go=125200.25,
-                differanse=250.25,
-                poster_a_avstemme=3,
-                currency="NOK"
-            ),
-            BankAccountSummary(
-                account_id="2",
-                account_number="1921",
-                account_name="Sparekonto",
-                saldo_i_bank=50000.00,
-                saldo_i_go=50000.00,
-                differanse=0.0,
-                poster_a_avstemme=0,
-                currency="NOK"
-            ),
-        ]
+        client_uuid = UUID(client_id)
         
-        return mock_accounts
+        # Get distinct bank accounts from transactions
+        stmt = (
+            select(BankTransaction.bank_account)
+            .where(BankTransaction.client_id == client_uuid)
+            .distinct()
+        )
+        result = await db.execute(stmt)
+        bank_account_numbers = result.scalars().all()
+        
+        accounts = []
+        
+        for account_number in bank_account_numbers:
+            # Calculate saldo_i_bank (sum of all bank transactions)
+            bank_sum_stmt = select(func.sum(BankTransaction.amount)).where(
+                BankTransaction.client_id == client_uuid,
+                BankTransaction.bank_account == account_number
+            )
+            bank_sum_result = await db.execute(bank_sum_stmt)
+            saldo_i_bank = bank_sum_result.scalar() or Decimal("0.00")
+            
+            # Count unmatched transactions
+            unmatched_count_stmt = select(func.count(BankTransaction.id)).where(
+                BankTransaction.client_id == client_uuid,
+                BankTransaction.bank_account == account_number,
+                BankTransaction.status == TransactionStatus.UNMATCHED
+            )
+            unmatched_count_result = await db.execute(unmatched_count_stmt)
+            poster_a_avstemme = unmatched_count_result.scalar() or 0
+            
+            # Calculate saldo_i_go (balance from general ledger for this account)
+            # Sum debits - credits for this account number
+            gl_sum_stmt = (
+                select(
+                    func.sum(GeneralLedgerLine.debit_amount - GeneralLedgerLine.credit_amount)
+                )
+                .join(GeneralLedger, GeneralLedgerLine.general_ledger_id == GeneralLedger.id)
+                .where(
+                    GeneralLedger.client_id == client_uuid,
+                    GeneralLedgerLine.account_number == account_number,
+                    GeneralLedger.status == "posted"
+                )
+            )
+            gl_sum_result = await db.execute(gl_sum_stmt)
+            saldo_i_go = gl_sum_result.scalar() or Decimal("0.00")
+            
+            # Get account name from chart of accounts
+            account_name_stmt = select(Account.account_name).where(
+                Account.client_id == client_uuid,
+                Account.account_number == account_number
+            )
+            account_name_result = await db.execute(account_name_stmt)
+            account_name = account_name_result.scalar() or f"Bank Account {account_number}"
+            
+            # Calculate difference
+            differanse = float(saldo_i_bank) - float(saldo_i_go)
+            
+            accounts.append(BankAccountSummary(
+                account_id=account_number,  # Use account number as ID
+                account_number=account_number,
+                account_name=account_name,
+                saldo_i_bank=float(saldo_i_bank),
+                saldo_i_go=float(saldo_i_go),
+                differanse=differanse,
+                poster_a_avstemme=poster_a_avstemme,
+                currency="NOK"
+            ))
+        
+        return accounts
     
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error fetching accounts: {str(e)}")
@@ -162,6 +209,13 @@ async def get_reconciliation_detail(
     """
     
     try:
+        from app.models.bank_transaction import BankTransaction, TransactionStatus, TransactionType
+        from app.models.general_ledger import GeneralLedger, GeneralLedgerLine
+        from app.models.chart_of_accounts import Account
+        
+        client_uuid = UUID(client_id)
+        account_number = account_id
+        
         # Default to current month if not specified
         if not period_start:
             today = date.today()
@@ -169,94 +223,131 @@ async def get_reconciliation_detail(
         if not period_end:
             period_end = datetime.now().date().isoformat()
         
-        # TODO: Query actual data from database
-        # For now, return mock data for testing
+        # Get account name
+        account_name_stmt = select(Account.account_name).where(
+            Account.client_id == client_uuid,
+            Account.account_number == account_number
+        )
+        account_name_result = await db.execute(account_name_stmt)
+        account_name = account_name_result.scalar() or f"Bank Account {account_number}"
         
-        mock_detail = ReconciliationDetail(
-            account_id=account_id,
-            account_number="1920",
-            account_name="Hovedkonto - Bank",
-            period_start=period_start,
-            period_end=period_end,
+        # Query bank transactions for this account in the period
+        bank_txn_stmt = (
+            select(BankTransaction)
+            .where(
+                BankTransaction.client_id == client_uuid,
+                BankTransaction.bank_account == account_number,
+                BankTransaction.transaction_date >= datetime.fromisoformat(period_start),
+                BankTransaction.transaction_date <= datetime.fromisoformat(period_end)
+            )
+            .order_by(BankTransaction.transaction_date.desc())
+        )
+        bank_txn_result = await db.execute(bank_txn_stmt)
+        bank_transactions = bank_txn_result.scalars().all()
+        
+        # Initialize 4 categories
+        categories_dict = {
+            "ikke_registrert_i_go": {
+                "key": "ikke_registrert_i_go",
+                "name": "Ikke registrert i Go (Bank transactions not in ledger)",
+                "transactions": []
+            },
+            "registrert_i_go_ikke_i_bank": {
+                "key": "registrert_i_go_ikke_i_bank",
+                "name": "Registrert i Go - ikke i bank (Ledger entries not in bank)",
+                "transactions": []
+            },
+            "registrert_begge_steder_ikke_avstemt": {
+                "key": "registrert_begge_steder_ikke_avstemt",
+                "name": "Registrert begge steder - ikke avstemt (Both places, not matched)",
+                "transactions": []
+            },
+            "avstemt": {
+                "key": "avstemt",
+                "name": "Avstemt (Matched)",
+                "transactions": []
+            }
+        }
+        
+        # Categorize bank transactions
+        for txn in bank_transactions:
+            cat_txn = CategorizedTransaction(
+                id=str(txn.id),
+                date=txn.transaction_date.isoformat()[:10],
+                description=txn.description,
+                beløp=float(txn.amount),
+                valutakode="NOK",
+                voucher_number=txn.reference_number,
+                status=txn.status.value
+            )
             
-            # Mock 4 categories
-            categories=[
-                ReconciliationCategory(
-                    category_key="uttak_postert_ikke_statement",
-                    category_name="Uttak postert - ikke inkludert i kontoutskrift",
-                    transactions=[
-                        CategorizedTransaction(
-                            id="t1",
-                            date="2026-02-05",
-                            description="Lønn utbetaling februar",
-                            beløp=-45000.00,
-                            valutakode="NOK",
-                            voucher_number="V001",
-                            status="posted"
-                        ),
-                        CategorizedTransaction(
-                            id="t2",
-                            date="2026-02-08",
-                            description="Leverandør betaling",
-                            beløp=-12500.00,
-                            valutakode="NOK",
-                            voucher_number="V002",
-                            status="posted"
-                        ),
-                    ],
-                    total_beløp=-57500.00
-                ),
-                ReconciliationCategory(
-                    category_key="innskudd_postert_ikke_statement",
-                    category_name="Innskudd postert - ikke inkludert i kontoutskrift",
-                    transactions=[
-                        CategorizedTransaction(
-                            id="t3",
-                            date="2026-02-10",
-                            description="Kundebetalinger",
-                            beløp=35250.00,
-                            valutakode="NOK",
-                            voucher_number="V003",
-                            status="posted"
-                        ),
-                    ],
-                    total_beløp=35250.00
-                ),
-                ReconciliationCategory(
-                    category_key="uttak_ikke_postert_i_statement",
-                    category_name="Uttak ikke postert - inkludert i kontoutskrift",
-                    transactions=[
-                        CategorizedTransaction(
-                            id="t4",
-                            date="2026-02-11",
-                            description="Gebyr fra bank",
-                            beløp=-500.00,
-                            valutakode="NOK",
-                            status="in_statement"
-                        ),
-                    ],
-                    total_beløp=-500.00
-                ),
-                ReconciliationCategory(
-                    category_key="innskudd_ikke_postert_i_statement",
-                    category_name="Innskudd ikke postert - inkludert i kontoutskrift",
-                    transactions=[],
-                    total_beløp=0.0
-                ),
-            ],
-            
-            # Summary
-            saldo_i_go=125200.25,
-            korreksjoner_total=-22250.00,  # -57500 + 35250
-            saldo_etter_korreksjoner=102950.25,  # 125200 - 22250
-            kontoutskrift_saldo=102450.25,  # Actual bank statement
-            differanse=500.00,  # Should be 0 if balanced
-            is_balanced=False,
-            
-            currency="NOK"
+            # Categorize based on status and posted_to_ledger flag
+            if txn.status == TransactionStatus.MATCHED or txn.status == TransactionStatus.REVIEWED:
+                categories_dict["avstemt"]["transactions"].append(cat_txn)
+            elif txn.posted_to_ledger:
+                categories_dict["registrert_begge_steder_ikke_avstemt"]["transactions"].append(cat_txn)
+            else:
+                categories_dict["ikke_registrert_i_go"]["transactions"].append(cat_txn)
+        
+        # Build category list with totals
+        categories = []
+        for cat_data in categories_dict.values():
+            total = sum(t.beløp for t in cat_data["transactions"])
+            categories.append(ReconciliationCategory(
+                category_key=cat_data["key"],
+                category_name=cat_data["name"],
+                transactions=cat_data["transactions"],
+                total_beløp=total
+            ))
+        
+        # Calculate saldo_i_go (ledger balance for this account)
+        gl_sum_stmt = (
+            select(
+                func.sum(GeneralLedgerLine.debit_amount - GeneralLedgerLine.credit_amount)
+            )
+            .join(GeneralLedger, GeneralLedgerLine.general_ledger_id == GeneralLedger.id)
+            .where(
+                GeneralLedger.client_id == client_uuid,
+                GeneralLedgerLine.account_number == account_number,
+                GeneralLedger.status == "posted"
+            )
+        )
+        gl_sum_result = await db.execute(gl_sum_stmt)
+        saldo_i_go = float(gl_sum_result.scalar() or Decimal("0.00"))
+        
+        # Calculate kontoutskrift_saldo (bank statement balance)
+        bank_sum_stmt = select(func.sum(BankTransaction.amount)).where(
+            BankTransaction.client_id == client_uuid,
+            BankTransaction.bank_account == account_number
+        )
+        bank_sum_result = await db.execute(bank_sum_stmt)
+        kontoutskrift_saldo = float(bank_sum_result.scalar() or Decimal("0.00"))
+        
+        # Calculate corrections (categories 1 & 2)
+        korreksjoner_total = sum(
+            cat.total_beløp for cat in categories 
+            if cat.category_key in ["ikke_registrert_i_go", "registrert_i_go_ikke_i_bank"]
         )
         
-        return mock_detail
+        saldo_etter_korreksjoner = saldo_i_go + korreksjoner_total
+        differanse = saldo_etter_korreksjoner - kontoutskrift_saldo
+        is_balanced = abs(differanse) < 0.01
+        
+        return ReconciliationDetail(
+            account_id=account_id,
+            account_number=account_number,
+            account_name=account_name,
+            period_start=period_start,
+            period_end=period_end,
+            categories=categories,
+            saldo_i_go=saldo_i_go,
+            korreksjoner_total=korreksjoner_total,
+            saldo_etter_korreksjoner=saldo_etter_korreksjoner,
+            kontoutskrift_saldo=kontoutskrift_saldo,
+            differanse=differanse,
+            is_balanced=is_balanced,
+            currency="NOK"
+        )
     
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error fetching reconciliation: {str(e)}")

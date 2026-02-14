@@ -1,0 +1,42 @@
+[34m
+========================================[0m
+[34mModule 3 Frontend: Andre Bilag Tests[0m
+[34m========================================
+[0m
+[34mℹ Testing backend API integration...
+[0m
+[32m✓ Test 1: Fetch pending vouchers - Found 4 voucher(s)[0m
+[34mℹ   First item: inventory_adjustment - Inventory Adjustment - unclear description[0m
+[34mℹ   AI Confidence: 35%[0m
+[32m✓ Test 2: Fetch single voucher - ID: a0900caf-d3e0-4c51-9a52-8326b4570b81[0m
+[34mℹ   Type: inventory_adjustment[0m
+[34mℹ   Title: Inventory Adjustment - unclear description[0m
+[34mℹ   Status: pending[0m
+[34mℹ   employee_expense: 3 items[0m
+[34mℹ   inventory_adjustment: 1 items[0m
+[34mℹ   manual_correction: 0 items[0m
+[32m✓ Test 3: Filter by type - Found 4 total items across all types[0m
+[34mℹ   WARNING: This will approve the voucher. Skipping actual approval...[0m
+[33m⊘ Test 4: Approve voucher - Skipped (would modify data)[0m
+[32m✓ Test 5: Get statistics[0m
+[34mℹ   Pending: 0[0m
+[34mℹ   Approved: [object Object][0m
+[34mℹ   Rejected: [object Object][0m
+[0m
+[0m
+[34mℹ Testing frontend implementation...
+[0m
+[32m✓ Test 6: Frontend build exists[0m
+[34mℹ   Build directory: /home/ubuntu/.openclaw/workspace/ai-erp/frontend/.next[0m
+[34mℹ   ✓ Andre bilag page source exists[0m
+[32m✓ Test 7: API client implementation[0m
+[34mℹ   All required functions present[0m
+[34m
+========================================[0m
+[34mTests Complete![0m
+[34m========================================
+[0m
+[33mNext steps:[0m
+[0m1. Start dev server: npm run dev[0m
+[0m2. Navigate to: http://localhost:3002/andre-bilag[0m
+[0m3. Test the UI flows manually[0m
