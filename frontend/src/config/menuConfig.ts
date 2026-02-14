@@ -42,6 +42,13 @@ export const menuConfig: MenuCategory[] = [
         route: '/',
         visibility: 'both',
       },
+    ],
+  },
+  {
+    id: 'innboks',
+    label: 'INNBOKS',
+    color: 'text-success', // Green
+    items: [
       {
         id: 'behandlingsko',
         label: 'Leverandørbilag',
@@ -54,27 +61,6 @@ export const menuConfig: MenuCategory[] = [
         label: 'Andre bilag',
         icon: 'clipboardList',
         route: '/andre-bilag',
-        visibility: 'both',
-      },
-    ],
-  },
-  {
-    id: 'innboks',
-    label: 'INNBOKS',
-    color: 'text-success', // Green
-    items: [
-      {
-        id: 'leverandorfakturaer',
-        label: 'Leverandørfakturaer',
-        icon: 'fileText',
-        route: '/upload',
-        visibility: 'both',
-      },
-      {
-        id: 'kundefakturaer',
-        label: 'Kundefakturaer',
-        icon: 'fileText',
-        route: '/customer-invoices',
         visibility: 'both',
       },
     ],
@@ -379,6 +365,27 @@ export const menuConfig: MenuCategory[] = [
         visibility: 'client',
         disabled: false,
         tooltip: 'Oversikt og kontroll - ingenting forsvinner',
+      },
+    ],
+  },
+  {
+    id: 'arkiv',
+    label: 'ARKIV',
+    color: 'text-muted-foreground', // Gray
+    items: [
+      {
+        id: 'leverandorfakturaer',
+        label: 'Leverandørfakturaer',
+        icon: 'archive',
+        route: '/upload',
+        visibility: 'both',
+      },
+      {
+        id: 'kundefakturaer',
+        label: 'Kundefakturaer',
+        icon: 'archive',
+        route: '/customer-invoices',
+        visibility: 'both',
       },
     ],
   },
